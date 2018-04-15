@@ -1,0 +1,22 @@
+application/vnd.openxmlformats-officedocument.wordprocessingml.document; libreoffice %s; test=test -n "$DISPLAY"
+
+# Open HTML files in lynx
+# text/html; lynx -dump -width=78 -nolist %s | sed 's/^   //'; copiousoutput; needsterminal; nametemplate=%s.html
+
+# Open HTML files in lynx and convert safelinks
+text/html; lynx -dump -width=78  %s | sed "s/\\(.*\\)http.*safelinks\\.protection\\.outlook\\.com.*url=\\([^&]*\\).*/\\1[cleaned safelink] \\2/g" | sed 's/^   //'; copiousoutput; needsterminal; nametemplate=%s.html
+
+# https://q-a-assistant.com/computer-internet-technology/2166982_opening-eml-files-with-mutt.html
+# The following mailcap entry seems to eliminate the necessity of manual saving, running "formail -b", and changing to the mailbox. These three steps are reduced to pushing <enter> on the message/rfc822 attachment in the attach view:
+message/rfc822; formail -b < %s > %s.mbox && mutt -f '%s.mbox'; needsterminal
+
+
+# == PDF Files ==
+# convert to text to view. Save if you want the pdf
+application/pdf;        pdftotext -layout -nopgbrk  %s - | less
+application/postscript; pdftotext -layout -nopgbrk  %s - | less
+application/rtf         pdftotext -layout -nopgbrk  %s - | less
+
+
+# == Import PGP keys ==
+application/pgp-keys; gpg --import < %s ; copiousoutput

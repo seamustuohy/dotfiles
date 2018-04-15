@@ -1,0 +1,67 @@
+# #+TITLE: gitconfig
+# #+AUTHOR: seamus tuohy
+# #+EMAIL: code@seamustuohy.com
+# #+DATE: 2015 Apr 18
+# #+TAGS: git  commandline
+
+
+[core]
+        editor = emacs
+
+[push]
+        default = current
+
+[user]
+        name = seamus tuohy
+        email = code@seamustuohy.com
+
+[grep]
+        extendedRegexp = true
+        lineNumber = true
+
+[diff]
+        # Use more time to create better diffs. E.g. matching opening/closing braces
+        # from neighbour functions.
+        algorithm = patience
+
+        # Tells Git to detect renames. If set to "true", it will enable basic
+        # rename detection. If set to "copies", it will detect copies, as well.
+        renames = copies
+
+[alias]
+        lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+        pdiff = diff --ignore-space-at-eol -b -w
+        churn = !sh -c 'git-churn'
+        contrib = !sh -c 'git-contributor $1 $2' -
+        merge = merge --no-ff
+        lasttag = !sh -c 'git describe --tags $(git rev-list --tags --max-count=1)'
+
+        # Show the staged changes.
+        dc = diff --cached
+
+        # overwritten = !sh -c '~/.bin/git-overwritten $1 $2 $3 ' -
+
+[alias]
+        churn = !sh -c 'git-churn'
+
+[color]
+        ui = auto
+        status = true
+
+# https://groups.google.com/forum/#!topic/binary-transparency/f-BI4o8HZW0/discussion
+# for $deity's sake, check that anything we're getting is complete and sane on a regular basis
+# It seems git's default behavior in many situations is -- despite communicating objectID by
+# content-addressable hashes which should be sufficient to assure some integrity -- it may not actually bother to *check* them.
+# Yes, even when receiving objects from other repos.
+# So, enabling these configuration parameters may "slow down" your git operations.
+# (Anecdotally, I'd say "no it bloody won't"; I've had them on for months now and pretty much forget they were there.)
+# The return is actually noticing if someone ships you a bogus object.  Everyone should enable these.
+[transfer]
+        fsckobjects = true
+[fetch]
+        fsckobjects = true
+[receive]
+        fsckObjects = true
+
+#[commit]
+        #template=~/.dotfiles/git/template

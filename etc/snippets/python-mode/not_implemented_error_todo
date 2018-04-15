@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: rnie
+# key: rnie
+# --
+raise NotImplementedError("TODO")

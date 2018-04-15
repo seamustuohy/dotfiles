@@ -1,0 +1,629 @@
+#!/usr/bin/env bash
+# Helpers
+
+source_as_root() {
+    # source_as_root <script name> <function in script to run>
+    # e.g. source_as_root ~/bin/my_scripts.sh function_name
+    #
+    # WARNING: This will source the file and run it with sudo
+    # Only run this on scripts that only define functions
+    local wifi_source=$(readlink -f $1)
+    sudo /bin/bash -c "source ${wifi_source}; $2"
+}
+
+# Diagnostics
+
+# Show the TCP and UDP ports being listened on with the process associated, user, etc.
+
+alias lport="sudo netstat -lepunt"
+
+
+# ...fix empty...
+
+
+# View HTTP traffic
+
+#alias sniff="sudo ngrep -d 'en1' -t '^(GET|POST) ' 'tcp and port 80'"
+#alias httpdump="sudo tcpdump -i en1 -n -s 0 -w - | grep -a -o -E \"Host\: .*|GET \/.*\""
+
+# Simple Servers
+
+# run simple python server from directory
+
+
+alias simpleServer="python -m SimpleHTTPServer"
+
+
+# ...fix empty...
+
+# Use simple python server to view jekyll site from _all directory. Useful for when you use SVG's as much as I do.
+
+alias jserver="cd ..; jekyll --no-server; cd _site; simpleServer"
+
+# Connecting to other devices
+# OpenWRT easy ssh and scp node Alias's
+
+alias oscp='scp -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no"'
+alias ossh='ssh -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no"'
+
+# Screen into BeagleBone Black with a console cable
+
+alias bbscreen="sudo screen /dev/ttyUSB0 115200"
+
+# WiFi AccessPoint Commands
+
+alias you_dont_know_me="source_as_root ~/dotfiles/bin/wifi_management.sh reset_wifi_with_changed_mac"
+alias new_wireless_mac=="source_as_root ~/dotfiles/bin/wifi_management.sh reset_wifi_with_changed_mac"
+alias not_the_droids=="source_as_root ~/dotfiles/bin/wifi_management.sh reset_wifi_with_changed_mac"
+
+
+# Get Current WiFi PSK Key
+get_current_wifi_psk_key() {
+    c='cut -d: -f2';
+    g=grep;
+    a=$(nmcli -t -f ACTIVE,SSID d w l|$g -E "^yes:"|$c);
+    p=$(nmcli -s -t c show $a|$g psk:|$c);
+    python3 -c "from hashlib import pbkdf2_hmac as p; from binascii import hexlify as h;print('PSK',h(p('sha1', b'$p', b'$a', 4096, dklen=32)).decode('ascii'))"
+}
+
+# Scraping
+
+
+alias listserv='time ~/.bin/get_listserv'
+
+
+# ...fix empty...
+
+
+
+get_site_links() {
+    local SITE=${1}
+    wget -w 1 --no-check-certificate --spider -r ${SITE} 2>&1 | grep '^--' | awk '{ print $3 }' | grep -v '\.\(css\|js\|png\|gif\|jpg\|JPG\)$' > urls.txt
+}
+
+get_song_from_youtube() {
+      local SITE=${1}
+      local LOCATION=$(pwd)
+      cd ~/Music
+      youtube-dl --audio-format mp3 -x ${SITE}
+      cd ${LOCATION}
+  }
+alias getsong=get_song_from_youtube
+
+# Terminal and Navigation
+# Alias' for easier navigation
+
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias cd=cd_func
+
+
+
+# cd function for providing easy movement and history.
+
+
+cd_func ()
+{
+  local x2 the_new_dir adir index
+  local -i cnt
+
+  if [[ $1 ==  "--" ]]; then
+    dirs -v
+    return 0
+  fi
+
+  the_new_dir=$1
+  [[ -z $1 ]] && the_new_dir=$HOME
+
+  if [[ ${the_new_dir:0:1} == '-' ]]; then
+    #
+    # Extract dir N from dirs
+    index=${the_new_dir:1}
+    [[ -z $index ]] && index=1
+    adir=$(dirs +$index)
+    [[ -z $adir ]] && return 1
+    the_new_dir=$adir
+  fi
+
+  # '~' has to be substituted by ${HOME}
+  [[ ${the_new_dir:0:1} == '~' ]] && the_new_dir="${HOME}${the_new_dir:1}"
+
+  # Now change to the new dir and add to the top of the stack
+  pushd "${the_new_dir}" > /dev/null
+  [[ $? -ne 0 ]] && return 1
+  the_new_dir=$(pwd)
+
+  # Trim down everything beyond 11th entry
+  popd -n +11 2>/dev/null 1>/dev/null
+
+  # Remove any other occurence of this dir, skipping the top of the stack
+  for ((cnt=1; cnt <= 10; cnt++)); do
+    x2=$(dirs +${cnt} 2>/dev/null)
+    [[ $? -ne 0 ]] && return 0
+    [[ ${x2:0:1} == '~' ]] && x2="${HOME}${x2:1}"
+    if [[ "${x2}" == "${the_new_dir}" ]]; then
+      popd -n +$cnt 2>/dev/null 1>/dev/null
+      cnt=cnt-1
+    fi
+  done
+
+  return 0
+}
+
+# Colorize Terminal
+# Colorize Logs
+
+if [ -f "/usr/bin/ccze" ]; then
+    lesslog() { ccze -A < $1 | less -R; }
+    taillog() { tail -f $1 | ccze -A; }
+fi
+
+
+
+# Colorize Less
+
+
+alias lesc='LESS="-R" LESSOPEN="|pygmentize -g %s" less'
+
+# Pranks & Misc
+
+
+alias rainbow='for i in {1..665535};do printf "%x\n" $i;done|while read -r u;do printf "\033[38;5;$((16+$((16#$u))%230))m\u$u\033[0m";done'
+
+
+# ...fix empty...
+
+
+whitenoise() { aplay -c 2 -f S16_LE -r 44100 /dev/urandom ;}
+
+
+# ...fix empty...
+
+
+# This is just a stub that can be modified to work better
+# with different photos
+annotate() {
+    # annotate [image_name] "[annotation]"
+    # produces text_[image_name] file
+    # ONLY use this in the same directory as the image.
+
+    local image_name=$1
+    local annotation=$2
+
+    # North, South, East, West
+    # NorthEast, SouthWest, Etc.
+    local gravity="East"
+    # Font Selection
+    # See all with following command
+    # convert -list font | grep "Font:"
+    local font="Droid-Sans"
+    local pointsize=25
+    # Fold the text at a certain char
+    # change this to make the text wrap
+    local foldchar=15
+    # This makes it only fold on spaces
+    local spacefold="-s"
+    # This would make it not fold.
+    # local spacefold=""
+
+    convert -gravity $gravity \
+            -weight 800 \
+            -font $font -pointsize $pointsize \
+            -annotate +20+20 "$(fold -w ${foldchar} ${spacefold} <<< "${annotation}")" \
+            "$image_name" text_"$image_name"
+}
+
+# mkproj
+# Creates a directory structure for a possible new project
+
+make_project() {
+    mkdir $1
+    cd $1
+    mkdir proposals
+    mkdir agreement
+    mkdir reports
+    mkdir correspondence
+    mkdir procurement
+    mkdir travel
+    mkdir workplans
+    mkdir monitoring_and_evaluation
+    mkdir outreach_comms
+    mkdir meetings
+    mkdir budgets
+    mkdir outputs
+    touch .projectile
+    touch tasks.org
+    cd ../
+}
+alias mkproj=make_project
+
+# Whiteboard Cleaning
+
+# white-board-cleaner () {
+#     wbtempdir=$(mktemp -d "${TMPDIR:-/tmp/}$(basename 0).XXXXXXXXXXXX")
+#     convert "$1" -morphology Convolve DoG:15,100,0 -negate -normalize -blur 0x1 -channel RBG -level 60%,91%,0.1 "${wbtempdir}/wb_image.png" ;
+
+#     ./autotrace \
+#         --dpi 1024 \
+#         --line-threshold 0.1 \
+#         --color-count 16 \
+#         --corner-always-threshold 60 \
+#         --line-reversion-threshold 0.1 \
+#         --width-weight-factor 0.1 \
+#         --despeckle-level 10 \
+#         --despeckle-tightness 5 \
+#         --preserve-width \
+#         --remove-adjacent-corners \
+#         --output-format svg \
+#         --output-file $2 \
+#         "${wbtempdir}/wb_image.png"
+# }
+# trap "rm -rf $wbtempdir" EXIT
+
+white-board-cleaner () {
+    convert "$1" -morphology Convolve DoG:15,100,0 -negate -normalize -blur 0x1 -channel RBG -level 60%,91%,0.1 "$2" ;
+}
+
+# Coding
+
+# Alias git
+
+alias g=git
+
+# Git Go!
+# Run a git command in another directory
+# gg /path/to/repo [git command]
+function gg() {
+   local _gg="$1";
+   shift;
+   git --git-dir="${_gg}/.git" --work-tree="${_gg}" "$@"
+}
+
+
+# ...fix empty...
+
+# URL-encode strings
+
+alias urlencode='python -c "import sys, urllib as ul; print ul.quote_plus(sys.argv[1]);"'
+
+# i3
+
+
+i3-rename() {
+  local WORKSPACE=$(i3-msg -t get_workspaces | jq -r '.[] | select(.focused==true).name')
+  i3-msg rename workspace "${WORKSPACE}" to "${1}"
+}
+
+alias i3r=i3-rename
+
+# Installed
+# find installed files (good for grepping for dependencies. "installed |grep DEPEN")
+alias installed_find='dpkg --get-selections | grep -v deinstall'
+alias installed=installed_find
+
+installed_check() {
+    PKG_NAME="$1"
+    is_installed=$(dpkg-query -W --showformat='${Status}\n' "${PKG_NAME}" 2>/dev/null | grep "install ok installed") || true
+    if [[ $is_installed == "install ok installed" ]]; then
+        (>&2 echo "Package installed")
+        return 0
+    else
+        (>&2 echo "Package not found")
+        return 1
+    fi
+}
+
+# Alert
+# Add an "alert" alias for long running commands.  Use like so: sleep 10; alert
+
+alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
+
+# Hide mistaken history commands
+# # Hide the previous command you just ran and forgot to use space.
+
+alias hideprev='history -d $((HISTCMD-2)) && history -d $((HISTCMD-1))'
+
+# Un-delete File
+
+
+undel_func(){
+        echo "Searching for deleted file with string $1"
+        # *"Attempt"* to recover an accidentally removed file.
+        sudo fgrep --binary-files=text -C 2000 "$1" /dev/sda > recovereddata.out
+}
+
+
+# ...fix empty...
+
+
+alias undelete=undel_func
+
+
+# ...fix empty...
+
+
+undel_media() {
+    #sudo foremost -i /dev/sdd1 -o ~/temp/media
+    sudo foremost -i $1 -o $2
+    sudo chown -R s2e $2
+    cd $2/mp4
+    # Repair all mp4's found
+    find . |grep xargs -I % ffmpg -i % -o %.new.mp4
+    # TODO - Run repair function on all media
+}
+
+# DD-Status
+
+# Get the status of a currently running dd process
+# Use in a terminal NOT running the current dd!
+# Usage: ddstat
+
+
+#alias ddstat="sudo kill -USR1 `pgrep -l '^dd$' | cut -f 1 -d \" \"`"
+alias ddstat="sudo progress -m"
+
+# Burn USB with alert
+
+
+burnusb() {
+        sudo dd if=$1 of=$2 bs=4M conv=sync
+        sync
+        ding
+        notify-send -u critical 'burnusb' 'done'
+}
+
+# Extract a compressed file
+
+extract() {
+        if [ -f $1 ] ; then
+                case $1 in
+                        *.tar.bz2) tar xvjf $1 ;;
+                        *.tar.gz) tar xvzf $1 ;;
+                        *.tar.xz) tar xvJf $1 ;;
+                        *.xz) unxz -v $1 ;;
+                        *.bz2) bunzip2 $1 ;;
+                        *.rar) unrar x $1 ;;
+                        *.gz) gunzip $1 ;;
+                        *.tar) tar xvf $1 ;;
+                        *.tbz2) tar xvjf $1 ;;
+                        *.tgz) tar xvzf $1 ;;
+                        *.zip) unzip $1 ;;
+                        *.Z) uncompress $1;;
+                        *.7z) 7z x $1 ;;
+                        *) echo "'$1' cannot be extracted via >extract<" ;;
+                esac
+        else
+                echo "'$1' is not a valid file"
+        fi
+}
+
+# Grab a compressed file from online and uncompress it
+
+curltar() {
+        case $1 in
+                *.tar.bz2) \curl -kL $1 | tar xvjf - ;;
+                *.tar.gz) \curl -kL $1 | tar xvzf - ;;
+                *.bz2) \curl -kL $1 | bunzip2 - ;;
+                *.rar) \curl -kL $1 | unrar x - ;;
+                *.gz) \curl -kL $1 | gunzip - ;;
+                *.tar) \curl -kL $1 | tar xvf - ;;
+                *.tbz2) \curl -kL $1 | tar xvjf - ;;
+                *.tgz) \curl -kL $1 | tar xvzf - ;;
+                *.zip) \curl -kL $1 | unzip - ;;
+                *.Z) \curl -kL $1 | uncompress - ;;
+                *.7z) \curl -kL $1 | 7z x - ;;
+                *) \curl -kLO $1
+        esac
+}
+
+# Git Branch Parsing
+
+function parse_git_branch() {
+    git branch --no-color 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1) /'
+}
+
+# Git purge file
+# Use filter-branch to remove an unwanted file/directory from a repo's git revision history.
+
+
+git_purge() {
+git filter-branch --prune-empty --index-filter "git rm -rf --cached --ignore-unmatch ${1}" --tag-name-filter cat -- --all
+}
+
+git_fpurge() {
+git filter-branch -f --prune-empty --index-filter "git rm -rf --cached --ignore-unmatch ${1}" --tag-name-filter cat -- --all
+}
+
+# GPG
+# GPG find who a file is encryped to
+
+gpg-encrypted-to () {
+    gpg --batch --list-packets "$1"
+}
+
+gpg-unlock-key() {
+    echo "TEST" | gpg -ear "$1" | gpg -d
+}
+
+# Crontab
+
+
+crontab_add() {
+    (crontab -l ; echo "$1") 2>&1 \
+        | grep -v "no crontab" \
+        | sort | uniq \
+        | crontab -
+}
+
+crontab_delete() {
+    (crontab -l ; echo "$1") 2>&1 \
+        | grep -v "no crontab" \
+        | grep -v $1 \
+        |  sort | uniq \
+        | crontab -
+}
+
+# Find item in a Bash config file
+
+
+# Look for relevant string in bash config files when things go weird
+# $ grep_bash PATH
+grep_bash(){
+  for f in  ~/.bashrc ~/.profile ~/.bash_profile ~/.bash_login \
+            /etc/profile /etc/environment /etc/bash.bashrc;
+  do
+    [ -e $f ] && grep -H "$@" $f;
+  done
+}
+
+# Latex
+
+inkscape2latex() {
+    inkscape -D -z --file=${1}.svg --export-pdf=${1}.pdf --export-latex
+}
+
+# Identify what process (including its children) is eating up all my memory
+
+alias psmem="sudo python ~/dotfiles/bin/ps_mem.py"
+
+# Identify the top 10 processes eating up my CPU
+alias whocpu="ps -eo pcpu,pid,user,args | sort -k 1 -r | head -10"
+
+# github stats
+
+gitstats() {
+    local user="$1"
+  python ~/dotfiles/bin/github_traffic.py --log --user "${user}" --write ~/temp/github
+}
+
+curl_w_resume() {
+    # From the following one liner
+    # export ec=18; while [ $ec -eq 18 ]; do /usr/bin/curl -O -C - "http://..........zip"; export ec=$?; done
+    local url="${1}"
+    local ec=18;
+    while [ $ec -eq 18 ]; do
+        curl -O -C - "${url}";
+        ec=$?;
+    done
+}
+
+
+# Nuke All Metadata
+
+nuke_all_metadata() {
+    while true; do
+        echo "This will erase the metadata from all files with extensions found in this folder."
+        read -p "Do you really want to run this script? [y/n]" yn
+        case $yn in
+            [Yy]* ) local NUKEIT="true"; break;;
+            [Nn]* ) local NUKEIT="NO";  break;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
+    if [[ "${NUKEIT}" == "true" ]]; then
+        for i in *.*;
+        do echo "Nuking metadata for $i";
+           exiftool -all= "$i";
+        done
+    fi
+}
+
+# === Time Warrior Aliases ===
+
+# What I Do?
+# From https://github.com/drewstinnett/dotfiles/blob/master/.zshrc
+alias whatd_i_do_last_week="task end.after:today-1wk completed rc.detection:off rc.defaultwidth:184"
+alias whatd_i_do_last_month="task end.after:today-5wk completed rc.detection:off rc.defaultwidth:184"
+alias whatd_i_do_last_day="task end.after:today-1d completed rc.detection:off rc.defaultwidth:184"
+
+
+## Reverse Engineering and Security Snippets
+
+
+msg2eml() {
+    # Convert a .msg email to a .eml email
+    # sudo apt-get install libemail-outlook-message-perl libemail-localdelivery-perl
+    local MSG_FILE="${1}"
+    local EML_FILE="${2}"
+    ~/tools/msg2eml/msgconvert.pl --verbose --mbox "${EML_FILE}" "${MSG_FILE}"
+}
+
+read_email() {
+    # Take a .eml email and open it up in mutt
+    # sudo apt-get install mutt procmail
+    local curdir=$(pwd)
+    local tmpdir
+    tmpdir=$(mktemp -dt "$(basename "$0").XXXXX")
+    local eml_name
+    eml_name=$(basename "$0")
+    cp -f "$1" "${tmpdir}/${eml_name}"
+    cd "${tmpdir}"
+    formail -b < "${eml_name}" > "${eml_name}.mbox"
+    neomutt -F '' -f "${eml_name}.mbox"
+    cd "${curdir}"
+    echo "Files Can be found in ${tmpdir}"
+}
+
+decode_qr() {
+    # decode a QR code from an image
+    # sudo apt-get install zbar-tools
+    zbarimg "${1}"
+}
+
+apk_certificate() {
+    keytool -list -printcert -jarfile "${1}"
+}
+
+apk_verify_signature() {
+    jarsigner -verify -verbose:summary -certs "${1}"
+}
+
+search_dir_for_urls() {
+    grep -r --only-matching --perl-regexp "http(s?):\/\/[^ \"\(\)\<\>]*" "${1}"
+}
+
+
+## Tor Support
+
+tmutt() {
+    # This really only is in place to remove the "Received: from" IP address leakage problem.
+    # Not expecting it does more than that
+    # See: tor wiki for info about how difficult this problem is.
+    torify neomutt "$@"
+}
+
+alias mutt="neomutt"
+
+# tor_wget() {
+#     wget -e use_proxy=on -e http_proxy=http://localhost:8118 "$@"
+# }
+
+
+# tor_curl() {
+#     local url="${1}"
+#     local UA="${2}"
+#     local LANG="${3}"
+#     local ACCEPT="${4}"
+#     local DNT="${5}"
+
+#     if [ -z "${UA}" ]; then
+#         local UA="Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0"
+#     fi
+
+#     if [ -z "${LANG}" ]; then
+#         local LANG='Accept-Language: en-US,en;q=0.5'
+#     fi
+
+#     if [ -z "${ACCEPT}" ]; then
+#         local ACCEPT='Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+#     fi
+
+#     if [ -z "${DNT}" ]; then
+#         local DNT='DNT: 1'
+#     fi
+
+#     curl --proxy "socks5h://localhost:9150" -L --1.1 --compressed --user-agent "${UA}" -H "${LANG}" -H "${ACCEPT}" -H "${DNT}" "${url}"
+# }

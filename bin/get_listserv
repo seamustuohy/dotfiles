@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+# Setup
+
+# Bash should terminate in case a command or chain of command finishes with a non-zero exit status.
+# Terminate the script in case an uninitialized variable is accessed.
+# See: https://github.com/azet/community_bash_style_guide#style-conventions
+
+set -u
+
+# Global Vars
+
+readonly banner="Mailman Listserv Scraper"
+readonly tmpdir=$(mktemp -dt "$(basename ${0}).XXXXX")
+readonly dest_dir=$(pwd)
+
+# Functions
+# Create some help text.
+
+help() {
+printf "Usage: listserv <URL> <TYPE>\n\n Options: \n\t URL\tThe url of the main mailman url archive.\n\tTYPE\t[ txt | gz ] gz will download and unpack gzip bundled archives. Text will do the same for plain text archives."
+}
+
+scrape() {
+    wget --no-directories  --no-check-certificate --accept=."$2" -r -l1 "$1"
+}
+
+decompress() {
+    if [[ "$1" ==  "gz" ]]; then
+        for file in *.gz ; do gzip -d $file; done
+    fi
+}
+
+merge() {
+    for file in *.txt; do cat $file >> archive; done
+    mv archive "${dest_dir}"
+}
+
+# Cleanup
+
+fail() {
+    printf "%s ERROR: $s." "${banner}" "${1}" >&2
+    [[ ${2+defined} && ${3+defined} && ${4+defined} ]] && \
+        printf "%s- %s, file: %s, line number: %s, exit code: %s. \n EXITING!" "${banner}" "${2}" "${3}" "${4}"
+    help
+}
+
+trap 'fail "caught signal" "${FILENAME}" "${LINENO}"' ERR
+
+# Main
+
+main() {
+    cd "${tmpdir}"
+    scrape "$1" "$2"
+    decompress "$2"
+    merge
+    echo "You spent ↓ ammount of time scraping that poor listservs site"
+}
+main "$1" "$2"

@@ -1,0 +1,99 @@
+{
+    "sections":[
+        {"name":"Creating A New Keypair",
+         "subsection":[
+             {"name":"",
+              "items": [
+                  {"command":"gpg --gen-key","description":"Prompts for information and then creates an appropriate keypair"}
+              ]}]},
+        {"name":"Importing, Exporting, and Refreshing Keys",
+         "subsection":[
+             {"name":"Importing",
+              "items": [
+                  {"command":"gpg --import File","description":"Imports a key contained in File to the appropriate keyring"},
+                  {"command":"gpg –recv-keys KeyID1 KeyID2","description":"Receives the key which corresponds to KeyID1, KeyID2, etc from the provided keyserver"},
+                  {"command":"gpg --search-keys Term1 Term2","description":"Searches for keys which contain Term1 and Term2, etc and provides an interactive interface to choose the correct key to import to the appropriate keyring"}]},
+             {"name":"Exporting",
+              "items": [
+                  {"command":"gpg --export -a KEYID &gt; publickey.asc","description":"Output a public key to a plain text file"},
+                  {"command":"gpg --send-keys KeyID","description":"Upload a public key to a keyserver"}
+              ]},
+             {"name":"Refreshing",
+              "items": [
+                  {"command":"gpg --refresh-keys","description":"Check to see if your version of a key is out of date. If so update it."}
+              ]}]},
+        {"name":"Printing Key Information",
+         "subsection":[
+             {"name":"",
+              "items": [
+                  {"command":"gpg --list-keys","description":"Print a list of all of the keys in your public keyring"},
+                  {"command":"gpg --list-keys UniqueID","description":"Print all keys matching UniqueID"},
+                  {"command":"gpg --list-sigs","description":"Print a list of all keys in your public keyring and their associated signatures"},
+                  {"command":"gpg --list-sigs UniqueID","description":"Print a list of all keys and their associated signatures matching UniqueID"},
+                  {"command":"gpg --fingerprint","description":"Print a list of all keys in your public keyring and their associated fingerprints"},
+                  {"command":"gpg --fingerprint UniqueID","description":"Print a list of all keys and their associated signatures matching UniqueID"}
+              ]}]},
+        {"name":"Signing a Key",
+         "subsection":[
+             {"name":"",
+              "items": [
+                  {"command":"gpg --fingerprint UniqueID","description":"Check the local key fingerprint against the reported fingerprint"},
+                  {"command":"gpg --sign-key UniqueID","description":"If the fingerprints match sign the key with your private key"}
+              ]}]},
+        {"name":"Encrypting and Signing",
+         "subsection":[
+             {"name":"Encrypting",
+              "items": [
+                  {"command":"gpg -er Recipient File","description":"Produces File.gpg an encrypted version of File, which can be decrypted by Recipient"},
+                  {"command":"echo “Text” | gpg -ear Recipient","description":"Produces an encrypted version of Text which can be decrypted by Recipient and prints the result to the terminal"},
+                  {"command":"echo “Text” | gpg -ear Recipient &gt; OutFile","description":"Produces an encrypted version of Text which can be decrypted by Recipient and writes the result to OutFile"},
+                  {"command":"cat InFile | gpg -ear Recipient","description":"Produces an encrypted version of the text contained in InFile which can be decrypted by Recipient and prints the result to the terminal"},
+                  {"command":"cat InFile | gpg -ear Recipient &gt; OutFile","description":"Produces an encrypted version of the text contained in InFile which can be decrypted by Recipient and writes the result to OutFile"}
+              ]},
+             {"name":"Signing",
+              "items": [
+                  {"command":"gpg -s File","description":"Produces File.gpg, a signed version of File, which can be verified"},
+                  {"command":"echo “Text” | gpg -as","description":"Produces a signed version of Text and prints the result to the terminal"},
+                  {"command":"echo “Text” | gpg -s &gt; OutFile","description":"Produces a signed version of Text and writes the result to OutFile"},
+                  {"command":"cat InFile | gpg -as","description":"Produces a signed version of the text in InFile and prints the result to the terminal"},
+                  {"command":"cat InFile | gpg -s &gt; OutFile","description":"Produces a signed version of the text in InFile and writes the result to OutFile"},
+                  {"command":"gpg --detach-sign File","description":"Produces a separate signature, File.sig, which can be used to verify File"},
+                  {"command":"echo “Text” | gpg --clearsign","description":"&nbsp;"},
+                  {"command":"cat InFile | gpg --clearsign","description":"&nbsp;"}
+              ]}]},
+        {"name":"Encrypting and Signing",
+         "subsection":[
+             {"name":"",
+              "items": [
+                  {"command":"gpg -esr Recipient File","description":"Produces File.gpg, an encrypted and signed version of File, which can be decrypted and verified by Recipient"},
+                  {"command":"echo “Text” | gpg -esar Recipient File","description":"Produces an encrypted and signed version of Text which can be decrypted and verified by Recipient and prints the result to the terminal"},
+                  {"command":"echo “Text” | gpg -esar Recipient File &gt; OutFile","description":"Produces an encrypted and signed version of Text which can be decrypted and verified by Recipient and writes the result to OutFile"},
+                  {"command":"cat InFile | gpg -esar Recipient","description":"Produces an encrypted and signed version of the text in InFile which can be decrypted and verified by Recipient and prints the result to the terminal"},
+                  {"command":"cat InFile | gpg -esar Recipient &gt; OutFile","description":"Produces an encrypted and signed version of the text in InFile which can be decrypted and verified by Recipient and prints the result to the terminal"}
+              ]}]},
+        {"name":"Decrypting and Verifying",
+         "subsection":[
+             {"name":"",
+              "items": [
+                  {"command":"gpg -d InFile &gt; OutFile","description":"Decrypt and/or verify File"},
+                  {"command":"echo “Cipher Text” | gpg -d","description":"Decrypt and/or verify Cipher Text"},
+                  {"command":"echo “Cipher Text” | gpg -d &gt; OutFile","description":"Decrypt and/or verify Cipher Text and write the result to OutFile"},
+                  {"command":"cat InFile | gpg -d","description":"Decrypt and/or verify the contents of File"},
+                  {"command":"cat InFile | gpg -d &gt; OutFile","description":"Decrypt and/or verify the contents of File and write the result to OutFile"}
+              ]}]},
+        {"name":"Symmetric Encryption",
+         "subsection":[
+             {"name":"",
+              "items": [
+                  {"command":"gpg -c File","description":"Create a file symmetrically encrypted with a passphrase"},
+                  {"command":"gpg -ca File","description":"Create a file symmetrically encrypted with a passphrase readable as plain text"},
+                  {"command":"echo “Text” | gpg -ca","description":"Symmetrically encrypt Test with a passphrase and output the result to the terminal"},
+                  {"command":"echo “Text” | gpg -c &gt; OutFile","description":"Symmetrically encrypt Test with a passphrase and write the result to OutFile"},
+                  {"command":"cat InFile | gpg -ca","description":"Symmetrically encrypt the text in InFile and output the result to the terminal"},
+                  {"command":"cat InFile | gpg -c &gt; OutFile","description":"Symmetrically encrypt the text in InFile and write the result to OutFile"}
+              ]
+             }
+         ]
+        }
+    ]
+}

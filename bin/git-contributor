@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+# #+TITLE: Contributor
+# #+AUTHOR: seamus tuohy
+# #+EMAIL: code@seamustuohy.com
+# #+DATE: <2015-04-28 Tue>
+# #+TAGS: commandline git bash
+
+
+# Show who is the main contributor for a repo or file.
+# defaults to six months in the past
+# Usage: contributor <FILE> <Months in the past>
+
+default=6
+FILE=$1
+MONTHS=${2:-$default}
+
+git log --format='%an' --since="$MONTHS months ago" $FILE | \
+    sort | uniq -c | sort -rn | head

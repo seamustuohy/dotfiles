@@ -1,0 +1,21 @@
+# -*- mode: snippet -*-
+# name: intro
+# key: intro
+# group: general
+# contributor: seamus tuohy
+# --
+
+Hi All,
+
+I've spoken with all of you about each other, so I'll keep the introductions brief.
+
+${1:person one}, ${2:person two} ${3:what do they do} and ${4:has a shared interest}
+
+$2, $1 ${5:what do they do} and ${6:has a shared interest}
+
+${6:this is the reason you should meet}
+
+No need to copy me on future messages - but happy to be helpful if I can.
+
+Best,
+s2e
