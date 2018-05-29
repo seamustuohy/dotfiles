@@ -1,0 +1,137 @@
+###########################################################################
+## Account Info
+###########################################################################
+
+set user_agent=no                       # Do not send user-agent header
+set use_domain=yes                      # qualify local addresses
+                                        # with $hostname (which should be
+                                        # set on a per-mailbox basis)
+
+###########################################################################
+## CONNECTION INFORMATION
+###########################################################################
+
+## Caches
+## If an account does not have sensitive information
+# set header_cache="~/.mutt/cache/headers"
+# set message_cachedir="~/.mutt/cache/bodies"
+
+
+# Outgoing
+set realname="XXXXXXXXXXXXX"
+set from="XXXXXXX <XXXXXXXXX@XXXXX.XXXX>"
+set imap_user="XXXXXXXXX@XXXXX.XXXX"
+my_hdr From: "XXXXXXX <XXXXXXXXX@XXXXX.XXXX>"
+my_hdr Reply-To: "XXXXXXX <XXXXXXXXX@XXXXX.XXXX>"
+set hostname="XXXXX.XXXX"
+
+## Manually set envelope address:
+## $envelope_from is required in order to use an address recognized by
+## the real smtp server not the local one (ie, not my computer).
+set envelope_from_address="XXXXXXX <XXXXXXXXX@XXXXX.XXXX>"
+set use_envelope_from=yes
+
+set smtp_url="XXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+set smtp_authenticators="XXXXXXXXXXXXXXXXXXX"
+
+# SSL hardening
+set ssl_force_tls=XXX
+set ssl_starttls=XXX
+set ssl_use_sslv2=XXX
+set ssl_use_sslv3=XXX
+set ssl_use_tlsv1=XXX
+set ssl_use_tlsv1_1=XXX
+set ssl_use_tlsv1_2=XXX
+set ssl_verify_dates=XXX
+set ssl_verify_host=XXX
+
+set ssl_starttls=yes
+set ssl_force_tls = yes
+
+
+# Incoming
+set folder="XXXXXXXXXXXXXXXXXXXXXXXXX"
+set mbox="XXXXXXXXX"
+set postponed="XXXXXXXXX"
+set spoolfile="XXXXXXXXX"
+set record="XXXXXXXXX"
+set trash="XXXXXXXXX"
+set imap_check_subscribed
+unset imap_passive
+
+## Signature
+set signature="gpg -d ~/private/mutt_accounts/EXAMPLE/signature.gpg |" # source encrypted signature
+set sig_dashes=yes
+set sig_on_top=yes              # Put my signature before quoted text
+
+
+###########################################################################
+## Certificates
+###########################################################################
+
+# On some configurations this option is not recognised. It should
+# default to "" anyway. If this is a valid option, uncomment this.
+# unset ssl_ca_certificates_file
+# Don't trust the system.
+unset ssl_usesystemcerts
+set certificate_file="~/.mutt/cache/certificates"
+
+
+###########################
+#
+# SIDEBAR
+#
+###########################
+
+# == Sidebar ==
+set sidebar_visible=yes
+set sidebar_width=30
+set sidebar_short_path                  # Shorten mailbox names
+set sidebar_delim_chars="/"             # Delete everything up to the last / character
+set sleep_time=0                        # don't pause when moving or changing folders
+
+# Enable extended buffy mode to calculate total, new, and flagged
+# message counts for each mailbox.
+set mail_check_stats
+
+# Display the Sidebar mailboxes using this format string.
+set sidebar_format = '%B %* %S'
+
+# Mailboxes
+mailboxes +XXXXXXXXXX \
+          +XXXXXXXXXX \
+          +XXXXXXXXXX\
+          +XXXXXXXXXX \
+          +XXXXXXXXXX \
+          +XXXXXXXXXX \
+          +XXXXXXXXXX \
+          +XXXXXXXXXX \
+          +XXXXXXXXXX \
+          +XXXXXXXXXX \
+          +XXXXXXXXXX
+
+###########################################################################
+## GPG
+###########################################################################
+
+set pgp_sign_as=0xXXXXXXXXXX
+set pgp_self_encrypt_as=0xXXXXXXXXXX
+
+
+###########################################################################
+## Account Specific Headers
+###########################################################################
+
+set user_agent=no                       # Do not send user-agent header
+
+set my_hdr X-GPG-Public-Key-ID: 0xXXXXXXXXXX
+set my_hdr X-GPG-Public-Key-URL: host.domain.tld/XXXXXXXXXX.pub.asc
+
+
+###########################
+#
+# ACCOUNT SPECIFIC HOTKEYS
+#
+###########################
+# macro index a "XXXXXXXXXX"
+# macro index b "XXXXXXXXXX"

@@ -1,0 +1,20 @@
+###########################################################################
+## Bindings
+###########################################################################
+
+# Extract URLs
+  macro index,pager    \Cb "<pipe-message> urlscan<Enter>" "Call urlscan to extract URLs out of a message"
+  macro attach,compose \Cb "<pipe-entry> urlscan<Enter>" "Call urlscan to extract URLs out of a message"
+
+# Sidebar
+bind index,pager \CP sidebar-prev       # Ctrl-Shift-P - Previous Mailbox
+bind index,pager \CN sidebar-next       # Ctrl-Shift-N - Next Mailbox
+bind index,pager \CO sidebar-open       # Ctrl-Shift-O - Open Highlighted Mailbox
+
+#macro index \Cb "\
+#:set my_tmp_pipe_decode=\$pipe_decode\n\
+#:set pipe_decode\n\
+#|urlview\n\
+#:set pipe_decode=\$my_tmp_pipe_decode\n\
+#:unset my_tmp_pipe_decode\n" \
+#'call urlview to extract URLs out of a message'
