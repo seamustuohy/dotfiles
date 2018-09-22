@@ -128,6 +128,7 @@ base() {
             ####################################
             network-manager-gnome \
             curl \
+            dnsutils \
             # Need keyring for network manager
             gnome-keyring \
             ####################################
@@ -138,6 +139,7 @@ base() {
             # Backups
             ####################################
             duplicity \
+            python-boto \
             ####################################
             # Investigation
             ####################################
@@ -180,6 +182,7 @@ base() {
             openvpn \
             stunnel \
             tor \
+            torsocks \
             ####################################
             # General Sec
             ####################################
@@ -192,6 +195,7 @@ base() {
             # Media
             ####################################
             libav-tools \
+            youtube-dl \
             ####################################
             # Getting Debian to be a functional OS
             ####################################
@@ -201,6 +205,7 @@ base() {
             tlp \
             tlp-rdw \
             ack \
+            xclip \
             # libcanberra-gtk-module \
             # libgmime-2.6-dev \
             # libncurses5-dev \
@@ -212,6 +217,9 @@ base() {
             urlview \
             unzip \
             zip \
+            #binwalk \
+            # Checking on status of file transfers
+            progress \
             # System Exploration
             lsof \
             silversearcher-ag \
@@ -343,7 +351,8 @@ build_jfraz_dockerfiles() {
         skype \
         keepassxc \
         nmap \
-        inkscape
+        inkscape \
+        powershell
     )
 
     for repo in "${repos[@]}"; do
@@ -363,28 +372,28 @@ get_dockerfiles() {
 get_other_dockerfiles() {
     # Prep Code
     mkdir -p "$HOME/code"
-
+    # Viper
     install_viper_docker
+    # Thug
     install_thug_docker
+    # Sloppy Archivist
     install_sloppy_archive_docker
-
     # Radare
-    cd "$HOME/code"
-    local R2_SRC="${HOME}/code/radare2"
-    get_git_package "$R2_SRC" https://github.com/radare/radare2.git
-    build_docker_container "$R2_SRC" radare2
-
+    install_radare_docker
     # Harpoon
     install_harpoon_docker
+    # Boxjs (JS based malware
+    install_boxjs_docker
+    # AndroidRe
+    install_android_RE_docker
+}
 
+install_boxjs_docker() {
     # Boxjs (JS based malware
     cd "$HOME/code"
     local B_SRC="${HOME}/code/box-js"
     get_git_package "$B_SRC" https://github.com/CapacitorSet/box-js.git
     build_docker_container "$B_SRC/integrations/docker" box-js
-
-    # AndroidRe
-    install_android_RE_docker
 }
 
 install_sloppy_archive_docker() {
@@ -395,6 +404,15 @@ install_sloppy_archive_docker() {
     build_docker_container "$SA_SRC" sloppy_archivist
 }
 
+install_radare_docker() {
+    # Radare
+    cd "$HOME/code"
+    local R2_SRC="${HOME}/code/radare2"
+    get_git_package "$R2_SRC" https://github.com/radare/radare2.git
+    build_docker_container "$R2_SRC" radare2
+}
+
+
 install_harpoon_docker() {
     # Harpoon
     cd "$HOME/code"
@@ -403,6 +421,23 @@ install_harpoon_docker() {
     # get_git_package "$dockerfunc" https://github.com/seamustuohy/dockerfiles.git
     daily_rebuild_docker_container "$HSRC/harpoon" harpoon
 }
+
+
+install_dcode() {
+    # Dcode
+    cd "$HOME/code"
+    local HSRC="${HOME}/code/dockerfiles"
+    build_docker_container "$HSRC/decode" decode
+}
+
+install_play_docker() {
+    cd "$HOME/code"
+    local HSRC="${HOME}/code/dockerfiles"
+    # TODO upload dockerfiles
+    # get_git_package "$dockerfunc" https://github.com/seamustuohy/dockerfiles.git
+    build_docker_container "$HSRC/play" play
+}
+
 
 install_android_RE_docker() {
     # AndroidRe
@@ -439,15 +474,25 @@ install_viper_docker() {
 # }
 
 install_thug_docker() {
-    # REMnux
     cd "$HOME/code"
-    local RMN_SRC="${HOME}/code/REMnux"
-    get_git_package "$RMN_SRC" https://github.com/REMnux/docker.git
-    # thug
+    local SRC="${HOME}/code/dockerfiles"
+    # TODO upload dockerfiles
+    # get_git_package "$dockerfunc" https://github.com/seamustuohy/dockerfiles.git
     mkdir -p "${HOME}/malware/thug/logs"
     chmod a+xwr "${HOME}/malware/thug/logs"
-    build_docker_container "$RMN_SRC/thug" thug
+    build_docker_container "${SRC}/thug" thug
 }
+
+# install_thug_docker() {
+#     # REMnux
+#     cd "$HOME/code"
+#     local RMN_SRC="${HOME}/code/REMnux"
+#     get_git_package "$RMN_SRC" https://github.com/REMnux/docker.git
+#     # thug
+#     mkdir -p "${HOME}/malware/thug/logs"
+#     chmod a+xwr "${HOME}/malware/thug/logs"
+#     build_docker_container "$RMN_SRC/thug" thug
+# }
 
 # install_maltools_docker() {
 #     # # Malware Tools
@@ -510,7 +555,31 @@ install_virtualbox() {
         --no-install-recommends
 }
 
+install_ansible() {
+    local ansible_source="deb http://ppa.launchpad.net/ansible/ansible/ubuntu trusty main"
+    echo "${ansible_source}" | sudo tee -a /etc/apt/sources.list.d/ansible.list
+    sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 93C4A3FD7BB9C367
+    sudo apt-get update
+    sudo apt-get install ansible
+}
 
+
+install_algo() {
+    echo "Requires Ansible"
+    sudo apt-get install network-manager-strongswan
+    echo "To install Profile do the following"
+    echo "git clone https://github.com/trailofbits/algo.git"
+    echo "cd algo"
+    echo "Either create a new algo server or use existing configs"
+    echo "----- new server ------"
+    echo " docker run --cap-drop ALL -it -v ~/code/algo/configs:/data s2e/algo:latest"
+    echo "docker cp [DOCKER CONTAINER ID]:/algo ~/code/algo/configs"
+    echo "----- use existing configs ------"
+    echo "cp ~/[path]/[to]/[server]/[config] ./configs"
+    echo "Follow Linux Config - (https://github.com/trailofbits/algo/blob/master/docs/client-linux.md)"
+    echo "It will look something like this"
+    echo "ansible-playbook deploy_client.yml -e 'client_ip=localhost vpn_user=XXXXX server_ip=XXX.XXX.XXX.XXX ssh_user=NAN' --ask-become-pass"
+}
 
 install_vagrant() {
         VAGRANT_VERSION=2.0.1
@@ -577,9 +646,18 @@ make_home() {
 
 get_neomutt() {
     #sudo mkdir -p /var/mail/s2e
+    get_neomutt_dependencies
     NEOMUTT_SRC_DIR="${SOURCE_DIR}/neomutt"
     download_neomutt
     rebuild_neomutt_from_source
+}
+
+get_neomutt_dependencies() {
+    local packages=( \
+                     # Required for SMTP authentication
+                     libsasl2-modules \
+    )
+    apt-get install -y "${packages[@]}" --no-install-recommends
 }
 
 download_neomutt() {
@@ -666,7 +744,69 @@ install_emacs() {
     if [[ ! -e "${SNIPPET_DIR}" ]]; then
         ln -snf "${HOME}/dotfiles/etc/snippets" "${SNIPPET_DIR}"
     fi
+
+    sudo update-alternatives --install /usr/bin/editor editor "$(which emacs)" 60
+    sudo update-alternatives --config editor
 }
+
+install_vim() {
+
+    # NeoVim w/ QT
+    sudo apt-get install -y \
+         neovim-qt \
+         --no-install-recommends
+    # Python (:python) support via Debian unstable.
+    pip3 install -U \
+         neovim
+
+    # update alternatives to neovim
+    sudo update-alternatives --install /usr/bin/vi vi "$(which nvim)" 60
+    sudo update-alternatives --config vi
+    sudo update-alternatives --install /usr/bin/vim vim "$(which nvim)" 60
+    sudo update-alternatives --config vim
+}
+
+setup_vim() {
+    # Set XDG Configuration Directory
+    local XDG_CONFIG_HOME="${HOME}/.config"
+    # Package Directory
+    local VIM_PKG_DIR="${HOME}/.vim/bundle"
+    # Sets up symlink for user and root .vimrc for vim and neovim
+    ln -snf "${HOME}/.vim" "${XDG_CONFIG_HOME}/nvim"
+    ln -snf "${HOME}/.vimrc" "${XDG_CONFIG_HOME}/nvim/init.vim"
+
+    # Setup Colors
+    # mkdir -p ~/.vim/colors/
+    # cp "${VIM_PKG_DIR}/vim-colors-solarized/colors/solarized.vim" ~/.vim/colors/solarized.vim
+}
+
+install_vim_plugins() {
+    mkdir -p ~/.vim/bundle
+    local VIM_PKG_DIR="${HOME}/.vim/bundle"
+    get_git_package \
+        "${VIM_PKG_DIR}/vim-better-whitespace" \
+        https://github.com/ntpeters/vim-better-whitespace.git
+    get_git_package \
+        "${VIM_PKG_DIR}/vim-airline" \
+        https://github.com/vim-airline/vim-airline.git
+    get_git_package \
+        "${VIM_PKG_DIR}/vim-airline-themes" \
+        https://github.com/vim-airline/vim-airline-themes
+    get_git_package \
+        "${VIM_PKG_DIR}/vim-colors-solarized" \
+        https://github.com/altercation/vim-colors-solarized.git
+
+    # Setup Pathogen
+    rm -fr /tmp/pathogen
+    get_git_package \
+        "/tmp/pathogen" \
+        https://github.com/tpope/vim-pathogen.git
+
+    mkdir -p ~/.vim/autoload/
+    cp /tmp/pathogen/autoload/pathogen.vim ~/.vim/autoload/pathogen.vim
+
+}
+
 
 # install_emacs() {
 #         # create subshell
@@ -820,6 +960,8 @@ install_wmapps() {
         # Basic File Manager
         ####################################
         nautilus \
+        # nautilus needs eject to eject USB's
+        eject \
         ####################################
         # Sound
         ####################################
@@ -1013,6 +1155,7 @@ first_user_boot() {
     install_wmapps
     get_neomutt
     install_emacs
+    install_vim
     install_chrome
     install_signal
     install_yubikey
@@ -1070,6 +1213,8 @@ main() {
         install_scripts
     elif [[ $cmd == "veracrypt" ]]; then
         install_veracrypt
+    elif [[ $cmd == "ansible" ]]; then
+        install_ansible
     elif [[ $cmd == "vagrant" ]]; then
         check_is_sudo
         install_vagrant "$2"
@@ -1078,7 +1223,9 @@ main() {
     elif [[ $cmd == "viperdocker" ]]; then
         install_viper_docker
 #    elif [[ $cmd == "maltoolsdocker" ]]; then
-#        install_maltools_docker
+        #        install_maltools_docker
+    elif [[ $cmd == "decodedocker" ]]; then
+        install_dcode
     elif [[ $cmd == "harpoon" ]]; then
         install_harpoon_docker
     elif [[ $cmd == "browser" ]]; then
@@ -1095,6 +1242,10 @@ main() {
     elif [[ $cmd == "virtualbox" ]]; then
         check_is_sudo
         install_virtualbox
+    elif [[ $cmd == "vim" ]]; then
+        install_vim
+        install_vim_plugins
+        setup_vim
     elif [[ $cmd == "todo" ]]; then
         get_TODO
     else

@@ -7,17 +7,18 @@
 #==========================
 write_help_header()
 {
-echo "## $1" >> $TMPDIR/README.md
+    echo "\n" >> $TMPDIR/README.md
+    echo "## $1" >> $TMPDIR/README.md
 }
 
 write_help()
 {
-echo "$1" >> $TMPDIR/README.md
+    echo "$1" >> $TMPDIR/README.md
 }
 
 log()
 {
-echo "$(date) : $1" >> $TMPDIR/logfile
+    echo "$(date) : $1" >> $TMPDIR/logfile
 }
 
 #==========================
@@ -341,7 +342,6 @@ echo "Exiting before you use this..."
 exit
 
 main
-
 
 
 #----------------------NOTE--------------------------------------------

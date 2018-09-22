@@ -1,1 +1,19 @@
 __pycache__/
+# == MUTT ==
+# Exclude all
+.mutt/*
+# Only show configs
+!.mutt/mutt*
+
+
+# == PRIVATE EXAMPLES ==
+# Exclude all
+private/*
+# Allow EXAMPLES
+!private/EXAMPLES
+
+# !.mutt/accounts
+# # Exclude all real accounts
+# .mutt/accounts/*
+# !.mutt/accounts/EXAMPLE
+# #!.mutt/accounts/EXAMPLE/account_info

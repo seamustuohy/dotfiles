@@ -289,21 +289,20 @@ function gg() {
 
 alias urlencode='python -c "import sys, urllib as ul; print ul.quote_plus(sys.argv[1]);"'
 
+# Urldecode strings
+alias urldecode='sed "s@+@ @g;s@%@\\\\x@g" | xargs -0 printf "%b"'
+
 # i3
-
-
 i3-rename() {
   local WORKSPACE=$(i3-msg -t get_workspaces | jq -r '.[] | select(.focused==true).name')
   i3-msg rename workspace "${WORKSPACE}" to "${1}"
 }
-
 alias i3r=i3-rename
 
 # Installed
 # find installed files (good for grepping for dependencies. "installed |grep DEPEN")
 alias installed_find='dpkg --get-selections | grep -v deinstall'
 alias installed=installed_find
-
 installed_check() {
     PKG_NAME="$1"
     is_installed=$(dpkg-query -W --showformat='${Status}\n' "${PKG_NAME}" 2>/dev/null | grep "install ok installed") || true
@@ -318,38 +317,31 @@ installed_check() {
 
 # Alert
 # Add an "alert" alias for long running commands.  Use like so: sleep 10; alert
-
 alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
 
 # Hide mistaken history commands
 # # Hide the previous command you just ran and forgot to use space.
-
 alias hideprev='history -d $((HISTCMD-2)) && history -d $((HISTCMD-1))'
 
+
 # Un-delete File
-
-
 undel_func(){
         echo "Searching for deleted file with string $1"
         # *"Attempt"* to recover an accidentally removed file.
         sudo fgrep --binary-files=text -C 2000 "$1" /dev/sda > recovereddata.out
 }
-
-
-# ...fix empty...
-
-
 alias undelete=undel_func
 
 
-# ...fix empty...
-
-
+# recover deleted media files from external device
+# repair mp4's on that device
 undel_media() {
     #sudo foremost -i /dev/sdd1 -o ~/temp/media
-    sudo foremost -i $1 -o $2
-    sudo chown -R s2e $2
-    cd $2/mp4
+    local INPUT="$1"
+    local OUTPUT_PATH="$2"
+    sudo foremost -i ${INPUT} -o ${OUTPUT_PATH}
+    sudo chown -R s2e ${OUTPUT_PATH}
+    cd ${OUTPUT_PATH}/mp4
     # Repair all mp4's found
     find . |grep xargs -I % ffmpg -i % -o %.new.mp4
     # TODO - Run repair function on all media
@@ -360,13 +352,10 @@ undel_media() {
 # Get the status of a currently running dd process
 # Use in a terminal NOT running the current dd!
 # Usage: ddstat
-
-
 #alias ddstat="sudo kill -USR1 `pgrep -l '^dd$' | cut -f 1 -d \" \"`"
 alias ddstat="sudo progress -m"
 
 # Burn USB with alert
-
 
 burnusb() {
         sudo dd if=$1 of=$2 bs=4M conv=sync
@@ -375,8 +364,8 @@ burnusb() {
         notify-send -u critical 'burnusb' 'done'
 }
 
-# Extract a compressed file
 
+# Extract a compressed file
 extract() {
         if [ -f $1 ] ; then
                 case $1 in
@@ -400,6 +389,23 @@ extract() {
         fi
 }
 
+
+unzip_long_name() {
+    ZIPFILE="$1"
+    LONG_NAME="$2"
+
+    long_fname=${LONG_NAME%.*}
+    unzip -p -j -c "$ZIPFILE" "$LONG_NAME" > "${long_fname:0:250}.${LONG_NAME##*.}"
+}
+
+unzip_all_long_names() {
+    zipinfo -2 "$1" | while read i;
+    do
+        long_fname=${i%.*}
+        unzip -p -j -c "$1" "$i" > "${long_fname:0:250}.${i##*.}"
+    done;
+}
+
 # Grab a compressed file from online and uncompress it
 
 curltar() {
@@ -419,6 +425,21 @@ curltar() {
         esac
 }
 
+curl_w_resume() {
+    # From the following one liner
+    # export ec=18; while [ $ec -eq 18 ]; do /usr/bin/curl -O -C - "http://..........zip"; export ec=$?; done
+    local url="${1}"
+    local ec=18;
+    while [ $ec -eq 18 ]; do
+        curl -O -C - "${url}";
+        ec=$?;
+    done
+}
+
+###########################################################################
+## GIT
+###########################################################################
+
 # Git Branch Parsing
 
 function parse_git_branch() {
@@ -437,20 +458,61 @@ git_fpurge() {
 git filter-branch -f --prune-empty --index-filter "git rm -rf --cached --ignore-unmatch ${1}" --tag-name-filter cat -- --all
 }
 
-# GPG
-# GPG find who a file is encryped to
-
-gpg-encrypted-to () {
-    gpg --batch --list-packets "$1"
+# github stats
+gitstats() {
+    local user="$1"
+  python ~/dotfiles/bin/github_traffic.py --log --user "${user}" --write ~/temp/github
 }
 
+###########################################################################
+## GPG
+###########################################################################
+# === GPG find who a file is encryped to ===
+
+# List who some gpg data is encrypted to
+# Only works if the client puts key IDs into encrypted packets
+# But, most clients do
+# Regex Snippets
+#
+# Match Fingerprint
+# MATCHES: 0xAABBCCDD11223344
+# REGEX: \(0x[A-Z0-9]\{16\}\)
+#
+# Match Quoted Name
+# MATCHES:       "Seamus Tuohy <code@seamustuohy.com>"
+# REGEX: \s*\"\([^\"]*\"\).*
+alias gpg-encrypted-to="gpg --batch --list-packets 2>&1 \
+            | sed -n \
+                  '/\(0x[A-Z0-9]\{16\}\)/{ # Match first line
+                    # Append next input line to contents of pattern space
+                    $!{ N
+                      # sed substitution pattern that works on merged lines
+                      s/.*\(0x[A-Z0-9]\{16\}\).*\n\s*\"\([^\"]*\"\).*/\2 - \1/
+                      # substitution successful -> goto label :found
+                      t found
+                      # substitution failed (match not found)
+                      :not-found
+                      # if no match, delete line
+                      d
+                      # substitution successful (match found)
+                      :found
+                      # print substitution for match
+                      p
+                      }
+                    }'"
+
+alias gpg-encrypted-to-keyid="gpg --batch --list-packets 2>&1 \
+                             | grep -oE 'keyid [A-Z0-9]{16}'| cut -d' ' -f2"
+
+alias gpg-file-encrypted-to=gpg-file-encrypted-to.sh
 gpg-unlock-key() {
     echo "TEST" | gpg -ear "$1" | gpg -d
 }
 
-# Crontab
 
-
+###########################################################################
+## Crontab
+###########################################################################
 crontab_add() {
     (crontab -l ; echo "$1") 2>&1 \
         | grep -v "no crontab" \
@@ -466,8 +528,8 @@ crontab_delete() {
         | crontab -
 }
 
-# Find item in a Bash config file
 
+# Find item in a Bash config file
 
 # Look for relevant string in bash config files when things go weird
 # $ grep_bash PATH
@@ -486,29 +548,10 @@ inkscape2latex() {
 }
 
 # Identify what process (including its children) is eating up all my memory
-
 alias psmem="sudo python ~/dotfiles/bin/ps_mem.py"
 
 # Identify the top 10 processes eating up my CPU
 alias whocpu="ps -eo pcpu,pid,user,args | sort -k 1 -r | head -10"
-
-# github stats
-
-gitstats() {
-    local user="$1"
-  python ~/dotfiles/bin/github_traffic.py --log --user "${user}" --write ~/temp/github
-}
-
-curl_w_resume() {
-    # From the following one liner
-    # export ec=18; while [ $ec -eq 18 ]; do /usr/bin/curl -O -C - "http://..........zip"; export ec=$?; done
-    local url="${1}"
-    local ec=18;
-    while [ $ec -eq 18 ]; do
-        curl -O -C - "${url}";
-        ec=$?;
-    done
-}
 
 
 # Nuke All Metadata
@@ -531,16 +574,39 @@ nuke_all_metadata() {
     fi
 }
 
-# === Time Warrior Aliases ===
+
+
+###########################################################################
+## Time Warrior Aliases
+###########################################################################
 
 # What I Do?
 # From https://github.com/drewstinnett/dotfiles/blob/master/.zshrc
 alias whatd_i_do_last_week="task end.after:today-1wk completed rc.detection:off rc.defaultwidth:184"
 alias whatd_i_do_last_month="task end.after:today-5wk completed rc.detection:off rc.defaultwidth:184"
 alias whatd_i_do_last_day="task end.after:today-1d completed rc.detection:off rc.defaultwidth:184"
+alias tk="task"
+alias tko="task overdue"
+alias tkm="task modify"
+alias tka="task add"
+alias tk_due_this_week="task due.before:today+1wk"
+alias tk_due_tomorrow="task due.before:today+1day"
 
 
+###########################################################################
 ## Reverse Engineering and Security Snippets
+###########################################################################
+get_all_site_links() {
+    local URL="$1"
+    local tmpdir=$(mktemp -dt "$(basename "$0").XXXXX")
+    wget -m "${URL}" \
+         --directory-prefix="${tmpdir}" \
+         2>&1 \
+        | grep '^--' \
+        | awk '{ print $3 }' \
+        | grep -v '\.\(css\|js\|png\|gif\|jpg\|JPG\)$'
+    rm -fr "${tmpdir}"
+}
 
 
 msg2eml() {
@@ -549,6 +615,83 @@ msg2eml() {
     local MSG_FILE="${1}"
     local EML_FILE="${2}"
     ~/tools/msg2eml/msgconvert.pl --verbose --mbox "${EML_FILE}" "${MSG_FILE}"
+}
+
+get_shortened_from_viper_line() {
+    # For reading shortened links copied from a pdf using viper `strings -N`
+    local viper_line="$1"
+    local url=$(echo  "${viper_line}" | sed 's/^ - .*\/URI (\(.*\)).*$/\1/')
+    local location=$(curl -sI "${url}" | grep Location | cut -d : -f 2-)
+    printf "%s,%s\n" "${url}" "${location}"
+}
+
+read_viper_url_file() {
+    # $1 == url file
+    # $2 == output file to write links to
+    if [ $# -eq 2 ]; then
+        echo "OVERWRITING FILE: $2"
+        printf "Continue? "
+        read
+        echo "shortened_link,destination_url" > "$2"
+    fi
+    local filelen=$(wc -l "$1")
+    iterator=0
+    while IFS='' read -r viper_line || [[ -n "$viper_line" ]]; do
+        local printable=$(get_shortened_from_viper_line "${viper_line}")
+        if [ $# -eq 2 ]; then
+            iterator=$(("$iterator" + 1))
+            printf "Getting %s of ${filelen}\r" "$iterator"
+            printf "%s\n" "${printable}" >> "$2"
+        else
+            printf "%s\n" "${printable}"
+        fi
+    done < "$1"
+    printf "\n"
+}
+
+get_thug_from_viper_url_file() {
+    # $1 == file from read_viper_url_file
+    # $2 == output file to write location of thug data
+    if [ $# -eq 2 ]; then
+        echo "OVERWRITING FILE: $2"
+        printf "Continue? "
+        read
+        echo "shortened_link,thug_data" > "$2"
+    else
+        printf "Please provide an output file \n"
+        return 1
+    fi
+    # set -x
+    local filelen=$(wc -l "$1" | cut -d ' ' -f1 )
+    filelen=$(("$filelen" - 1))
+    iterator=0
+    # local url_list=$(sed 1,1d "$1")
+    local url_list=$(sed 1,1d "$1" | cut -d , -f2 | sed '/^\s*$/d' | sort | uniq)
+    # echo "$url_list"
+    while IFS='' read -r url_line || [[ -n "$url_line" ]]; do
+        iterator=$(("$iterator" + 1))
+        #printf "%s,%s\n"
+        local trimmed_url=$(echo "${url_line}" | tr -d '[:space:]')
+        printf "Getting %s:\n %s of %s\n" "${trimmed_url}" "$iterator" "${filelen}"
+        local output_path=$(thug_unassisted "${trimmed_url}" | grep "Thug Output Path" | sed 's/.*\(Thug Output Path: \)\(\/.*\).*$/\2/')
+        printf "%s,%s\n" "${trimmed_url}" "${output_path}" >> "$2"
+        #printf "%s,%s\n" "${url_line}" "${output_path}"
+        # local printable=$(get_shortened_from_viper_line "${viper_line}")
+    done <<< "$url_list"
+    # set +x
+}
+
+
+alias unique_http_or_https_transport="grep 'http' | sort -u -t\/ -k4,4"
+# `-u` for unique
+# -t \: for colon delimited
+# -k1,1 for key field 1
+
+get_bitly_hashes() {
+    # ONLY gets bit.ly hashes (for harpoon)
+    # $1 == file from read_viper_url_file
+    # $2 == output file to write location of thug daat
+    cat "$1" | cut -d, -f 1| grep "bit\.ly" | sed 's/http[s]*:\/\/bit\.ly\/\(.*\)/\1/' > "$2"
 }
 
 read_email() {
@@ -588,14 +731,14 @@ search_dir_for_urls() {
 
 ## Tor Support
 
-tmutt() {
-    # This really only is in place to remove the "Received: from" IP address leakage problem.
-    # Not expecting it does more than that
-    # See: tor wiki for info about how difficult this problem is.
-    torify neomutt "$@"
-}
+# tmutt() {
+#     # This really only is in place to remove the "Received: from" IP address leakage problem.
+#     # Not expecting it does more than that
+#     # See: tor wiki for info about how difficult this problem is.
+#     torify neomutt "$@" 2>/dev/null
+# }
 
-alias mutt="neomutt"
+alias mutt="run_mutt.sh"
 
 # tor_wget() {
 #     wget -e use_proxy=on -e http_proxy=http://localhost:8118 "$@"
@@ -627,3 +770,18 @@ alias mutt="neomutt"
 
 #     curl --proxy "socks5h://localhost:9150" -L --1.1 --compressed --user-agent "${UA}" -H "${LANG}" -H "${ACCEPT}" -H "${DNT}" "${url}"
 # }
+
+rip_dvd() {
+    local VOB_PATH="$1" # VTS_01_1.VOB
+    local AVI_PATH="$2" # ~/video_01_1
+    # -f avi : force output format
+    # -c:v libx264 : encode with the h264 codec to create small, but quality files
+    # -g 300 : GOP size is 300 which means one intra frame every 10 seconds for 29.97fps input video
+    avconv -i "${VOB_PATH}" -f avi -c:v libx264 -g 300 -bf 2 "${AVI_PATH}".avi
+
+    # Note for mounting dvd's
+    # sudo mount -o loop /dev/cdrom /media/cdrom/
+}
+alias vob_to_avi="rip_dvd"
+
+alias pretty_xml="xmllint --format -"

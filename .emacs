@@ -271,6 +271,41 @@
   (interactive "r")
   (func-region start end #'epg--decode-hexstring))
 
+;; Elisp: URL Percent Decode/Encode
+;; http://ergoemacs.org/emacs/elisp_decode_uri_percent_encoding.html
+(defun xah-html-decode-percent-encoded-url ()
+  "Decode percent encoded URI of URI under cursor or selection.
+
+Example:
+    http://en.wikipedia.org/wiki/Saint_Jerome_in_His_Study_%28D%C3%BCrer%29
+becomes
+    http://en.wikipedia.org/wiki/Saint_Jerome_in_His_Study_(Dürer)
+
+Example:
+    http://zh.wikipedia.org/wiki/%E6%96%87%E6%9C%AC%E7%BC%96%E8%BE%91%E5%99%A8
+becomes
+    http://zh.wikipedia.org/wiki/文本编辑器
+
+For string version, see `xah-html-url-percent-decode-string'.
+To encode, see `xah-html-encode-percent-encoded-url'.
+URL `http://ergoemacs.org/emacs/elisp_decode_uri_percent_encoding.html'
+Version 2015-09-14."
+  (interactive)
+  (let ($boundaries $p1 $p2 $input-str)
+    (if (use-region-p)
+        (progn
+          (setq $p1 (region-beginning))
+          (setq $p2 (region-end)))
+      (progn
+        (setq $boundaries (bounds-of-thing-at-point 'url))
+        (setq $p1 (car $boundaries))
+        (setq $p2 (cdr $boundaries))))
+    (setq $input-str (buffer-substring-no-properties $p1 $p2))
+    (require 'url-util)
+    (delete-region $p1 $p2)
+    (insert (decode-coding-string (url-unhex-string $input-str) 'utf-8))))
+
+
 ;; Pretty format XML markup in region. You need to have nxml-mode
 ;; http://www.emacswiki.org/cgi-bin/wiki/NxmlMode installed to do
 ;; this.  The function inserts linebreaks to separate tags that have
@@ -1307,7 +1342,7 @@ Usage example: To search for state changes that have moved from an non-done to d
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (graphviz-dot-mode php-refactor-mode php-mode org-bullets helm-swoop yasnippet yaml-mode writegood-mode wrap-region web-mode web-beautify use-package undo-tree switch-window solarized-theme smartscan rainbow-mode powershell persp-projectile logview json-mode js3-mode js2-mode highlight-indentation helm-projectile helm-flycheck helm-dash helm-ag guru-mode guide-key drag-stuff))))
+    (markdown-mode+ markdown-mode ace-jump-mode graphviz-dot-mode php-refactor-mode php-mode org-bullets helm-swoop yasnippet yaml-mode writegood-mode wrap-region web-mode web-beautify use-package undo-tree switch-window solarized-theme smartscan rainbow-mode powershell persp-projectile logview json-mode js3-mode js2-mode highlight-indentation helm-projectile helm-flycheck helm-dash helm-ag guru-mode guide-key drag-stuff))))
 
 ;; Forensics & Data Cleaning
 
@@ -1595,3 +1630,52 @@ Usage example: To search for state changes that have moved from an non-done to d
         (replace-string str
           (concat "&" (car pair) ";")
           nil start end)))))
+(put 'upcase-region 'disabled nil)
+
+(defun title-to-filename (title)
+  "Convert a copied document title into a filename"
+  (interactive "sEnter document title: ")
+  (let (working_string replacements)
+    (message title)
+    ;; replace all whitespace with single space (includes newlines)
+    (setq replacements "[\t\n ]+")
+    (setq working_string (replace-regexp-in-string replacements " " title))
+    ;;(message "1:%s" working_string)
+    ;; replace all seperators with dashes
+    (setq replacements "[:;,_]")
+    (setq working_string (replace-regexp-in-string replacements "-" working_string))
+    ;;(message "2:%s" working_string)
+    ;; replace all dashes with alphanum string (hack because ^ doesn't see groups)
+    (setq replacements "-")
+    (setq working_string (replace-regexp-in-string replacements "8675309" working_string))
+    ;;(message "3:%s" working_string)
+    ;; clear all other punctuation
+    (setq replacements "[[:punct:]]")
+    (setq working_string (replace-regexp-in-string replacements "" working_string))
+    ;;(message "4:%s" working_string)
+    ;; reverse above hack
+    (setq replacements "8675309")
+    (setq working_string (replace-regexp-in-string replacements "-" working_string))
+    ;;(message "5:%s" working_string)
+    ;; replace all " - " with "-" to clean extra space
+    (setq replacements "[ ]*-[ ]*")
+    (setq working_string (replace-regexp-in-string replacements "-" working_string))
+    ;;(message "6:%s" working_string)
+    ;; clean up duplicate -
+    (setq replacements "-+")
+    (setq working_string (replace-regexp-in-string replacements "-" working_string))
+    ;;(message "6:%s" working_string)
+    ;; clear first and last char if string
+    (setq replacements "^ ")
+    (setq working_string (replace-regexp-in-string replacements "" working_string))
+    (setq replacements " $")
+    (setq working_string (replace-regexp-in-string replacements "" working_string))
+    ;;(message "6:%s" working_string)
+    ;; replace all spaces with underscores
+    (setq replacements " ")
+    (setq working_string (replace-regexp-in-string replacements "_" working_string))
+    ;;(message "7:%s" working_string)
+    ;; clean up text case
+    (setq working_string (upcase-initials (downcase working_string)))
+    (kill-new working_string)
+  ))

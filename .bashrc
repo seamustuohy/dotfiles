@@ -32,6 +32,9 @@ fi
 export MOBILE_HOME=/media/veracrypt11/
 
 
+# Org Files
+export ORG_TIMEW_FILE="${HOME}/.org/projects.org"
+
 # Editor : set default editor to emacs
 export EDITOR=emacs
 

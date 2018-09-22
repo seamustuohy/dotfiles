@@ -20,3 +20,6 @@ application/rtf         pdftotext -layout -nopgbrk  %s - | less
 
 # == Import PGP keys ==
 application/pgp-keys; gpg --import < %s ; copiousoutput
+
+# SVG
+image/svg+xml; chromium-browser %s; test=test -n "$DISPLAY"; needsterminal

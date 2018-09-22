@@ -21,7 +21,7 @@ set -e
 set -u
 
 # TODO remove DEBUGGING
-set -x
+# set -x
 
 main() {
     check_dependencies
@@ -41,16 +41,18 @@ check_dependencies() {
 }
 
 mount_encrypted_device() {
+    local CURRENT_VOLUME=$(sudo vgscan | grep "Found volume" | sed 's/Found volume group "\(.*\)".*/\1/' |  tr -d '[:space:]')
     printf "Opening Encrypted Device\n"
     printf "You will have to type in the password used to encrypt the volume\n"
     sudo cryptsetup luksOpen "/dev/${USB_DEVICE}" encrypted
     printf "Now you need to identify the encrypted devices volume group\n"
     printf "Which volume group is the one from your harddrive?\n"
     printf "i.e.\n"
-    printf "Found volume group \"VOLUME-GROUP-NAME\" using metadata type lvm2\n"
+    printf "Found volume group \"VOLUME-GROUP-NAME-vg\" using metadata type lvm2\n"
     printf "=================VGSCAN=====================\n"
     sudo vgscan
     printf "==============VGSCAN ENDS====================\n"
+    printf "HINT: It is NOT ${CURRENT_VOLUME} \n"
     printf "Type the name and hit return: "
     read volume_group_name
     VOLUME_GROUP_NAME="$volume_group_name"
@@ -66,13 +68,13 @@ mount_encrypted_device() {
     VOLUME_NAME="$volume_name"
     printf "OK, last step. We are making a directory for mounting the encrypted volume and then mounting it.\n"
     printf "The directory is /media/encrypted\n"
-    sudo mkdir /media/encrypted
+    sudo mkdir -p /media/encrypted
     printf "You can go here to access the encrypted volume.\n"
     sudo mount /dev/${VOLUME_GROUP_NAME}/${VOLUME_NAME} /media/encrypted
 
     printf "==========INSTRUCTIONS TO UNMOUNT =====================\n"
     printf "Type the following commands:\n"
-    printf "sudo umount mount /media/encrypted\n"
+    printf "sudo umount /media/encrypted\n"
     printf "sudo vgchange -an ${VOLUME_GROUP_NAME}\n"
     printf "sudo cryptsetup luksClose encrypted\n"
     printf "BYE!\n"
@@ -89,6 +91,7 @@ id_usb_dev() {
     sudo dmesg  | tail | grep -EB 10 "s[a-z]{2}[0-9]"
     printf "\n\n==============DMESG ENDS=============\n\n"
     printf "What is the device name of the harddrive?\n"
+    printf "[ 1234.123456]  sxx: sxx1 sxx2 < !THIS ONE! >\n"
     read devname
     USB_DEVICE="$devname"
 }
@@ -99,7 +102,6 @@ cleanup() {
 }
 
 trap 'cleanup' EXIT
-
 
 
 main

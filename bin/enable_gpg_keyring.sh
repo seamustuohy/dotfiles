@@ -36,7 +36,7 @@ main() {
         secret_keys=""
         get_secret_keys
         key_to_unlock=$(printf "${secret_keys}" | dmenu -l 21 -p "Choose the PGP key to unlock"| cut -d: -f1)
-        echo "${key_to_unlock}"
+        echo "Unlocking Key : ${key_to_unlock}"
         echo "random string" | gpg -ear "${key_to_unlock}" | gpg -d 1>/dev/null
     fi
 }

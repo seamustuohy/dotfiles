@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+#
+# Copyright © 2018 seamus tuohy, <code@seamustuohy.com>
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the included LICENSE file for details.
+
+# Setup
+
+#Bash should terminate in case a command or chain of command finishes with a non-zero exit status.
+#Terminate the script in case an uninitialized variable is accessed.
+#See: https://github.com/azet/community_bash_style_guide#style-conventions
+set -e
+set -u
+
+# TODO remove DEBUGGING
+# set -x
+
+# Read Only variables
+
+# readonly PROG_DIR=$(readlink -m $(dirname $0))
+# readonly PROGNAME="$( cd "$( dirname "BASH_SOURCE[0]" )" && pwd )"
+
+# Get list of encrypted volumes to mount from encrypted file
+# readonly encrypted_volumes=("enc_vol_path:local_path")
+source <(gpg -qd ~/dotfiles/private/setup/encrypted_volumes.gpg)
+
+main() {
+    # Unmount all veracrypt to start
+    unmount
+    mount_drives
+    list_mounted
+}
+
+mount_drives() {
+    echo "Mounting Veracrypt Drives"
+    for raw_string in "${encrypted_volumes[@]}"
+    do
+        # NOTE: Password can't have colons in it or this will break
+        # The path of the encrypted volume to mount
+        local enc_volume_path=${raw_string%%:*}
+        local path_and_pass=${raw_string#*:}
+        # The local path to mount it to
+        local local_path=${path_and_pass%%:*}
+        local password=${path_and_pass#*:}
+        # Mount volumes using veracrypt
+        sudo veracrypt \
+            --text \
+            --verbose \
+            --protect-hidden=no \
+            --pim=0 \
+            --keyfiles="" \
+            --password="${password}" \
+            --fs-options="sync" \
+            "$enc_volume_path" \
+            "$local_path"
+        sudo chown -R "$(id -u).$(id -g)" "$local_path"
+    done
+}
+
+unmount() {
+    echo "Dismounting Veracrypt Drives"
+    veracrypt -d
+}
+
+list_mounted() {
+    echo "List of mounted Veracrypt Drives"
+    veracrypt -t -l
+}
+
+cleanup() {
+    # put cleanup needs here
+    exit 0
+}
+
+trap 'cleanup' EXIT
+
+
+main

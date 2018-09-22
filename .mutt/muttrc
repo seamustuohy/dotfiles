@@ -1,13 +1,29 @@
-# Take a look at these links when taking from this config...
+# Take a look at these links when taking from my mutt configs.
+# Docs I stole from, took inspiration from, and sometimes just found useful.
 #
-# https://github.com/isislovecruft/dotfiles/tree/master/.mailrc
-# https://gist.github.com/bnagy/8914f712f689cc01c267
-# https://github.com/jessfraz/dockerfiles/tree/master/mutt/.mutt
+# isislovecruft .mutt configs
+# - https://github.com/isislovecruft/dotfiles/tree/master/.mailrc
+# GPG / Mutt / Gmail
+# - https://gist.github.com/bnagy/8914f712f689cc01c267
+# Mutt and msmtp on OS X with a little PGP and Tor on the side
+# - https://www.cryptomonkeys.com/2015/09/mutt-and-msmtp-on-osx/
+# Operational PGP
+# - https://gist.github.com/grugq/03167bed45e774551155
+# jessfraz .mutt configs
+# - https://github.com/jessfraz/dockerfiles/tree/master/mutt/.mutt
+# Tips for Using Mutt
+# - https://wcm1.web.rice.edu/mutt-tips.html
+# Elegant Mutt setup for use with Gmail
+# - http://www.rosipov.com/blog/elegant-mutt-setup-for-use-with-gmail/
+# amandabee mutt setup gist
+# - https://gist.github.com/amandabee/cf7faad0a6f2afc485ee
 
-# Connection
+###########################################################################
+## IMAP Connection Basics
+###########################################################################
 set timeout=10  #reducing this polls the current mailbox more often
 set mail_check=60 # this controls how frequently other mailboxes are polled
-set imap_keepalive=100 #which controls how often keepalive messages are sent in non-interactive contexts, eg while composing email messages def 900
+set imap_keepalive=10 #which controls how often keepalive messages are sent in non-interactive contexts, eg while composing email messages def 900
 set imap_check_subscribed # Automatically poll subscribed mailboxes for new mail (new in 1.5.11)
 # Display download progress every 5K
 set net_inc=5
@@ -34,10 +50,16 @@ set edit_headers                        # let me edit the message headers
                                         # when composing
 
 # Editor Information
-set editor="vim +13 -c 'set nobackup' -c 'set noswapfile' -c 'set nowritebackup' -c 'set tw=72 ft=mail noautoindent'"
+# set editor="vim +13 -c 'set nobackup' -c 'set noswapfile' -c 'set nowritebackup' -c 'set tw=72 ft=mail noautoindent'"
+set editor="vim +13 -c 'set nobackup' -c 'set noswapfile' -c 'set nowritebackup' -c 'set ft=mail noautoindent' -c 'set fo-=t' -c 'set wrap linebreak nolist' "
+
+format=flowed                           # https://joeclark.org/ffaq.html
+
+
 # Pager
-set pager=less
-set pager_context=1                     # no. of lines of context to give
+# set pager=less
+set pager="builtin"
+set pager_context=10                    # no. of lines of context to give
                                         # when scrolling
 set pager_stop                          # don't move to the next message
                                         # on next-page

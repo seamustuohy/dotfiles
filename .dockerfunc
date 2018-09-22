@@ -21,6 +21,27 @@ docker_del_stopped(){
 
         if [[ "$state" == "false" ]]; then
                 docker rm "$name"
+        else
+            if [[ "$state" == "true" ]]; then
+                echo "The container name \"${name}\" is already in use. Would you like to kill the current container and start a new one?"
+                PS3='Pick a number: '
+                options=("yes" "no")
+                select opt in "${options[@]}"; do
+                    case $opt in
+                        "yes")
+                            echo "Stopping Container Now"
+                            docker_stop_and_delete "${name}"
+                            break
+                            ;;
+                        "no")
+                            echo "We can't start two instances of a docker container. Exiting..."
+                            return
+                            break
+                            ;;
+                        *) echo "Invalid option. Please choose again.";;
+                    esac
+                done
+            fi
         fi
 }
 
@@ -83,6 +104,16 @@ archive_site() {
       ${DOCKER_REPO_PREFIX}/sloppy_archivist
 }
 
+viper_test() {
+        docker_del_stopped viper
+        docker -D run \
+        -v ~/malware:/home/viper/workdir/malware \
+        -it \
+        --name viper \
+        ${DOCKER_REPO_PREFIX}/viper \
+        bash
+}
+
 viper() {
         docker_del_stopped viper
         docker run \
@@ -102,15 +133,24 @@ viper_reconnect() {
 }
 
 viper_bash() {
-        docker_del_stopped viper_bash
-        docker run \
+        docker_del_stopped viper-bash
+        docker -D run \
         -v ~/malware:/home/viper/workdir/malware \
         -it \
-        --name viper_bash \
-        ${DOCKER_REPO_PREFIX}/viper_bash
+        --name viper-bash \
+        ${DOCKER_REPO_PREFIX}/viper \
         bash
 }
 
+v2_bash() {
+        docker_del_stopped v2-bash
+        docker -D run \
+        -v ~/malware:/home/viper/workdir/malware \
+        -it \
+        --name v2-bash \
+        ${DOCKER_REPO_PREFIX}/v2 \
+        bash
+}
 
 boxjs() {
         docker_del_stopped boxjs
@@ -159,15 +199,56 @@ harpoon() {
        ${DOCKER_REPO_PREFIX}/harpoon
 }
 
-# cutter() {
-#        docker_del_stopped cutter
+gpg_harpoon() {
+       docker_del_stopped harpoon
+       local tmpdir=$(mktemp -dt "$(basename "$0").XXXXX")
 
-#        docker run \
-#        --rm -it \
-#        --name cutter \
-#        ${DOCKER_REPO_PREFIX}/cutter bash
-# }
+       docker run \
+       --rm -it \
+       --name harpoon \
+       -v ~/malware:/home/harpoon/malware \
+       -v ~/dotfiles/private/harpoon:/home/harpoon/.config/harpoon/ \
+       ${DOCKER_REPO_PREFIX}/harpoon
+}
 
+play_docker() {
+       docker_del_stopped play
+
+       docker run \
+       --rm -it \
+       -v ~/malware:/home/malware \
+       --name play \
+       ${DOCKER_REPO_PREFIX}/play bash
+}
+
+cutter() {
+       docker_del_stopped cutter
+
+       docker run \
+       --rm -it \
+       --name cutter \
+       ${DOCKER_REPO_PREFIX}/cutter bash
+}
+
+decode() {
+        docker_del_stopped decode
+        docker run \
+        --rm \
+        -it \
+        --name decode \
+        ${DOCKER_REPO_PREFIX}/decode \
+        dcode $1
+}
+
+decode_bash() {
+        docker_del_stopped decode_bash
+        docker run \
+        --rm \
+        -it \
+        --name decode_bash \
+        ${DOCKER_REPO_PREFIX}/decode \
+        bash
+}
 
 cutter() {
      docker_del_stopped cutter
@@ -193,31 +274,164 @@ cutter() {
 # --entrypoint "/bin/bash" \
 }
 
-thug() {
-       docker_del_stopped thug
-       echo "Are you sure?"
-       echo "You don't have this working well yet..."
-       docker run \
-       --rm -it \
-       -v ${HOME}/malware/thug/logs:/home/thug/logs \
-       --name thug \
-       ${DOCKER_REPO_PREFIX}/thug
-       thug -FZM "$1"
+cutter_bash() {
+     docker_del_stopped cutter
+     local CONFDIR="${HOME}/.config/radare2"
+     mkdir -p "${CONFDIR}"
+     touch ${CONFDIR}/radare2rc
+     mkdir -p ${CONFDIR}/r2-config
+     xhost +local:docker && \
+     docker run \
+          --rm \
+          -it \
+          --name cutter \
+          --cap-drop=ALL  \
+          --cap-add=SYS_PTRACE \
+          -e DISPLAY=$DISPLAY \
+          -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
+          -v ${HOME}/malware:/var/sharedFolder \
+          -v ${CONFDIR}/radare2rc:/home/r2/.radare2rc \
+          -v ${CONFDIR}/r2-config:/home/r2/.config/radare2 \
+          --entrypoint "/bin/bash" \
+           ${DOCKER_REPO_PREFIX}/cutter
+    xhost -local:docker
+}
 
-# -FZM "$@"
+
+thug() {
+    docker_del_stopped thug
+
+    local URL="$1"
+    if [[ -z "$URL" ]]; then
+        echo "Error: You didn't specify a URL"
+        printf "Usage:\n\t thug [URL]\n"
+    else
+        get_new_thug_ua
+        docker run \
+               -it \
+               -v ${HOME}/malware/thug/logs:/home/thug/logs \
+               --name thug \
+               -e "URL=${URL}" \
+               -e "UA=${THUG_UA_STRING}" \
+               ${DOCKER_REPO_PREFIX}/thug
+        # Save thugs logs to malware folder
+        save_thug_logs $1
+    fi
+}
+
+thug_unassisted() {
+    docker_del_stopped thug
+
+    local URL="$1"
+    if [[ -z "$URL" ]]; then
+        echo "Error: You didn't specify a URL"
+        printf "Usage:\n\t thug [URL]\n"
+    else
+        get_new_thug_ua
+        docker run \
+               -v ${HOME}/malware/thug/logs:/home/thug/logs \
+               --name thug \
+               -e "URL=${URL}" \
+               -e "UA=${THUG_UA_STRING}" \
+               ${DOCKER_REPO_PREFIX}/thug
+        # Save thugs logs to malware folder
+        save_thug_logs $1
+    fi
+}
+
+
+save_thug_logs() {
+    local URL="$1"
+    local tmpdir=$(mktemp -dt "$(basename "$0").XXXXX")
+    local image=$(docker ps -l --format "{{.ID}}")
+    local DATE=`date '+%Y-%m'`
+    local output_path="${HOME}/malware/thug/logs/${DATE}"
+    mkdir -p "${output_path}"
+    docker cp "${image}:/tmp/thug/logs/." "${tmpdir}"
+    local path=$(find "$tmpdir/" -maxdepth 1 -mindepth 1 -type d)
+    local dirname=${path##*/}
+    cp -fr "${path}" "${output_path}/${dirname##*/}"
+    echo "Thug Output Path: ${output_path}/${dirname}"
+    echo "${dirname},${THUG_UA_STRING},${URL}" | tee -a "${output_path}/thug.csv"
+}
+
+get_new_thug_ua() {
+    useragents=(
+            "winxpie60" \
+            "winxpie61" \
+            "winxpie70" \
+            "winxpie80" \
+            "winxpchrome20" \
+            "winxpfirefox12" \
+            "winxpsafari5" \
+            "win2kie60" \
+            "win2kie80" \
+            "win7ie80" \
+            "win7ie90" \
+            "win7ie100" \
+            "win7chrome20" \
+            "win7chrome40" \
+            "win7chrome45" \
+            "win7chrome49" \
+            "win7firefox3" \
+            "win7safari5" \
+            "win10ie110" \
+            "osx10chrome19" \
+            "osx10safari5" \
+            "linuxchrome26" \
+            "linuxchrome30" \
+            "linuxchrome44" \
+            "linuxchrome54" \
+            "linuxfirefox19" \
+            "linuxfirefox40" \
+            "galaxy2chrome18" \
+            "galaxy2chrome25" \
+            "galaxy2chrome29" \
+            "nexuschrome18" \
+            "ipadchrome33" \
+            "ipadchrome35" \
+            "ipadchrome37" \
+            "ipadchrome38" \
+            "ipadchrome39" \
+            "ipadchrome45" \
+            "ipadchrome46" \
+            "ipadchrome47" \
+            "ipadsafari7" \
+            "ipadsafari8" \
+            "ipadsafari9" \
+            )
+
+    THUG_UA_STRING=${useragents[$RANDOM % ${#useragents[@]} ]}
 }
 
 thug_bash() {
+       local instruction_output_path="$1"
+       echo "PATH"
+       echo "$instruction_output_path"
+
        docker_del_stopped thug_bash
        echo "Because you always forget the flags"
        echo "thug -FZM [URL]"
        echo "==================================="
        docker run \
-       --rm -it \
-       -v ${HOME}/malware/thug/logs:/home/thug/logs \
-       --name thug_bash \
-       ${DOCKER_REPO_PREFIX}/thug
-       bash
+              -it \
+              --name thug_bash \
+              ${DOCKER_REPO_PREFIX}/thug \
+              bash
+       echo "PATH"
+       echo "$instruction_output_path"
+       if [[ -z "$instruction_output_path" ]]; then
+           local getem=$(printf "No\nYes" | dmenu -p "do you want your logs?" -l 3)
+       fi
+       if [[ "Yes" == "${getem}" ]]; then
+           if [[ -z "$instruction_output_path" ]]; then
+               local DATE=`date '+%Y-%m-%d_%H-%M-%S'`
+               local instruction_output_path="${HOME}/malware/thug/logs/${DATE}"
+           fi
+           local image=$(docker ps -l --format "{{.ID}}")
+           # local image=$(docker ps --last 10 -a --format "{{.Names}}::{{.Image}}" | dmenu -l 21 -p "Please choose the name of the thug image to pull from"|cut -d : -f 1)
+          docker cp "${image}:/tmp/thug/logs/" "$instruction_output_path"
+       fi
 }
 
 skype(){
@@ -237,6 +451,7 @@ skype(){
                 --name skype \
                 ${DOCKER_REPO_PREFIX}/skype
 }
+
 wireshark(){
         docker_del_stopped wireshark
 
@@ -250,11 +465,13 @@ wireshark(){
                 --name wireshark \
                 ${DOCKER_REPO_PREFIX}/wireshark
 }
+
 nmap(){
         docker run --rm -it \
                 --net host \
                 ${DOCKER_REPO_PREFIX}/nmap "$@"
 }
+
 slack(){
         docker_del_stopped slack
 
@@ -289,15 +506,117 @@ libreoffice(){
 
 inkscape(){
         docker_del_stopped inkscape
-
+        # xhost +local:docker && \
         docker run -d \
                 -v /etc/localtime:/etc/localtime:ro \
                 -v /tmp/.X11-unix:/tmp/.X11-unix \
                 -e "DISPLAY=unix${DISPLAY}" \
                 -v "${HOME}/Pictures:/root/Pictures" \
-                -v "${HOME}/.gtkrc:/root/.gtkrc" \
                 -e GDK_SCALE \
                 -e GDK_DPI_SCALE \
                 --name inkscape \
                 ${DOCKER_REPO_PREFIX}/inkscape
+        #xhost -local:docker
 }
+
+
+streisand() {
+       instruction_output_path="$1"
+       docker_del_stopped streisand
+
+       docker run \
+       --rm -it \
+       --name streisand \
+       -v /home/s2e/.ssh:/root/.ssh \
+       -v ~/home/projects/VPNs:/streisand/generated-docs/ \
+       ${DOCKER_REPO_PREFIX}/streisand \
+       bash
+
+       # Ask to get streisand output
+       local getem=$(printf "No\nYes" | dmenu -p "do you want your logs?" -l 3)
+       if [[ "Yes" == "${getem}" ]]; then
+          local image=$(docker ps --last 10 -a --format "{{.Names}}::{{.Image}}" | dmenu -l 21 -p "Please choose the name of the streisand image to pull from"|cut -d : -f 1)
+          local DATE=`date '+%Y-%m-%d_%H-%M-%S'`
+          docker cp "${image}":/streisand/generated-docs/* "$instruction_output_path"
+
+       fi
+}
+
+
+
+docker-nlp() {
+      # Natural Language Processing Play Docker Suite
+      local NAME="nlp-bash"
+      local SUFFIX="nlp"
+        docker_del_stopped "${NAME}"
+        docker run \
+        --rm \
+        -it \
+        -v ~/malware:/home/user/malware \
+        --name "${NAME}" \
+        "${DOCKER_REPO_PREFIX}/${SUFFIX}" \
+        bash
+}
+
+docker-jadx() {
+      # JADX
+      # https://github.com/samsheff/docker-jadx
+      # docker build --rm --force-rm -t "s2e/jadx" .
+      local NAME="jadx-bash"
+      local SUFFIX="jadx"
+        docker_del_stopped "${NAME}"
+        docker run \
+              -v /tmp/.X11-unix:/tmp/.X11-unix \
+               -e "DISPLAY=unix${DISPLAY}" \
+               --rm \
+               -it \
+               -v ~/malware:/home/user/workdir/malware \
+               --name "${NAME}" \
+               "${DOCKER_REPO_PREFIX}/${SUFFIX}" \
+               bash
+}
+
+docker-dex2jar() {
+      # DEX2JAR
+      # https://github.com/yongjhih/docker-dex2jar
+      # docker build --rm --force-rm -t "s2e/dex2jar" .
+      local NAME="dex2jar-bash"
+      local SUFFIX="dex2jar"
+        docker_del_stopped "${NAME}"
+        docker run \
+        --rm \
+        -it \
+        -v ~/malware:/home/viper/workdir/malware \
+        --name "${NAME}" \
+        "${DOCKER_REPO_PREFIX}/${SUFFIX}" \
+        bash
+}
+
+docker-apktool() {
+      # https://github.com/yongjhih/docker-apktool
+      # docker build --rm --force-rm -t "s2e/apktool" .
+      local NAME="apktool-bash"
+      local SUFFIX="apktool"
+        docker_del_stopped "${NAME}"
+        docker run \
+        --rm \
+        -it \
+        -v ~/malware:/home/viper/workdir/malware \
+        --name "${NAME}" \
+        "${DOCKER_REPO_PREFIX}/${SUFFIX}" \
+        bash
+}
+
+is_it_dangerous_bash() {
+        docker_del_stopped pycirclean-bash
+        docker -D run \
+        -v ~/malware:/home/viper/workdir/malware \
+        -it \
+        --name pycirclean-bash \
+        ${DOCKER_REPO_PREFIX}/pycirclean \
+        bash
+}
+
+
+
+source "${HOME}/dotfiles/private/.private_dockerfunc"
