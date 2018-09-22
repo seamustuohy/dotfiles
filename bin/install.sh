@@ -418,7 +418,7 @@ install_harpoon_docker() {
     cd "$HOME/code"
     local HSRC="${HOME}/code/dockerfiles"
     # TODO upload dockerfiles
-    get_git_package "$dockerfiles" https://github.com/seamustuohy/dockerfiles.git
+    get_git_package "$HSRC" https://github.com/seamustuohy/dockerfiles.git
     daily_rebuild_docker_container "$HSRC/harpoon" harpoon
 }
 
@@ -427,7 +427,7 @@ install_cyobstract_docker() {
     cd "$HOME/code"
     local HSRC="${HOME}/code/dockerfiles"
     # TODO upload dockerfiles
-    get_git_package "$dockerfiles" https://github.com/seamustuohy/dockerfiles.git
+    get_git_package "$HSRC" https://github.com/seamustuohy/dockerfiles.git
     daily_rebuild_docker_container "$HSRC/cyobstract" cyobstract
 }
 
@@ -443,7 +443,7 @@ install_play_docker() {
     cd "$HOME/code"
     local HSRC="${HOME}/code/dockerfiles"
     # TODO upload dockerfiles
-    get_git_package "$dockerfiles" https://github.com/seamustuohy/dockerfiles.git
+    get_git_package "$HSRC" https://github.com/seamustuohy/dockerfiles.git
     build_docker_container "$HSRC/play" play
 }
 
