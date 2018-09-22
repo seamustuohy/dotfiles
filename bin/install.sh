@@ -418,8 +418,17 @@ install_harpoon_docker() {
     cd "$HOME/code"
     local HSRC="${HOME}/code/dockerfiles"
     # TODO upload dockerfiles
-    # get_git_package "$dockerfunc" https://github.com/seamustuohy/dockerfiles.git
+    get_git_package "$dockerfiles" https://github.com/seamustuohy/dockerfiles.git
     daily_rebuild_docker_container "$HSRC/harpoon" harpoon
+}
+
+install_cyobstract_docker() {
+    # Harpoon
+    cd "$HOME/code"
+    local HSRC="${HOME}/code/dockerfiles"
+    # TODO upload dockerfiles
+    get_git_package "$dockerfiles" https://github.com/seamustuohy/dockerfiles.git
+    daily_rebuild_docker_container "$HSRC/cyobstract" cyobstract
 }
 
 
@@ -434,7 +443,7 @@ install_play_docker() {
     cd "$HOME/code"
     local HSRC="${HOME}/code/dockerfiles"
     # TODO upload dockerfiles
-    # get_git_package "$dockerfunc" https://github.com/seamustuohy/dockerfiles.git
+    get_git_package "$dockerfiles" https://github.com/seamustuohy/dockerfiles.git
     build_docker_container "$HSRC/play" play
 }
 
@@ -477,7 +486,7 @@ install_thug_docker() {
     cd "$HOME/code"
     local SRC="${HOME}/code/dockerfiles"
     # TODO upload dockerfiles
-    # get_git_package "$dockerfunc" https://github.com/seamustuohy/dockerfiles.git
+    get_git_package "$dockerfiles" https://github.com/seamustuohy/dockerfiles.git
     mkdir -p "${HOME}/malware/thug/logs"
     chmod a+xwr "${HOME}/malware/thug/logs"
     build_docker_container "${SRC}/thug" thug
@@ -1242,6 +1251,9 @@ main() {
     elif [[ $cmd == "virtualbox" ]]; then
         check_is_sudo
         install_virtualbox
+    elif [[ $cmd == "cyobstract" ]]; then
+        #check_is_sudo
+        install_cyobstract_docker
     elif [[ $cmd == "vim" ]]; then
         install_vim
         install_vim_plugins

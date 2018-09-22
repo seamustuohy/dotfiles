@@ -297,6 +297,11 @@ cutter_bash() {
     xhost -local:docker
 }
 
+cyobstract() {
+    docker run --rm -it \
+        --net host \
+        ${DOCKER_REPO_PREFIX}/cyobstract "$@"
+}
 
 thug() {
     docker_del_stopped thug
