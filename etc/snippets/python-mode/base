@@ -44,7 +44,7 @@ def set_logging(verbose=False, debug=False):
         log.setLevel("INFO")
 
 def parse_arguments():
-    parser = argparse.ArgumentParser("Get a summary of some text")
+    parser = argparse.ArgumentParser("${6:package name}")
     parser.add_argument("--verbose", "-v",
                         help="Turn verbosity on",
                         action='store_true')

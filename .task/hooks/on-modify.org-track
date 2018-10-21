@@ -1,0 +1,231 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+# Copyright © 2017 seamus tuohy, <code@seamustuohy.com>
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the included LICENSE file for details.
+
+# INSTALL
+# https://github.com/bjonnh/PyOrgMode
+# ````
+# git clone https://github.com/bjonnh/PyOrgMode.git
+# cd PyOrgMode/
+# sudo python setup.py install
+# ````
+
+
+# TO SETUP and RUN
+# Place in ~/.task/hooks/
+# Set execute permissions
+# ```
+# chmod +x ~/.task/hooks/on-add.org-track
+# ```
+# Set envrionment variable ORG_TIMEW_FILE to the path of your org file.
+# create org file
+# add all existing tasks to the org file
+# ```
+# on-add.org-track -c
+# ```
+
+
+import sys
+import json
+import logging
+import argparse
+from os import path, getenv
+from tempfile import gettempdir
+
+from PyOrgMode import PyOrgMode
+from datetime import datetime, timezone
+
+
+def main(org_path):
+    # Make no changes to the task, simply observe.
+    old = json.loads(sys.stdin.readline())
+    new = json.loads(sys.stdin.readline())
+    print(json.dumps(new))
+    base = get_orgfile(org_path)
+    uuid = old.get("uuid", None)
+    project_name = old.get("project", "Misc")
+    node = get_from_project(uuid, project_name, base.root.content)
+    for key, val in new.items():
+        if old.get(key, None) != val:
+            update_node(key, val, node)
+
+    # If new project name move task
+    new_project_name = new.get("project", "Misc")
+    if project_name != new_project_name:
+        delete_from_project(uuid, project_name, base)
+        new_project = get_or_create_project(new_project_name, base)
+        new_project.append_clean(node)
+    write_orgfile(base, org_path)
+
+
+def delete_from_project(uuid, project_name, base):
+    node = get_from_project(uuid, project_name, base.root.content)
+    parent = node.parent
+    parent.content.remove(node)
+
+
+def in_project(node_id, project_name, base):
+    try:
+        get_from_project(node_id, project_name, base.root.content)
+        return True
+    except ValueError:
+        return False
+
+
+def get_from_project(node_id, project_name, content):
+    project = None
+    for node in content:
+        if node.heading == project_name:
+            project = node
+    if project is None:
+        raise ValueError("Project Not Found!")
+    for node in project.content:
+        try:
+            for drawer in node.content:
+                if drawer.name == "PROPERTIES":
+                    for prop in drawer.content:
+                        if prop.name == "UUID":
+                            if prop.value == node_id:
+                                return node
+        except AttributeError:
+            pass
+    raise ValueError("Node Not Found!")
+
+
+def get_or_create_project(name, base):
+    found = None
+    for node in base.root.content:
+        if node.heading == name:
+            return node
+    if found is None:
+        node = PyOrgMode.OrgNode.Element()
+        node.heading = name
+        base.root.append_clean(node)
+        return node
+
+
+def update_node(key, val, node):
+    if key in ['status', 'description', 'tags']:
+        update_todo(key, val, node)
+    elif key in ['project']:
+        update_properties(key, val, node)
+    return node
+
+
+def update_properties(key, val, node):
+    for drawer in node.content:
+        try:
+            if drawer.name == "PROPERTIES":
+                prop_drawer = drawer
+        except AttributeError:
+            pass
+    replaced = False
+    if key == "project":
+        search_key = "PROJECT"
+    for prop in prop_drawer.content:
+        if prop.name == search_key:
+            update_log(node, search_key, val, prop.value)
+            prop.value = val
+            replaced = True
+    if replaced is False:
+        update_log(node, search_key, val, "*NONE*", action="CREATED")
+        sub_content = PyOrgMode.OrgDrawer.Property(search_key, val)
+        prop_drawer.append(sub_content)
+
+
+def update_log(node, obj, new, old, action="MODIFIED"):
+    for drawer in node.content:
+        try:
+            if drawer.name == "LOGBOOK":
+                logstring = '{0} - {1} - "{2}" FROM "{3}" {4}'
+                utc_now = datetime.now(timezone.utc)
+                org_utc_now = format_as_org_datetime(utc_now)
+                log = logstring.format(obj, action, new, old, org_utc_now)
+                drawer.append(PyOrgMode.OrgDrawer.Property("STATE", log))
+        except AttributeError:
+            pass
+
+
+def update_todo(key, val, node):
+    if key == "status":
+        update_log(node, "TODO", val, node.todo)
+        node.todo = val.upper()
+
+    if key == "description":
+        update_log(node, "HEADING", val, node.heading)
+        node.heading = val + "\t"
+
+    if key == 'tags':
+        update_log(node, "HEADING", val, node.tags)
+        node.tags = val
+
+
+def get_orgfile(org_path):
+    if org_path is None:
+        org_path = get_org_path()
+    base = PyOrgMode.OrgDataStructure()
+    base.add_todo_state('PENDING')
+    base.add_todo_state('WAITING')
+    base.add_done_state('COMPLETED')
+    base.add_done_state('DELETED')
+    base.load_from_file(path.abspath(org_path))
+    return base
+
+
+def get_org_path():
+    env_path = getenv('ORG_TIMEW_FILE')
+    if env_path is None:
+        raise NameError("The path to an org file was not provided over the command line (--org_path) or set in an env variable (ORG_TIMEW_FILE). You must do one of these so we know what org file to write to.")
+    return env_path
+
+
+def write_orgfile(base, org_path):
+    if org_path is None:
+        org_path = get_org_path()
+    base.save_to_file(path.abspath(org_path))
+
+
+def format_as_org_datetime(dateordatetime, active=True):
+    """transform a datetime to a date or datetime object in org-format
+    """
+    encl = "<{0}>" if active else "[{0}]"
+    try:
+        dateordatetime.time()  # check if a datetime
+        return encl.format(dateordatetime.strftime("%Y-%m-%d %a %H:%M"))
+    except:
+        return encl.format(dateordatetime.strftime("%Y-%m-%d %a"))
+
+
+def set_logging(verbose=False, debug=False):
+    if debug is True:
+        log.setLevel("DEBUG")
+    elif verbose is True:
+        log.setLevel("INFO")
+
+
+def parse_arguments():
+    parser = argparse.ArgumentParser("Taskwarrior hook to update modified items in an org file.")
+    parser.add_argument("--debug", "-d",
+                        help="Turn debugging on",
+                        action='store_true')
+    parser.add_argument("--org_path", "-f",
+                        help="""Path of org-mode output file. This can also be set in the environment variable `ORG_TIMEW_FILE`.""")
+    args, unknown = parser.parse_known_args()
+    return args
+
+if __name__ == '__main__':
+    logfilename = path.join(gettempdir(), "org-timew-hooks.log")
+    logging.basicConfig(filename=logfilename, level=logging.ERROR)
+    log = logging.getLogger(__name__)
+    args = parse_arguments()
+    main(args.org_path)

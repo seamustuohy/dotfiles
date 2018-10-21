@@ -221,6 +221,22 @@ play_docker() {
        ${DOCKER_REPO_PREFIX}/play bash
 }
 
+test_xapp_docker() {
+       docker_del_stopped test_xapp
+       mkdir -p /tmp/docker_file_transfer
+
+       docker run \
+       --rm -it \
+       -v /etc/localtime:/etc/localtime:ro \
+       -v /tmp/.X11-unix:/tmp/.X11-unix \
+       -e "DISPLAY=unix${DISPLAY}" \
+       -e GDK_SCALE \
+       -e GDK_DPI_SCALE \
+       -v /tmp/docker_file_transfer:/home/user/test_files \
+       --name test_xapp \
+       ${DOCKER_REPO_PREFIX}/play bash
+}
+
 cutter() {
        docker_del_stopped cutter
 
