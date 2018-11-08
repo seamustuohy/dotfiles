@@ -5,11 +5,42 @@
 ;; (debug)
 
 
+;; === WINDOWS <- The worst ===
+;; Make windows not slow down when it encounters multiple character sets
+;; https://github.com/purcell/emacs.d/issues/273
+;; https://lists.gnu.org/archive/html/bug-gnu-emacs/2015-07/msg00324.html
+(when (and (eq system-type 'nt) (string-equal emacs-version "25.1"))
+  (setq inhibit-compacting-font-caches t))
+
+;; Deal with Windows Encoding
+(prefer-coding-system       'utf-8)
+(set-default-coding-systems 'utf-8)
+(set-terminal-coding-system 'utf-8)
+(set-keyboard-coding-system 'utf-8)
+(setq default-buffer-file-coding-system 'utf-8)
+(setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
+
+
+;; Copy and Paste on Windows
+(defun linux_subshell_on_windows-copy_region_to_clipboard (&optional b e)
+  "Copies the region selected to the windows clipboard."
+  (interactive "r")
+  (shell-command-on-region b e "clip.exe"))
+(global-set-key (kbd "M-W") 'linux_subshell_on_windows-copy_region_to_clipboard)
+
+
+(defun linux_subshell_on_windows-paste_region_from_clipboard (&optional b e)
+  "Copies the region selected to the windows clipboard."
+  (interactive "r")
+  (call-process "powershell.exe" nil t nil " Get-Clipboard"))
+(global-set-key (kbd "M-Y") 'linux_subshell_on_windows-paste_region_from_clipboard)
+
 
 ;; === Packages ===
 
 
 (require 'package)
+
 (let* ((no-ssl (and (memq system-type '(windows-nt ms-dos))
                     (not (gnutls-available-p))))
        (proto (if no-ssl "http" "https")))
@@ -31,6 +62,7 @@
                      guide-key
                      guru-mode
                      persp-projectile
+                     ag
                      helm-ag
                      helm-dash
                      helm-flycheck
@@ -40,6 +72,7 @@
                      js3-mode
                      json-mode
                      logview
+                     markdown-mode
                      persp-mode
                      rainbow-mode
                      solarized-theme
@@ -68,8 +101,10 @@
 
 ;; GPG key to use for encryption
 ;; Either the Key ID or set to nil to use symmetric encryption.
-
 (setq org-crypt-key "3CF07AA7")
+
+;; Get Private Vars
+(load (file-truename "~/dotfiles/private/emacs_locations.el"))
 
 ;; Overwrite Highlighted Text
 ;; cua-selection-mode - enables typing over a region to replace it
@@ -426,20 +461,36 @@ by using nxml's indentation rules."
       '("a" "s" "d" "f" "j" "k" "l" ";" "w" "e" "i" "o"))
 
 ;; Config
+;; ;;..fix link.. [[http://www.wickeddutch.com/2014/01/03/gaining-some-perspective-in-emacs/][Mostly taken from Wicked Dutch]]
+;; Setup perspectives, or workspaces, to switch between
+;; Enable perspective mode
+;;(persp-mode t)
+
+;; ;; loading code for our custom perspectives
+;; ;; taken from Magnar Sveen
+
+(defmacro custom-persp (name &rest body)
+  `(let ((initialize (not (gethash ,name (perspectives-hash))))
+         (current-perspective (persp-curr)))
+     (persp-switch ,name)
+     (when initialize ,@body)
+     (setq persp-last current-perspective)))
+
+;; ;; Config
 (require 'perspective)
 (require 'projectile)
 
-;; Enable perspective mode
+;; ;; Enable perspective mode
 (persp-mode t)
 
-;; Projectile
+;; ;; Projectile
 (projectile-global-mode)
 (projectile-mode)
 
 (setq projectile-completion-system 'helm)
 (helm-projectile-on)
-(setq projectile-keymap-prefix (kbd "C-c p"))
-
+; (setq projectile-keymap-prefix (kbd "C-c p"))
+(define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
 
 ;; ;;..fix link.. [[http://www.wickeddutch.com/2014/01/03/gaining-some-perspective-in-emacs/][Mostly taken from Wicked Dutch]]
 ;; Setup perspectives, or workspaces, to switch between
@@ -455,7 +506,7 @@ by using nxml's indentation rules."
 ;; loading code for our custom perspectives
 ;; taken from Magnar Sveen
 (defmacro custom-persp (name &rest body)
-  `(let ((initialize (not (gethash ,name perspectives-hash)))
+  `(let ((initialize (not (gethash ,name (perspectives-hash))))
          (current-perspective persp-curr))
      (persp-switch ,name)
      (when initialize ,@body)
@@ -470,47 +521,55 @@ by using nxml's indentation rules."
 ;; Easily switch to your last perspective
 (define-key persp-mode-map (kbd "C-x p -") 'custom-persp-last)
 
-;; org-agenda persp
-(defun custom-persp/org-agenda ()
+;; org-base persp
+(defun custom-persp/org-base ()
   (interactive)
   (custom-persp "org"))
-(define-key persp-mode-map (kbd "C-x p o") 'custom-persp/org-agenda)
 
-(defun custom-persp/org-agenda-start ()
+(define-key persp-mode-map (kbd "C-x p o") 'custom-persp/org-base)
+
+(defun custom-persp/org-base-start ()
   (interactive)
   (custom-persp "org")
   (delete-other-windows) ;Delete all windows in this perspective.
-  (org-agenda nil "tw"))
-(define-key persp-mode-map (kbd "C-x p O") 'custom-persp/org-agenda-start)
+  (find-file org_directory_path))
+
+(define-key persp-mode-map (kbd "C-x p O") 'custom-persp/org-base-start)
+;; library-base persp
+(defun custom-persp/library-base ()
+  (interactive)
+  (custom-persp "library"))
+(define-key persp-mode-map (kbd "C-x p l") 'custom-persp/library-base)
+(defun custom-persp/library-base-start ()
+  (interactive)
+  (custom-persp "library")
+  (delete-other-windows) ;Delete all windows in this perspective.
+  (find-file "c:/Users/User/OneDrive - Human Rights Watch/library/s2e_resource_links/digit-sec.org"))
+(define-key persp-mode-map (kbd "C-x p L") 'custom-persp/library-base-start)
+
+;; Incident Response base persp
+(defun custom-persp/IR-base ()
+  (interactive)
+  (custom-persp "IR"))
+(define-key persp-mode-map (kbd "C-x p r") 'custom-persp/IR-base)
+(defun custom-persp/IR-base-start ()
+  (interactive)
+  (custom-persp "IR")
+  (delete-other-windows) ;Delete all windows in this perspective.
+  (find-file "c:/Users/User/OneDrive - Human Rights Watch/Incident Response/base.org"))
+(define-key persp-mode-map (kbd "C-x p R") 'custom-persp/IR-base-start)
 
 
 ;; Init
 (defun custom-persp/start-init ()
   (interactive)
   (custom-persp "init")
-  (find-file (file-truename "~/.dotfiles/configs/emacs/emacs.org")))
+  (find-file org_init_path))
 (defun custom-persp/init ()
   (interactive)
   (custom-persp "init"))
 (define-key persp-mode-map (kbd "C-x p I") 'custom-persp/start-init)
 (define-key persp-mode-map (kbd "C-x p i") 'custom-persp/init)
-
-
-;; Projectile
-; (require 'helm-projectile)
-(use-package helm-projectile
-  :config
-  (projectile-global-mode)
-  (setq projectile-completion-system 'helm)
-  (helm-projectile-on))
-
-;; ;;..fix link.. [[https://github.com/bbatsov/projectile/blob/master/persp-projectile.el][Persp-Projectile]] allows me to push projects into new perspectives. This makes it far easier for me to switch between tasks.
-;; (global-set-key (kbd "C-x p p") 'projectile-persp-switch-project)
-(use-package persp-projectile
-  :bind ("C-x p p" . projectile-persp-switch-project))
-
-
-
 
 ;; Themes
 ;; I keep my themes in a separate themes directory in my .emacs.d folder.
@@ -740,6 +799,21 @@ If point was already at that position, move point to beginning of line."
 ;; Helm swoop is amazing! I use it far more than search, but I am still afraid to replace search with it.
 (use-package helm-swoop
   :bind ("C-c C-M-s" . helm-swoop))
+
+
+;; Projectile
+; (require 'helm-projectile)
+(use-package helm-projectile
+  :config
+  (projectile-global-mode)
+  (setq projectile-completion-system 'helm)
+  (helm-projectile-on))
+
+;; ;;..fix link.. [[https://github.com/bbatsov/projectile/blob/master/persp-projectile.el][Persp-Projectile]] allows me to push projects into new perspectives. This makes it far easier for me to switch between tasks.
+;; (global-set-key (kbd "C-x p p") 'projectile-persp-switch-project)
+(use-package persp-projectile
+  :bind ("C-x p p" . projectile-persp-switch-project))
+
 
 ;; In current window/frame
 ;;
@@ -1149,7 +1223,7 @@ Usage example: To search for state changes that have moved from an non-done to d
 
 ;; Bookmarks with firefox
 ;; ;; http://orgmode.org/worg/org-contrib/org-protocol.html
-(require 'org-protocol)
+;; (require 'org-protocol)
 
 ;; Replace a selected link with the archive version if available
 (defun internet-archive-replace-link ()
@@ -1342,7 +1416,7 @@ Usage example: To search for state changes that have moved from an non-done to d
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (markdown-mode+ markdown-mode ace-jump-mode graphviz-dot-mode php-refactor-mode php-mode org-bullets helm-swoop yasnippet yaml-mode writegood-mode wrap-region web-mode web-beautify use-package undo-tree switch-window solarized-theme smartscan rainbow-mode powershell persp-projectile logview json-mode js3-mode js2-mode highlight-indentation helm-projectile helm-flycheck helm-dash helm-ag guru-mode guide-key drag-stuff))))
+    (ag markdown-mode+ markdown-mode ace-jump-mode graphviz-dot-mode php-refactor-mode php-mode org-bullets helm-swoop yasnippet yaml-mode writegood-mode wrap-region web-mode web-beautify use-package undo-tree switch-window solarized-theme smartscan rainbow-mode powershell persp-projectile logview json-mode js3-mode js2-mode highlight-indentation helm-projectile helm-flycheck helm-dash helm-ag guru-mode guide-key drag-stuff))))
 
 ;; Forensics & Data Cleaning
 
@@ -1355,282 +1429,13 @@ Usage example: To search for state changes that have moved from an non-done to d
    [?\C-s ?c ?h ?r ?o ?m ?e ?- ?e ?x ?t ?e ?n ?s ?i ?o ?n ?: ?/ ?/ return ?\C-a ?\C-  ?\C-s ?u ?r ?i ?= return ?\C-d])
 (put 'downcase-region 'disabled nil)
 
+(fset 'convert_clipboard_to_underscore_string
+   [escape ?< ?\C-y nil ?\C-a ?\M-x ?r ?e ?a ?p ?l backspace backspace backspace ?p ?l ?a ?c ?e ?- ?s ?t ?r ?i ?n ?g return ?  return ?_ return ?\C-a ?\M-x ?r ?e ?p ?l ?a ?c ?e ?_ backspace ?- ?s ?t ?r ?i ?n ?g return ?: return ?_ backspace return ?\C-a ?\M-x ?r ?e ?p ?l ?a ?c ?e ?- ?s ?t ?r ?i ?n ?g return ?? return return ?\C-a ?\M-x ?r ?e ?p ?l ?a ?c ?e ?- ?s ?t ?r ?i ?n ?g return ?/ return return ?\C-a ?\M-x ?r ?e ?p ?l ?a ?c ?e ?- ?s ?t ?i backspace ?r ?i ?n ?g return ?| return return ?\C-  ?\C-e ?\M-w ?\C-  ?\C-a ?\C-d])
+
 
 (fset 'convert_clipboard_to_underscored
    [escape ?< ?\C-  escape ?> ?\C-d ?\C-y nil ?\C-a ?\M-x ?r ?e ?p ?l ?a ?c ?e ?- ?s ?t ?r ?i ?n ?g return ?  return ?_ return ?\C-a ?\C-  ?\C-e ?\C-w])
 
-
-(setq web-mode-html-entities
-  '(("quot" . 34)
-     ("amp" . 38)
-     ("apos" . 39)
-     ("lt" . 60)
-     ("gt" . 62)
-     ("nbsp" . 160)
-     ("iexcl" . 161)
-     ("cent" . 162)
-     ("pound" . 163)
-     ("curren" . 164)
-     ("yen" . 165)
-     ("brvbar" . 166)
-     ("sect" . 167)
-     ("uml" . 168)
-     ("copy" . 169)
-     ("ordf" . 170)
-     ("laquo" . 171)
-     ("not" . 172)
-     ("shy" . 173)
-     ("reg" . 174)
-     ("macr" . 175)
-     ("deg" . 176)
-     ("plusmn" . 177)
-     ("sup2" . 178)
-     ("sup3" . 179)
-     ("acute" . 180)
-     ("micro" . 181)
-     ("para" . 182)
-     ("middot" . 183)
-     ("cedil" . 184)
-     ("sup1" . 185)
-     ("ordm" . 186)
-     ("raquo" . 187)
-     ("frac14" . 188)
-     ("frac12" . 189)
-     ("frac34" . 190)
-     ("iquest" . 191)
-     ("Agrave" . 192)
-     ("Aacute" . 193)
-     ("Acirc" . 194)
-     ("Atilde" . 195)
-     ("Auml" . 196)
-     ("Aring" . 197)
-     ("AElig" . 198)
-     ("Ccedil" . 199)
-     ("Egrave" . 200)
-     ("Eacute" . 201)
-     ("Ecirc" . 202)
-     ("Euml" . 203)
-     ("Igrave" . 204)
-     ("Iacute" . 205)
-     ("Icirc" . 206)
-     ("Iuml" . 207)
-     ("ETH" . 208)
-     ("Ntilde" . 209)
-     ("Ograve" . 210)
-     ("Oacute" . 211)
-     ("Ocirc" . 212)
-     ("Otilde" . 213)
-     ("Ouml" . 214)
-     ("times" . 215)
-     ("Oslash" . 216)
-     ("Ugrave" . 217)
-     ("Uacute" . 218)
-     ("Ucirc" . 219)
-     ("Uuml" . 220)
-     ("Yacute" . 221)
-     ("THORN" . 222)
-     ("szlig" . 223)
-     ("agrave" . 224)
-     ("aacute" . 225)
-     ("acirc" . 226)
-     ("atilde" . 227)
-     ("auml" . 228)
-     ("aring" . 229)
-     ("aelig" . 230)
-     ("ccedil" . 231)
-     ("egrave" . 232)
-     ("eacute" . 233)
-     ("ecirc" . 234)
-     ("euml" . 235)
-     ("igrave" . 236)
-     ("iacute" . 237)
-     ("icirc" . 238)
-     ("iuml" . 239)
-     ("eth" . 240)
-     ("ntilde" . 241)
-     ("ograve" . 242)
-     ("oacute" . 243)
-     ("ocirc" . 244)
-     ("otilde" . 245)
-     ("ouml" . 246)
-     ("divide" . 247)
-     ("oslash" . 248)
-     ("Ugrave" . 249)
-     ("Uacute" . 250)
-     ("Ucirc" . 251)
-     ("Uuml" . 252)
-     ("yacute" . 253)
-     ("thorn" . 254)
-     ("yuml" . 255)
-     ("OElig" . 338)
-     ("oelig" . 339)
-     ("Scaron" . 352)
-     ("scaron" . 353)
-     ("Yuml" . 376)
-     ("fnof" . 402)
-     ("circ" . 710)
-     ("tilde" . 732)
-     ("Alpha" . 913)
-     ("Beta" . 914)
-     ("Gamma" . 915)
-     ("Delta" . 916)
-     ("Epsilon" . 917)
-     ("Zeta" . 918)
-     ("Eta" . 919)
-     ("Theta" . 920)
-     ("Iota" . 921)
-     ("Kappa" . 922)
-     ("Lambda" . 923)
-     ("Mu" . 924)
-     ("Nu" . 925)
-     ("Xi" . 926)
-     ("Omicron" . 927)
-     ("Pi" . 928)
-     ("Rho" . 929)
-     ("Sigma" . 931)
-     ("Tau" . 932)
-     ("Upsilon" . 933)
-     ("Phi" . 934)
-     ("Chi" . 935)
-     ("Psi" . 936)
-     ("Omega" . 937)
-     ("alpha" . 945)
-     ("beta" . 946)
-     ("gamma" . 947)
-     ("delta" . 948)
-     ("epsilon" . 949)
-     ("zeta" . 950)
-     ("eta" . 951)
-     ("theta" . 952)
-     ("iota" . 953)
-     ("kappa" . 954)
-     ("lambda" . 955)
-     ("mu" . 956)
-     ("nu" . 957)
-     ("xi" . 958)
-     ("omicron" . 959)
-     ("pi" . 960)
-     ("rho" . 961)
-     ("sigmaf" . 962)
-     ("sigma" . 963)
-     ("tau" . 964)
-     ("upsilon" . 965)
-     ("phi" . 966)
-     ("chi" . 967)
-     ("psi" . 968)
-     ("omega" . 969)
-     ("thetasym" . 977)
-     ("Upsih" . 978)
-     ("piv" . 982)
-     ("ensp" . 8194)
-     ("emsp" . 8195)
-     ("thinsp" . 8201)
-     ("zwnj" . 8204)
-     ("zwj" . 8205)
-     ("lrm" . 8206)
-     ("rlm" . 8207)
-     ("ndash" . 8211)
-     ("mdash" . 8212)
-     ("lsquo" . 8216)
-     ("rsquo" . 8217)
-     ("sbquo" . 8218)
-     ("ldquo" . 8220)
-     ("rdquo" . 8221)
-     ("bdquo" . 8222)
-     ("dagger" . 8224)
-     ("Dagger" . 8225)
-     ("bull" . 8226)
-     ("hellip" . 8230)
-     ("permil" . 8240)
-     ("prime" . 8242)
-     ("Prime" . 8243)
-     ("lsaquo" . 8249)
-     ("rsaquo" . 8250)
-     ("oline" . 8254)
-     ("frasl" . 8260)
-     ("euro" . 8364)
-     ("image" . 8465)
-     ("weierp" . 8472)
-     ("real" . 8476)
-     ("trade" . 8482)
-     ("alefsym" . 8501)
-     ("larr" . 8592)
-     ("uarr" . 8593)
-     ("rarr" . 8594)
-     ("darr" . 8595)
-     ("harr" . 8596)
-     ("crarr" . 8629)
-     ("lArr" . 8656)
-     ("UArr" . 8657)
-     ("rArr" . 8658)
-     ("dArr" . 8659)
-     ("hArr" . 8660)
-     ("forall" . 8704)
-     ("part" . 8706)
-     ("exist" . 8707)
-     ("empty" . 8709)
-     ("nabla" . 8711)
-     ("isin" . 8712)
-     ("notin" . 8713)
-     ("ni" . 8715)
-     ("prod" . 8719)
-     ("sum" . 8721)
-     ("minus" . 8722)
-     ("lowast" . 8727)
-     ("radic" . 8730)
-     ("prop" . 8733)
-     ("infin" . 8734)
-     ("ang" . 8736)
-     ("and" . 8743)
-     ("or" . 8744)
-     ("cap" . 8745)
-     ("cup" . 8746)
-     ("int" . 8747)
-     ("there4" . 8756)
-     ("sim" . 8764)
-     ("cong" . 8773)
-     ("asymp" . 8776)
-     ("ne" . 8800)
-     ("equiv" . 8801)
-     ("le" . 8804)
-     ("ge" . 8805)
-     ("sub" . 8834)
-     ("sup" . 8835)
-     ("nsub" . 8836)
-     ("sube" . 8838)
-     ("supe" . 8839)
-     ("oplus" . 8853)
-     ("otimes" . 8855)
-     ("perp" . 8869)
-     ("sdot" . 8901)
-     ("lceil" . 8968)
-     ("rceil" . 8969)
-     ("lfloor" . 8970)
-     ("rfloor" . 8971)
-     ("lang" . 9001)
-     ("rang" . 9002)
-     ("loz" . 9674)
-     ("spades" . 9824)
-     ("clubs" . 9827)
-     ("hearts" . 9829)
-     ("diams" . 9830)))
-
-
-
-(defun my-replace-symbols-with-html-entity-names (start end)
-  (interactive "r")
-  (let ((count (count-matches "&")))
-    (replace-string "&" "&amp;" nil start end)
-    (setq end (+ end (* count 4))))
-  (dolist (pair web-mode-html-entities)
-    (unless (= (cdr pair) 38)
-      (let* ((str (char-to-string (cdr pair)))
-              (count (count-matches str start end)))
-        (setq end (+ end (* count (1+ (length (car pair))))))
-        (replace-string str
-          (concat "&" (car pair) ";")
-          nil start end)))))
-(put 'upcase-region 'disabled nil)
 
 (defun title-to-filename (title)
   "Convert a copied document title into a filename"
@@ -1679,3 +1484,31 @@ Usage example: To search for state changes that have moved from an non-done to d
     (setq working_string (upcase-initials (downcase working_string)))
     (kill-new working_string)
   ))
+
+(defun save-macro (name)
+  "save a macro. Take a name as argument
+     and save the last defined macro under
+     this name at the end of your .emacs"
+  (interactive "SName of the macro: ")  ; ask for the name of the macro
+  (kmacro-name-last-macro name)         ; use this name for the macro
+  (find-file user-init-file)            ; open ~/.emacs or other user init file
+  (goto-char (point-max))               ; go to the end of the .emacs
+  (newline)                             ; insert a newline
+  (insert-kbd-macro name)               ; copy the macro
+  (newline)                             ; insert a newline
+  (switch-to-buffer nil))               ; return to the initial buffer
+(put 'upcase-region 'disabled nil)
+
+
+(defun string-trim-final-newline (string)
+  (let ((len (length string)))
+    (cond
+      ((and (> len 0) (eql (aref string (- len 1)) ?\n))
+       (substring string 0 (- len 1)))
+      (t string))))
+
+(defun insert-random-uuid ()
+  (interactive)
+  (insert (string-trim-final-newline (shell-command-to-string "uuidgen"))))
+
+(add-to-list 'warning-suppress-types '(yasnippet backquote-change))
