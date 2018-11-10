@@ -1216,6 +1216,7 @@ main() {
         setup_sources
     elif [[ $cmd == "base" ]]; then
         fail_is_sudo
+        get_user
         base
     elif [[ $cmd == "firstboot" ]]; then
         first_boot
