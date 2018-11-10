@@ -246,6 +246,9 @@ base() {
             if [[ ${base_packages[$i]} == "ack" ]]; then
                 base_packages[$i]="ack-grep"
             fi
+            if [[ ${base_packages[$i]} == "libav-tools" ]]; then
+                base_packages[$i]="ffmpeg"
+            fi
         done
     fi
     sudo apt-get install -y "${base_packages[@]}" --no-install-recommends
