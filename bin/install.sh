@@ -312,7 +312,7 @@ install_docker() {
         set -x
         curl -fSL "${binary_uri}/docker-${docker_version}.tgz" -o "${tmp_tar}"
         # echo "${docker_sha256} ${tmp_tar}" | sha256sum -c -
-        tar -C /usr/local/bin --strip-components 1 -xzvf "${tmp_tar}"
+        sudo tar -C /usr/local/bin --strip-components 1 -xzvf "${tmp_tar}"
         rm "${tmp_tar}"
         docker -v
     )
