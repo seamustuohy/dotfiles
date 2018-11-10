@@ -298,7 +298,7 @@ install_docker() {
 
     # Include contributed completions
     mkdir -p /etc/bash_completion.d
-    curl -sSL -o /etc/bash_completion.d/docker https://raw.githubusercontent.com/docker/docker-ce/master/components/cli/contrib/completion/bash/docker
+    sudo curl -sSL -o /etc/bash_completion.d/docker https://raw.githubusercontent.com/docker/docker-ce/master/components/cli/contrib/completion/bash/docker
 
     # get the binary
     local tmp_tar=/tmp/docker.tgz
@@ -316,16 +316,16 @@ install_docker() {
         rm "${tmp_tar}"
         docker -v
     )
-    chmod +x /usr/local/bin/docker*
+    sudo chmod +x /usr/local/bin/docker*
 
-    curl -sSL https://raw.githubusercontent.com/jessfraz/dotfiles/master/etc/systemd/system/docker.service > /etc/systemd/system/docker.service
-    curl -sSL https://raw.githubusercontent.com/jessfraz/dotfiles/master/etc/systemd/system/docker.socket > /etc/systemd/system/docker.socket
+    sudo curl -sSL https://raw.githubusercontent.com/jessfraz/dotfiles/master/etc/systemd/system/docker.service > /etc/systemd/system/docker.service
+    sudo curl -sSL https://raw.githubusercontent.com/jessfraz/dotfiles/master/etc/systemd/system/docker.socket > /etc/systemd/system/docker.socket
 
-    systemctl daemon-reload
-    systemctl enable docker
+    sudo systemctl daemon-reload
+    sudo systemctl enable docker
 
     # update grub with docker configs and power-saving items
-    sed -i.bak 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="cgroup_enable=memory swapaccount=1 pcie_aspm=force apparmor=1 security=apparmor"/g' /etc/default/grub
+    sudo sed -i.bak 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="cgroup_enable=memory swapaccount=1 pcie_aspm=force apparmor=1 security=apparmor"/g' /etc/default/grub
     echo "Docker has been installed. If you want memory management & swap you have to run update-grub & reboot."
     PS3='Would you like to do that now? '
     options=("Yes" "No")
@@ -333,8 +333,8 @@ install_docker() {
         case $opt in
             "Yes")
                 echo "Updating and Restarting"
-                update-grub
-                shutdown -r 0
+                sudo update-grub
+                sudo shutdown -r 0
                 break
                 ;;
             "No")
