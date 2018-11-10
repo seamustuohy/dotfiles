@@ -1229,6 +1229,7 @@ main() {
         check_is_sudo
         wifi_selector
     elif [[ $cmd == "docker" ]]; then
+        get_user
         install_docker
     elif [[ $cmd == "graphics" ]]; then
         check_is_sudo
@@ -1237,6 +1238,7 @@ main() {
         check_is_sudo
         install_wmapps
     elif [[ $cmd == "dotfiles" ]]; then
+        get_user
         get_dotfiles
     elif [[ $cmd == "emacs" ]]; then
         check_is_sudo
@@ -1278,7 +1280,7 @@ main() {
     elif [[ $cmd == "thug" ]]; then
         install_thug_docker
     elif [[ $cmd == "signal" ]]; then
-        check_is_sudo
+        get_user
         install_signal
     elif [[ $cmd == "yubikey" ]]; then
         check_is_sudo
