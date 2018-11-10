@@ -43,16 +43,23 @@ check_is_sudo() {
         fi
 }
 
+fail_is_sudo() {
+        if [ "$EUID" -eq 0 ]; then
+                echo "Please don't run as root."
+                exit
+        fi
+}
+
 setup_sources() {
-        apt-get update
-        apt-get install -y \
+        sudo apt-get update
+        sudo apt-get install -y \
                 apt-transport-https \
                 ca-certificates \
                 curl \
                 dirmngr \
                 --no-install-recommends
 
-        cat <<-EOF > /etc/apt/sources.list
+        sudo cat <<-EOF > /etc/apt/sources.list
 deb https://deb.debian.org/debian testing main contrib non-free
 deb-src https://deb.debian.org/debian testing main contrib non-free
 
@@ -70,14 +77,12 @@ deb http://repo.linrunner.de/debian sid mai
 
 EOF
         # Power Management Key
-        apt-key adv --keyserver pool.sks-keyservers.net --recv-keys CD4E8809
+        sudo apt-key adv --keyserver pool.sks-keyservers.net --recv-keys CD4E8809
 
         cd /tmp
         curl -O https://www.deb-multimedia.org/pool/main/d/deb-multimedia-keyring/deb-multimedia-keyring_2016.8.1_all.deb
-        dpkg -i deb-multimedia-keyring_2016.8.1_all.deb
+        sudo dpkg -i deb-multimedia-keyring_2016.8.1_all.deb
 
-        # add docker gpg key
-        apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
 }
 
 
@@ -120,136 +125,137 @@ install_yubikey() {
 # installs base packages
 # the utter bare minimal shit
 base() {
-        apt-get update
-        apt-get -y upgrade
-        local base_packages=( \
-            ####################################
-            # Networking
-            ####################################
-            network-manager-gnome \
-            curl \
-            dnsutils \
-            # Need keyring for network manager
-            gnome-keyring \
-            ####################################
-            # App Security
-            ####################################
-            apparmor \
-            ####################################
-            # Backups
-            ####################################
-            duplicity \
-            python-boto \
-            ####################################
-            # Investigation
-            ####################################
-            exiftool \
-            strace \
-            wget \
-            whois \
-            poppler-utils \
-            lynx \
-            ####################################
-            # Development
-            ####################################
-            git \
-            pylint \
-            python-pip \
-            python3-dev \
-            python3-pip \
-            python3-setuptools \
-            # For dealing with builddeps problems
-            # https://www.guyrutenberg.com/2017/09/23/use-mk-build-deps-instead-of-apt-get-build-dep/
-            devscripts \
-            equivs \
-            libssl-dev \
-            ####################################
-            # Comms Security
-            ####################################
-            gnupg-agent \
-            gnupg2 \
-            gnutls-bin \
-            pinentry-curses \
-            scdaemon \
-            pcscd \
-            libusb-1.0-0-dev \
-            # pidgin \
-            # pidgin-otr \
-            ####################################
-            # net sec
-            ####################################
-            macchanger \
-            openvpn \
-            stunnel \
-            tor \
-            torsocks \
-            ####################################
-            # General Sec
-            ####################################
-            # keepassxc \
-            ####################################
-            # Data Analysis
-            ####################################
-            jq \
-            ####################################
-            # Media
-            ####################################
-            libav-tools \
-            youtube-dl \
-            ####################################
-            # Getting Debian to be a functional OS
-            ####################################
-            sudo \
-            terminator \
-            unzip \
-            tlp \
-            tlp-rdw \
-            ack \
-            xclip \
-            # libcanberra-gtk-module \
-            # libgmime-2.6-dev \
-            # libncurses5-dev \
-            # libtalloc-dev \
-            # libxapian-dev \
-            ####################################
-            # File Viewing
-            ####################################
-            urlview \
-            unzip \
-            zip \
-            #binwalk \
-            # Checking on status of file transfers
-            progress \
-            # System Exploration
-            lsof \
-            silversearcher-ag \
-            tree \
-            # Productivity
-            taskwarrior \
-            timewarrior )
+    fail_is_sudo
+    sudo apt-get update
+    sudo apt-get -y upgrade
+    local base_packages=( \
+          ####################################
+          # Networking
+          ####################################
+          network-manager-gnome \
+          curl \
+          dnsutils \
+          # Need keyring for network manager
+          gnome-keyring \
+          ####################################
+          # App Security
+          ####################################
+          apparmor \
+          ####################################
+          # Backups
+          ####################################
+          duplicity \
+          python-boto \
+          ####################################
+          # Investigation
+          ####################################
+          exiftool \
+          strace \
+          wget \
+          whois \
+          poppler-utils \
+          lynx \
+          ####################################
+          # Development
+          ####################################
+          git \
+          pylint \
+          python-pip \
+          python3-dev \
+          python3-pip \
+          python3-setuptools \
+          # For dealing with builddeps problems
+          #          https://ww          w.guyruten          berg.com/2          017/09/23/use-mk-build-deps-instead-of-apt-get-build-dep/
+          devscripts \
+          equivs \
+          libssl-dev \
+          ####################################
+          # Comms Security
+          ####################################
+          gnupg-agent \
+          gnupg2 \
+          gnutls-bin \
+          pinentry-curses \
+          scdaemon \
+          pcscd \
+          libusb-1.0-0-dev \
+          # pidgin \
+          # pidgin-otr \
+          ####################################
+          # net sec
+          ####################################
+          macchanger \
+          openvpn \
+          stunnel \
+          tor \
+          torsocks \
+          ####################################
+          # General Sec
+          ####################################
+          # keepassxc \
+          ####################################
+          # Data Analysis
+          ####################################
+          jq \
+          ####################################
+          # Media
+          ####################################
+          libav-tools \
+          youtube-dl \
+          ####################################
+          # Getting Debian to be a functional OS
+          ####################################
+          sudo \
+          terminator \
+          unzip \
+          tlp \
+          tlp-rdw \
+          ack \
+          xclip \
+          # libcanberra-gtk-module \
+          # libgmime-2.6-dev \
+          # libncurses5-dev \
+          # libtalloc-dev \
+          # libxapian-dev \
+          ####################################
+          # File Viewing
+          ####################################
+          urlview \
+          unzip \
+          zip \
+          #binwalk \
+          # Checking on status of file transfers
+          progress \
+          # System Exploration
+          lsof \
+          silversearcher-ag \
+          tree \
+          # Productivity
+          taskwarrior \
+          timewarrior )
 
-        apt-get install -y "${base_packages[@]}" --no-install-recommends
+    sudo apt-get install -y "${base_packages[@]}" --no-install-recommends
 
-        # If using locally stored email and notmuch
-        # apt-get install -y offlineimap --no-install-recommends
-        # Else if using remote mail and mutt
-        # local remote_mail=$(echo "Just Mutt and imap")
+    # If using locally stored email and notmuch
+    # apt-get install -y offlineimap --no-install-recommends
+    # Else if using remote mail and mutt
+    # local remote_mail=$(echo "Just Mutt and imap")
 
-        setup_sudo
-        apt-get autoremove
-        apt-get autoclean
-        apt-get clean
-
-        install_docker
+    setup_sudo
+    sudo apt-get autoremove
+    sudo apt-get autoclean
+    sudo apt-get clean
 }
 
 install_chrome() {
+    fail_is_sudo
+
     echo "deb [arch=amd64] https://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google.list
 
-    curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add -
+    curl -sSL https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
 
-    apt-get update
-    apt-get install -y \
+    sudo apt-get update
+    sudo apt-get install -y \
             google-chrome-stable \
             --no-install-recommends
 }
@@ -264,63 +270,68 @@ install_signal() {
 # installs docker master
 # and adds necessary items to boot params
 install_docker() {
-        # create docker group
-        sudo groupadd docker || true
-        sudo gpasswd -a "$TARGET_USER" docker
+    fail_is_sudo
 
-        # Include contributed completions
-        mkdir -p /etc/bash_completion.d
-        curl -sSL -o /etc/bash_completion.d/docker https://raw.githubusercontent.com/docker/docker-ce/master/components/cli/contrib/completion/bash/docker
+    # add docker gpg key
+    sudo apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
 
-        # get the binary
-        local tmp_tar=/tmp/docker.tgz
-        local binary_uri="https://download.docker.com/linux/static/edge/x86_64"
-        local docker_version
-        docker_version=$(curl -sSL "https://api.github.com/repos/docker/docker-ce/releases/latest" | jq --raw-output .tag_name)
-        docker_version=${docker_version#v}
-        # local docker_sha256
-        # docker_sha256=$(curl -sSL "${binary_uri}/docker-${docker_version}.tgz.sha256" | awk '{print $1}')
-        (
+    # create docker group
+    sudo groupadd docker || true
+    sudo gpasswd -a "$TARGET_USER" docker
+
+    # Include contributed completions
+    mkdir -p /etc/bash_completion.d
+    curl -sSL -o /etc/bash_completion.d/docker https://raw.githubusercontent.com/docker/docker-ce/master/components/cli/contrib/completion/bash/docker
+
+    # get the binary
+    local tmp_tar=/tmp/docker.tgz
+    local binary_uri="https://download.docker.com/linux/static/edge/x86_64"
+    local docker_version
+    docker_version=$(curl -sSL "https://api.github.com/repos/docker/docker-ce/releases/latest" | jq --raw-output .tag_name)
+    docker_version=${docker_version#v}
+    # local docker_sha256
+    # docker_sha256=$(curl -sSL "${binary_uri}/docker-${docker_version}.tgz.sha256" | awk '{print $1}')
+    (
         set -x
         curl -fSL "${binary_uri}/docker-${docker_version}.tgz" -o "${tmp_tar}"
         # echo "${docker_sha256} ${tmp_tar}" | sha256sum -c -
         tar -C /usr/local/bin --strip-components 1 -xzvf "${tmp_tar}"
         rm "${tmp_tar}"
         docker -v
-        )
-        chmod +x /usr/local/bin/docker*
+    )
+    chmod +x /usr/local/bin/docker*
 
-        curl -sSL https://raw.githubusercontent.com/jessfraz/dotfiles/master/etc/systemd/system/docker.service > /etc/systemd/system/docker.service
-        curl -sSL https://raw.githubusercontent.com/jessfraz/dotfiles/master/etc/systemd/system/docker.socket > /etc/systemd/system/docker.socket
+    curl -sSL https://raw.githubusercontent.com/jessfraz/dotfiles/master/etc/systemd/system/docker.service > /etc/systemd/system/docker.service
+    curl -sSL https://raw.githubusercontent.com/jessfraz/dotfiles/master/etc/systemd/system/docker.socket > /etc/systemd/system/docker.socket
 
-        systemctl daemon-reload
-        systemctl enable docker
+    systemctl daemon-reload
+    systemctl enable docker
 
-        # update grub with docker configs and power-saving items
-        sed -i.bak 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="cgroup_enable=memory swapaccount=1 pcie_aspm=force apparmor=1 security=apparmor"/g' /etc/default/grub
-        echo "Docker has been installed. If you want memory management & swap you have to run update-grub & reboot."
-        PS3='Would you like to do that now? '
-        options=("Yes" "No")
-        select opt in "${options[@]}"; do
-            case $opt in
-                "Yes")
-                    echo "Updating and Restarting"
-                    update-grub
-                    shutdown -r 0
-                    break
-                    ;;
-                "No")
-                    echo "Continuing without restarting"
-                    break
-                    ;;
-                *) echo "Invalid option. Please choose again.";;
-            esac
-        done
+    # update grub with docker configs and power-saving items
+    sed -i.bak 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="cgroup_enable=memory swapaccount=1 pcie_aspm=force apparmor=1 security=apparmor"/g' /etc/default/grub
+    echo "Docker has been installed. If you want memory management & swap you have to run update-grub & reboot."
+    PS3='Would you like to do that now? '
+    options=("Yes" "No")
+    select opt in "${options[@]}"; do
+        case $opt in
+            "Yes")
+                echo "Updating and Restarting"
+                update-grub
+                shutdown -r 0
+                break
+                ;;
+            "No")
+                echo "Continuing without restarting"
+                break
+                ;;
+            *) echo "Invalid option. Please choose again.";;
+        esac
+    done
 
-        # Ensure user has access to docker dir
-        sudo mkdir -p /etc/docker
-        sudo chgrp docker -R /etc/docker
-        sudo chmod 755 /etc/docker
+    # Ensure user has access to docker dir
+    sudo mkdir -p /etc/docker
+    sudo chgrp docker -R /etc/docker
+    sudo chmod 755 /etc/docker
 }
 
 
@@ -1122,8 +1133,8 @@ wifi_selector() {
 }
 
 
-enble_namespaces() {
-    sysctl -w kernel.unprivileged_userns_clone=1
+enable_namespaces() {
+    suso sysctl -w kernel.unprivileged_userns_clone=1
 }
 
 install_veracrypt() {
@@ -1149,11 +1160,13 @@ sudo cp -R veracrypt_installed/usr/share/* /usr/local/share/
 
 
 first_boot() {
+    fail_is_sudo
     get_user
-    check_is_sudo
-    enble_namespaces
+    # check_is_sudo
+    enable_namespaces
     setup_sources
     base
+    install_docker
 }
 
 first_user_boot() {
@@ -1182,7 +1195,7 @@ main() {
 
     if [[ $cmd == "sources" ]]; then
         get_user
-        check_is_sudo
+        fail_is_sudo
         setup_sources
         base
     elif [[ $cmd == "firstboot" ]]; then
@@ -1195,6 +1208,8 @@ main() {
     elif [[ $cmd == "wifi" ]]; then
         check_is_sudo
         wifi_selector
+    elif [[ $cmd == "docker" ]]; then
+        install_docker
     elif [[ $cmd == "graphics" ]]; then
         check_is_sudo
         graphics_selector
