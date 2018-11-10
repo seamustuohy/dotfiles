@@ -1033,12 +1033,12 @@ install_wmapps() {
 
 setup_sudo() {
         # add user to sudoers
-        adduser "$TARGET_USER" sudo
+        sudo adduser "$TARGET_USER" sudo
 
         # add user to systemd groups
         # then you wont need sudo to view logs and shit
-        gpasswd -a "$TARGET_USER" systemd-journal
-        gpasswd -a "$TARGET_USER" systemd-network
+        sudo gpasswd -a "$TARGET_USER" systemd-journal
+        sudo gpasswd -a "$TARGET_USER" systemd-network
 }
 
 usage() {
