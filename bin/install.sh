@@ -234,6 +234,20 @@ base() {
           taskwarrior \
           timewarrior )
 
+    # Swap out for Ubuntu specific packages if on ubuntu
+    if $(grep -qi ubuntu /proc/version); then
+        for i in "${!base_packages[@]}"; do
+            if [[ ${base_packages[$i]} == "stunnel" ]]; then
+                base_packages[$i]="stunnel4"
+            fi
+            if [[ ${base_packages[$i]} == "exiftool" ]]; then
+                base_packages[$i]="libimage-exiftool-perl"
+            fi
+            if [[ ${base_packages[$i]} == "ack" ]]; then
+                base_packages[$i]="ack-grep"
+            fi
+        done
+    fi
     sudo apt-get install -y "${base_packages[@]}" --no-install-recommends
 
     # If using locally stored email and notmuch
@@ -1197,6 +1211,8 @@ main() {
         get_user
         fail_is_sudo
         setup_sources
+    elif [[ $cmd == "base" ]]; then
+        fail_is_sudo
         base
     elif [[ $cmd == "firstboot" ]]; then
         first_boot
