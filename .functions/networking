@@ -1,0 +1,30 @@
+####################################
+# Security
+####################################
+
+# Get Current WiFi PSK Key
+get_current_wifi_psk_key() {
+    c='cut -d: -f2';
+    g=grep;
+    a=$(nmcli -t -f ACTIVE,SSID d w l|$g -E "^yes:"|$c);
+    p=$(nmcli -s -t c show $a|$g psk:|$c);
+    python3 -c "from hashlib import pbkdf2_hmac as p; from binascii import hexlify as h;print('PSK',h(p('sha1', b'$p', b'$a', 4096, dklen=32)).decode('ascii'))"
+}
+
+# WiFi AccessPoint Commands
+
+alias you_dont_know_me="source_as_root ~/dotfiles/bin/wifi_management.sh reset_wifi_with_changed_mac"
+alias new_wireless_mac=="source_as_root ~/dotfiles/bin/wifi_management.sh reset_wifi_with_changed_mac"
+alias not_the_droids=="source_as_root ~/dotfiles/bin/wifi_management.sh reset_wifi_with_changed_mac"
+
+
+####################################
+# Diagnostics
+####################################
+
+# Show the TCP and UDP ports being listened on with the process associated, user, etc.
+alias lport="sudo netstat -lepunt"
+
+# View HTTP traffic
+#alias sniff="sudo ngrep -d 'en1' -t '^(GET|POST) ' 'tcp and port 80'"
+#alias httpdump="sudo tcpdump -i en1 -n -s 0 -w - | grep -a -o -E \"Host\: .*|GET \/.*\""

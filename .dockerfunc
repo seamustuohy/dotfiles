@@ -199,16 +199,21 @@ harpoon() {
        ${DOCKER_REPO_PREFIX}/harpoon
 }
 
-gpg_harpoon() {
+harpoon_gpg() {
        docker_del_stopped harpoon
+
+       local config_file="${HOME}/dotfiles/private/harpoon/config.gpg"
        local tmpdir=$(mktemp -dt "$(basename "$0").XXXXX")
+       gpg -o "${tmpdir}/config" -d "${config_file}"
 
        docker run \
        --rm -it \
        --name harpoon \
        -v ~/malware:/home/harpoon/malware \
-       -v ~/dotfiles/private/harpoon:/home/harpoon/.config/harpoon/ \
+       -v "${tmpdir}:/home/harpoon/.config/harpoon/" \
        ${DOCKER_REPO_PREFIX}/harpoon
+
+       rm -fr "${tmpdir}"
 }
 
 play_docker() {
@@ -253,7 +258,7 @@ decode() {
         -it \
         --name decode \
         ${DOCKER_REPO_PREFIX}/decode \
-        dcode $1
+        dcode -s $1
 }
 
 decode_bash() {
@@ -638,6 +643,74 @@ is_it_dangerous_bash() {
         bash
 }
 
+git-annex(){
+        docker_del_stopped git-annex
 
+        # Make annex directory
+        sudo mkdir -p "/media/annex"
+        enc_volume_path="/media/s2e/annex/library"
+        local_path="/media/annex"
 
-source "${HOME}/dotfiles/private/.private_dockerfunc"
+        # mount encrypted transfer drive
+        sudo veracrypt \
+            --text \
+            --verbose \
+            --protect-hidden=no \
+            --pim=0 \
+            --keyfiles="" \
+            --fs-options="sync" \
+            "$enc_volume_path" \
+            "$local_path"
+
+        sudo chown -R "$(id -u).$(id -g)" "$local_path"
+
+        docker run --rm -it \
+                -v "${HOME}/.gitconfig:/root/.gitconfig" \
+                -v "$(pwd):/root/annex" \
+                -v "/media/annex:/media/annex" \
+                --device /dev/usb \
+                --device /dev/bus/usb \
+                ${DOCKER_REPO_PREFIX}/git-annex
+
+       # unmount encrypted transfer drive
+       sudo veracrypt -d "$local_path"
+}
+
+git-annex-bash(){
+        docker_del_stopped git-annex
+
+        # Make annex directory
+        sudo mkdir -p "/media/annex"
+        # Get transfer usb drive by ID
+        enc_volume_path="$(for devlink in /dev/disk/by-id/usb-*4C531123631022114023*part*; do readlink -f ${devlink}; done)"
+        local_path="/media/annex"
+
+        # mount encrypted transfer drive
+        sudo veracrypt \
+            --text \
+            --verbose \
+            --protect-hidden=no \
+            --pim=0 \
+            --keyfiles="" \
+            --fs-options="sync" \
+            "$enc_volume_path" \
+            "$local_path"
+
+        sudo chown -R "$(id -u).$(id -g)" "$local_path"
+
+        docker run --rm -it \
+                -v "${HOME}/.gitconfig:/root/.gitconfig" \
+                -v "$(pwd):/root/annex" \
+                -v "$local_path:$local_path" \
+                --device /dev/usb \
+                --device /dev/bus/usb \
+                ${DOCKER_REPO_PREFIX}/git-annex bash
+
+       # unmount encrypted transfer drive
+       sudo veracrypt -d "$local_path"
+}
+
+# Add private dockerfuncs if they exist
+if [ -d "${HOME}/dotfiles/private/.private_dockerfunc" ] ; then
+    source "${HOME}/dotfiles/private/.private_dockerfunc"
+fi

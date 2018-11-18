@@ -1,0 +1,11 @@
+####################################
+# Connecting to other devices
+####################################
+
+# OpenWRT easy ssh and scp node Alias's
+
+alias oscp='scp -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no"'
+alias ossh='ssh -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no"'
+
+# Screen into BeagleBone Black with a console cable
+alias bbscreen="sudo screen /dev/ttyUSB0 115200"

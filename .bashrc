@@ -62,7 +62,7 @@ shopt -s histappend
 
 # Don't record some commands
 
-export HISTIGNORE="&:[ ]*:exit:ls:bg:fg:history:clear"
+export HISTIGNORE="&:[ ]*:exit:ls:bg:fg:history:clear:pwd:* --help:* -h:"
 
 # remove duplicates while preserving input order
 
@@ -166,3 +166,16 @@ bind "set show-all-if-ambiguous on"
 # PATH
 # Add CASK to the path for emacs if using cask
 # export PATH="$PATH:$HOME/.cask/bin"
+
+# SSH Agent & GPG
+# Set SSH_AUTH_SOCK
+unset SSH_AGENT_PID
+if [ "${gnupg_SSH_AUTH_SOCK_by:-0}" -ne $$ ]; then
+  export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
+fi
+
+# Configure pinentry to use the correct TTY
+# Also set the GPG_TTY and refresh the TTY in case user has switched into an X session as stated in gpg-agent(1). For example:
+
+export GPG_TTY=$(tty)
+gpg-connect-agent updatestartuptty /bye >/dev/null

@@ -1511,4 +1511,6 @@ Usage example: To search for state changes that have moved from an non-done to d
   (interactive)
   (insert (string-trim-final-newline (shell-command-to-string "uuidgen"))))
 
+;; Otherwise we get errors
+(setq warning-suppress-types nil)
 (add-to-list 'warning-suppress-types '(yasnippet backquote-change))

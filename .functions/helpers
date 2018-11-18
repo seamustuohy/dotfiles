@@ -1,0 +1,31 @@
+############################################
+## Helpers
+############################################
+
+source_as_root() {
+    # source_as_root <script name> <function in script to run>
+    # e.g. source_as_root ~/bin/my_scripts.sh function_name
+    #
+    # WARNING: This will source the file and run it with sudo
+    # Only run this on scripts that only define functions
+    local wifi_source=$(readlink -f $1)
+    sudo /bin/bash -c "source ${wifi_source}; $2"
+}
+
+############################################
+## Crontab
+############################################
+crontab_add() {
+    (crontab -l ; echo "$1") 2>&1 \
+        | grep -v "no crontab" \
+        | sort | uniq \
+        | crontab -
+}
+
+crontab_delete() {
+    (crontab -l ; echo "$1") 2>&1 \
+        | grep -v "no crontab" \
+        | grep -v $1 \
+        |  sort | uniq \
+        | crontab -
+}

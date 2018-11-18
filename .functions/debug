@@ -1,0 +1,76 @@
+############################################
+## Memory and Process Debugging
+############################################
+
+# Identify what process (including its children) is eating up all my memory
+alias psmem="sudo python ~/dotfiles/bin/ps_mem.py"
+
+# Identify the top 10 processes eating up my CPU
+alias whocpu="ps -eo pcpu,pid,user,args | sort -k 1 -r | head -10"
+
+
+############################################
+## Package Debugging
+############################################
+
+# Installed
+# find installed files (good for grepping for dependencies. "installed |grep DEPEN")
+alias installed_find='dpkg --get-selections | grep -v deinstall'
+alias installed=installed_find
+installed_check() {
+    PKG_NAME="$1"
+    is_installed=$(dpkg-query -W --showformat='${Status}\n' "${PKG_NAME}" 2>/dev/null | grep "install ok installed") || true
+    if [[ $is_installed == "install ok installed" ]]; then
+        (>&2 echo "Package installed")
+        return 0
+    else
+        (>&2 echo "Package not found")
+        return 1
+    fi
+}
+
+
+############################################
+## Configuration Debugging
+############################################
+
+# Find item in a Bash config file
+
+# Look for relevant string in bash config files when things go weird
+# $ grep_bash PATH
+grep_bash(){
+  for f in  ~/.bashrc ~/.profile ~/.bash_profile ~/.bash_login \
+            /etc/profile /etc/environment /etc/bash.bashrc;
+  do
+    [ -e $f ] && grep -H "$@" $f;
+  done
+}
+
+
+############################################
+## Testing
+############################################
+
+# Simple Servers
+# run simple python server from directory
+# alias simpleServer="python -m SimpleHTTPServer"
+alias simpleServer="python3 -m http.server."
+
+
+# Use simple python server to view jekyll site from _all directory. Useful for when you use SVG's as much as I do.
+alias jserver="cd ..; jekyll --no-server; cd _site; simpleServer"
+
+
+
+# Alert
+# Add an "alert" alias for long running commands.  Use like so: sleep 10; alert
+alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
+
+
+############################################
+## FUUUUUUUUUUUUUUUUUUU
+############################################
+
+# Kill all the tabs in Chrome to free up memory
+# [C] explained: http://www.commandlinefu.com/commands/view/402/exclude-grep-from-your-grepped-output-of-ps-alias-included-in-description
+alias chromekill="ps ux | grep '[C]hrome Helper --type=renderer' | grep -v extension-process | tr -s ' ' | cut -d ' ' -f2 | xargs kill"
