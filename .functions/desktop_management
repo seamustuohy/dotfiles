@@ -8,3 +8,8 @@ i3-rename() {
   i3-msg rename workspace "${WORKSPACE}" to "${1}"
 }
 alias i3r=i3-rename
+
+
+rotate_gpd() {
+    xrandr --output eDP1 --rotate right
+}
