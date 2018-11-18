@@ -114,7 +114,17 @@ function getcertnames() {
 # `-u` for unique
 # -t \: for colon delimited
 # -k1,1 for key field 1
-alias unique_http_or_https_transport="grep 'http' | sort -u -t\/ -k4,4"
+# alias unique_http_or_https_transport="grep 'http' | sort -u -t\/ -k4,4"
+
+
+http_unique() {
+    grep -Eo "http[s]://[ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789\._~:/\?#\&\(\)\*+\,\;=@ -]+" "${1}" \
+        | sort -u -t\/ -k4,4
+        # `-u` for unique
+        # -t \: for colon delimited
+        # -k1,1 for key field 1
+}
+
 
 search_dir_for_urls() {
     grep -r --only-matching --perl-regexp "http(s?):\/\/[^ \"\(\)\<\>]*" "${1}"
