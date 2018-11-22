@@ -161,6 +161,17 @@ read_email() {
 }
 
 
+# ===== VIPER ALIASES =====
+# For use in viper docker container.
+
+alias oledump="python2 /tools/oledump/oledump.py --plugindir /tools/oledump"
+
+#  --pluginoptions=-k
+alias msgdump="python2 /tools/oledump/oledump.py --plugindir /tools/oledump -q -p plugin_msg"
+
+
+
+
 ############################################
 ## Android
 ############################################

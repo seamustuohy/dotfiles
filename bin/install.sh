@@ -223,6 +223,7 @@ base() {
           urlview \
           unzip \
           zip \
+          libxml2-utils \
           #binwalk \
           # Checking on status of file transfers
           progress \

@@ -107,7 +107,8 @@ archive_site() {
 viper_test() {
         docker_del_stopped viper
         docker -D run \
-        -v ~/malware:/home/viper/workdir/malware \
+        -v ~/malware/2018:/malware \
+        -v viper_data:/root/.viper \
         -it \
         --name viper \
         ${DOCKER_REPO_PREFIX}/viper \
@@ -117,7 +118,8 @@ viper_test() {
 viper() {
         docker_del_stopped viper
         docker run \
-        -v ~/malware:/home/viper/workdir/malware \
+        -v ~/malware/2018:/malware \
+        -v viper_data:/root/.viper \
         -it \
         --name viper \
         ${DOCKER_REPO_PREFIX}/viper
@@ -135,7 +137,9 @@ viper_reconnect() {
 viper_bash() {
         docker_del_stopped viper-bash
         docker -D run \
-        -v ~/malware:/home/viper/workdir/malware \
+        -v ~/malware/2018:/malware \
+        -v ~/malware/tools:/tools \
+        -v viper_data:/root/.viper \
         -it \
         --name viper-bash \
         ${DOCKER_REPO_PREFIX}/viper \
@@ -145,7 +149,8 @@ viper_bash() {
 v2_bash() {
         docker_del_stopped v2-bash
         docker -D run \
-        -v ~/malware:/home/viper/workdir/malware \
+        -v ~/malware/2018:/malware \
+        -v viper_data:/root/.viper \
         -it \
         --name v2-bash \
         ${DOCKER_REPO_PREFIX}/v2 \
