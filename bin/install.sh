@@ -35,7 +35,6 @@ else
 fi
 
 
-
 check_is_sudo() {
         if [ "$EUID" -ne 0 ]; then
                 echo "Please run as root."
@@ -44,14 +43,14 @@ check_is_sudo() {
 }
 
 setup_sources() {
-        apt-get update
+        # apt-get update
         apt-get install -y \
                 apt-transport-https \
                 ca-certificates \
                 curl \
                 dirmngr \
                 --no-install-recommends
-
+        apt-get update
         cat <<-EOF > /etc/apt/sources.list
 deb https://deb.debian.org/debian testing main contrib non-free
 deb-src https://deb.debian.org/debian testing main contrib non-free
@@ -66,11 +65,13 @@ deb http://www.deb-multimedia.org testing main non-free
 deb-src http://www.deb-multimedia.org testing main non-free
 
 # Power Management
-deb http://repo.linrunner.de/debian sid mai
+# deb http://repo.linrunner.de/debian sid mai
 
 EOF
+        # deb-multimedia key
+        apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 5C808C2B65558117
         # Power Management Key
-        apt-key adv --keyserver pool.sks-keyservers.net --recv-keys CD4E8809
+        # apt-key adv --keyserver pool.sks-keyservers.net --recv-keys CD4E8809
 
         cd /tmp
         curl -O https://www.deb-multimedia.org/pool/main/d/deb-multimedia-keyring/deb-multimedia-keyring_2016.8.1_all.deb
@@ -164,6 +165,11 @@ base() {
             equivs \
             libssl-dev \
             ####################################
+            # Writing
+            ####################################
+            ispell \
+            uuid-runtime \
+            ####################################
             # Comms Security
             ####################################
             gnupg-agent \
@@ -194,7 +200,8 @@ base() {
             ####################################
             # Media
             ####################################
-            libav-tools \
+            # libav-tools \ # Replaced by ffmpeg
+            ffmpeg \
             youtube-dl \
             ####################################
             # Getting Debian to be a functional OS
@@ -206,6 +213,7 @@ base() {
             tlp-rdw \
             ack \
             xclip \
+            bash-completion \
             # libcanberra-gtk-module \
             # libgmime-2.6-dev \
             # libncurses5-dev \
@@ -1204,7 +1212,7 @@ main() {
     elif [[ $cmd == "dotfiles" ]]; then
         get_dotfiles
     elif [[ $cmd == "emacs" ]]; then
-        check_is_sudo
+        # check_is_sudo
         install_emacs
     elif [[ $cmd == "mutt" ]]; then
         check_is_sudo
@@ -1269,6 +1277,7 @@ cleanup() {
     # put cleanup needs here
     exit 0
 }
+
 
 trap 'cleanup' EXIT
 

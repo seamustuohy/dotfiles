@@ -21,23 +21,8 @@
 (setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
 
 
-;; Copy and Paste on Windows
-(defun linux_subshell_on_windows-copy_region_to_clipboard (&optional b e)
-  "Copies the region selected to the windows clipboard."
-  (interactive "r")
-  (shell-command-on-region b e "clip.exe"))
-(global-set-key (kbd "M-W") 'linux_subshell_on_windows-copy_region_to_clipboard)
-
-
-(defun linux_subshell_on_windows-paste_region_from_clipboard (&optional b e)
-  "Copies the region selected to the windows clipboard."
-  (interactive "r")
-  (call-process "powershell.exe" nil t nil " Get-Clipboard"))
-(global-set-key (kbd "M-Y") 'linux_subshell_on_windows-paste_region_from_clipboard)
-
-
+;; 00000000000000000000
 ;; === Packages ===
-
 
 (require 'package)
 
@@ -620,8 +605,22 @@ Including indent-buffer, which should not be called automatically on save."
 (global-set-key (kbd "C-c n") 'file-management/cleanup-buffer)
 
 
+(defun my-delete-trailing-whitespace-even-final-newline()
+  "Deletes all blank lines at the end of the file, even the last one"
+  (interactive)
+  (save-excursion
+    (save-restriction
+      (widen)
+      (goto-char (point-max))
+      (delete-blank-lines)
+      (let ((trailnewlines (abs (skip-chars-backward "\n\t"))))
+        (if (> trailnewlines 0)
+            (progn
+              (delete-char trailnewlines)))))))
+
+
 ;; Add the hook.
-(add-hook 'before-save-hook 'file-management/cleanup-buffer-safe)
+(add-hook 'before-save-hyaook 'file-management/cleanup-buffer-safe)
 
 ;; When files change on disk I want the buffers to change to match them.
 ;; I will modify text files in bash while they are open in emacs when I need to do more automated modification.
@@ -1511,4 +1510,62 @@ Usage example: To search for state changes that have moved from an non-done to d
   (interactive)
   (insert (string-trim-final-newline (shell-command-to-string "uuidgen"))))
 
+(setq warning-suppress-types nil)
 (add-to-list 'warning-suppress-types '(yasnippet backquote-change))
+
+
+;; ===  Linux Subsystem of Windows ===
+;; Check to see if we are in it
+(setq is_windows_subsystem (call-process "is_windows_subsystem" nil nil nil))
+
+;; linux subsystem for windows copy and paste connector
+(defun my-yanking-function (prop)
+  ;;(message "YEAAAAAAAAAAAAAAAAH")
+  (shell-command-on-region (region-beginning) (region-end) "clip.exe"))
+
+(defun my-yanking-no-region-function (begin end region)
+  (shell-command-on-region (region-beginning) (region-end) "clip.exe"))
+
+
+;; sldkfdslfk
+
+(defun my-pasting-function (prop)
+  (with-temp-buffer
+    (call-process "powershell.exe" nil t nil " Get-Clipboard")
+    ;;(message (buffer-string))
+    (delete-trailing-whitespace)
+    (my-delete-trailing-whitespace-even-final-newline)
+    (beginning-of-buffer)
+    (if (= 1 (buffer-size))
+        (message "Empty")
+      (kill-new (buffer-string)))))
+
+
+
+;; Turn copy/paste connectors on if in subsystem
+(if (equal is_windows_subsystem 0)
+    (progn
+      (add-function :before (symbol-function 'org-yank) #'my-pasting-function)
+      (add-function :before (symbol-function 'cua-paste) #'my-pasting-function))
+  (message "failed to add paste function"))
+(if (equal is_windows_subsystem 0)
+    (progn
+      (add-function :after (symbol-function 'kill-new) #'my-yanking-function))
+  (message "failed to add yank function"))
+(if (equal is_windows_subsystem 0)
+    (progn
+      (add-function :before (symbol-function 'kill-region) #'my-yanking-no-region-function))
+  (message "failed to add yank region function"))
+
+;; Sideloaded copy and Paste on Windows
+(defun linux_subshell_on_windows-copy_region_to_clipboard (&optional b e)
+  "Copies the region selected to the windows clipboard."
+  (interactive "r")
+  (shell-command-on-region b e "clip.exe"))
+(global-set-key (kbd "M-W") 'linux_subshell_on_windows-copy_region_to_clipboard)
+
+(defun linux_subshell_on_windows-paste_region_from_clipboard (&optional b e)
+  "Copies the region selected to the windows clipboard."
+  (interactive "r")
+  (call-process "powershell.exe" nil t nil " Get-Clipboard"))
+(global-set-key (kbd "M-Y") 'linux_subshell_on_windows-paste_region_from_clipboard)
