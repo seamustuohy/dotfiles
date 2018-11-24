@@ -1,0 +1,131 @@
+####################################
+# Get Media from Online
+####################################
+
+get_song_from_youtube() {
+      local SITE=${1}
+      local LOCATION=$(pwd)
+      cd ~/Music
+      youtube-dl --audio-format mp3 -x ${SITE}
+      cd ${LOCATION}
+  }
+
+alias getsong=get_song_from_youtube
+
+
+# Grab a compressed file from online and uncompress it
+curltar() {
+        case $1 in
+                *.tar.bz2) \curl -kL $1 | tar xvjf - ;;
+                *.tar.gz) \curl -kL $1 | tar xvzf - ;;
+                *.bz2) \curl -kL $1 | bunzip2 - ;;
+                *.rar) \curl -kL $1 | unrar x - ;;
+                *.gz) \curl -kL $1 | gunzip - ;;
+                *.tar) \curl -kL $1 | tar xvf - ;;
+                *.tbz2) \curl -kL $1 | tar xvjf - ;;
+                *.tgz) \curl -kL $1 | tar xvzf - ;;
+                *.zip) \curl -kL $1 | unzip - ;;
+                *.Z) \curl -kL $1 | uncompress - ;;
+                *.7z) \curl -kL $1 | 7z x - ;;
+                *) \curl -kLO $1
+        esac
+}
+
+curl_w_resume() {
+    # From the following one liner
+    # export ec=18; while [ $ec -eq 18 ]; do /usr/bin/curl -O -C - "http://..........zip"; export ec=$?; done
+    local url="${1}"
+    local ec=18;
+    while [ $ec -eq 18 ]; do
+        curl -O -C - "${url}";
+        ec=$?;
+    done
+}
+
+
+
+####################################
+# Read Media
+####################################
+
+decode_qr() {
+    # decode a QR code from an image
+    # sudo apt-get install zbar-tools
+    zbarimg "${1}"
+}
+
+
+####################################
+# Convert and Format Media
+####################################
+
+# Create a data URL from a file
+function dataurl_create() {
+        local mimeType=$(file -b --mime-type "$1");
+        if [[ $mimeType == text/* ]]; then
+                mimeType="${mimeType};charset=utf-8";
+        fi
+        echo "data:${mimeType};base64,$(openssl base64 -in "$1" | tr -d '\n')";
+}
+
+
+
+rip_dvd() {
+    local VOB_PATH="$1" # VTS_01_1.VOB
+    local AVI_PATH="$2" # ~/video_01_1
+    # -f avi : force output format
+    # -c:v libx264 : encode with the h264 codec to create small, but quality files
+    # -g 300 : GOP size is 300 which means one intra frame every 10 seconds for 29.97fps input video
+    avconv -i "${VOB_PATH}" -f avi -c:v libx264 -g 300 -bf 2 "${AVI_PATH}".avi
+
+    # Note for mounting dvd's
+    # sudo mount -o loop /dev/cdrom /media/cdrom/
+}
+
+alias vob_to_avi="rip_dvd"
+
+
+# Latex
+inkscape2latex() {
+    inkscape -D -z --file=${1}.svg --export-pdf=${1}.pdf --export-latex
+}
+
+
+# Whiteboard Cleaning
+white-board-cleaner () {
+    convert "$1" -morphology Convolve DoG:15,100,0 -negate -normalize -blur 0x1 -channel RBG -level 60%,91%,0.1 "$2" ;
+}
+
+
+# This is just a stub that can be modified to work better
+# with different photos
+annotate() {
+    # annotate [image_name] "[annotation]"
+    # produces text_[image_name] file
+    # ONLY use this in the same directory as the image.
+
+    local image_name=$1
+    local annotation=$2
+
+    # North, South, East, West
+    # NorthEast, SouthWest, Etc.
+    local gravity="East"
+    # Font Selection
+    # See all with following command
+    # convert -list font | grep "Font:"
+    local font="Droid-Sans"
+    local pointsize=25
+    # Fold the text at a certain char
+    # change this to make the text wrap
+    local foldchar=15
+    # This makes it only fold on spaces
+    local spacefold="-s"
+    # This would make it not fold.
+    # local spacefold=""
+
+    convert -gravity $gravity \
+            -weight 800 \
+            -font $font -pointsize $pointsize \
+            -annotate +20+20 "$(fold -w ${foldchar} ${spacefold} <<< "${annotation}")" \
+            "$image_name" text_"$image_name"
+}

@@ -1,0 +1,67 @@
+############################################
+## Project Setup
+############################################
+
+
+# mkproj
+# Creates a directory structure for a possible new project
+
+make_project() {
+    mkdir $1
+    cd $1
+    mkdir proposals
+    mkdir agreement
+    mkdir reports
+    mkdir correspondence
+    mkdir procurement
+    mkdir travel
+    mkdir workplans
+    mkdir monitoring_and_evaluation
+    mkdir outreach_comms
+    mkdir meetings
+    mkdir budgets
+    mkdir outputs
+    touch .projectile
+    touch tasks.org
+    cd ../
+}
+alias mkproj=make_project
+
+
+############################################
+## Git
+############################################
+
+# Alias git
+alias g=git
+
+# Git Go!
+# Run a git command in another directory
+# gg /path/to/repo [git command]
+function gg() {
+   local _gg="$1";
+   shift;
+   git --git-dir="${_gg}/.git" --work-tree="${_gg}" "$@"
+}
+
+# Git Branch Parsing
+
+function parse_git_branch() {
+    git branch --no-color 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1) /'
+}
+
+# Git purge file
+# Use filter-branch to remove an unwanted file/directory from a repo's git revision history.
+git_purge() {
+git filter-branch --prune-empty --index-filter "git rm -rf --cached --ignore-unmatch ${1}" --tag-name-filter cat -- --all
+}
+
+git_fpurge() {
+git filter-branch -f --prune-empty --index-filter "git rm -rf --cached --ignore-unmatch ${1}" --tag-name-filter cat -- --all
+}
+
+# github stats
+git_stats() {
+    local user="$1"
+  python ~/dotfiles/bin/github_traffic.py --log --user "${user}" --write ~/temp/github
+}

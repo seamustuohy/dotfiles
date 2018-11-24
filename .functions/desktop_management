@@ -1,0 +1,15 @@
+##############################
+## Desktop Management
+##############################
+
+## i3
+i3-rename() {
+  local WORKSPACE=$(i3-msg -t get_workspaces | jq -r '.[] | select(.focused==true).name')
+  i3-msg rename workspace "${WORKSPACE}" to "${1}"
+}
+alias i3r=i3-rename
+
+
+rotate_gpd() {
+    xrandr --output eDP1 --rotate right
+}

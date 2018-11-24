@@ -1,0 +1,8 @@
+####################################
+# Pranks
+####################################
+
+
+alias rainbow='for i in {1..665535};do printf "%x\n" $i;done|while read -r u;do printf "\033[38;5;$((16+$((16#$u))%230))m\u$u\033[0m";done'
+
+# whitenoise() { aplay -c 2 -f S16_LE -r 44100 /dev/urandom ;}

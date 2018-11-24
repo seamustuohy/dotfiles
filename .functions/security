@@ -1,0 +1,58 @@
+##################################
+## GPG
+##################################
+
+# === GPG find who a file is encryped to ===
+
+# List who some gpg data is encrypted to
+# Only works if the client puts key IDs into encrypted packets
+# But, most clients do
+# Regex Snippets
+#
+# Match Fingerprint
+# MATCHES: 0xAABBCCDD11223344
+# REGEX: \(0x[A-Z0-9]\{16\}\)
+#
+# Match Quoted Name
+# MATCHES:       "Seamus Tuohy <code@seamustuohy.com>"
+# REGEX: \s*\"\([^\"]*\"\).*
+alias gpg-encrypted-to="gpg --batch --list-packets 2>&1 \
+            | sed -n \
+                  '/\(0x[A-Z0-9]\{16\}\)/{ # Match first line
+                    # Append next input line to contents of pattern space
+                    $!{ N
+                      # sed substitution pattern that works on merged lines
+                      s/.*\(0x[A-Z0-9]\{16\}\).*\n\s*\"\([^\"]*\"\).*/\2 - \1/
+                      # substitution successful -> goto label :found
+                      t found
+                      # substitution failed (match not found)
+                      :not-found
+                      # if no match, delete line
+                      d
+                      # substitution successful (match found)
+                      :found
+                      # print substitution for match
+                      p
+                      }
+                    }'"
+
+alias gpg-encrypted-to-keyid="gpg --batch --list-packets 2>&1 \
+                             | grep -oE 'keyid [A-Z0-9]{16}'| cut -d' ' -f2"
+
+alias gpg-file-encrypted-to=gpg-file-encrypted-to.sh
+
+gpg-unlock-key() {
+    echo "TEST" | gpg -ear "$1" | gpg -d
+}
+
+
+
+
+##################################
+## I screwed up
+##################################
+
+
+# Hide mistaken history commands
+# Hide the previous command you just ran and forgot to use space.
+alias hideprev='history -d $((HISTCMD-2)) && history -d $((HISTCMD-1))'

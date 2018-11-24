@@ -1,0 +1,15 @@
+##############################
+## Time Warrior Aliases
+##############################
+
+# What I Do?
+# From https://github.com/drewstinnett/dotfiles/blob/master/.zshrc
+alias whatd_i_do_last_week="task end.after:today-1wk completed rc.detection:off rc.defaultwidth:184"
+alias whatd_i_do_last_month="task end.after:today-5wk completed rc.detection:off rc.defaultwidth:184"
+alias whatd_i_do_last_day="task end.after:today-1d completed rc.detection:off rc.defaultwidth:184"
+alias tk="task"
+alias tko="task overdue"
+alias tkm="task modify"
+alias tka="task add"
+alias tk_due_this_week="task due.before:today+1wk"
+alias tk_due_tomorrow="task due.before:today+1day"
