@@ -1,0 +1,16 @@
+# -*- mode: snippet -*-
+# name: reference
+# key: reference
+# --
+  "$1":
+    id: "$1"
+    referenceid: `(insert-random-uuid)`
+    type: "${2:$$(yas-choose-value '("playbook" "task"))}"
+    role: "$3"
+    reference:
+      version: ${4:-1}
+      name: "$5"
+      nexttasks:
+        "${6:$$(yas-choose-value '("all" "no" "yes" ))}":
+          - "$7"
+$0
