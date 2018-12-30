@@ -259,3 +259,27 @@ get_bitly_hashes() {
     # $2 == output file to write location of thug daat
     cat "$1" | cut -d, -f 1| grep "bit\.ly" | sed 's/http[s]*:\/\/bit\.ly\/\(.*\)/\1/' > "$2"
 }
+
+
+
+############################################
+## Extraction From Files
+############################################
+
+extract_images() {
+    local filename="$1"
+    exiftool -a -b -ee -embeddedimage -W Image_%.3g3.%s "${filename}"
+    # exiftool -a -b -ee -W Embeded_%.3g3.%s "${filename}"
+    # Extract embedded JPG and JP2 images from a PDF file.  The output images will have file names like
+    # "Image_#.jpg" or "Image_#.jp2", where "#" is the ExifTool family 3 embedded document number for the
+    # image.
+    # Use -g3 or -G3 to identify the originating document for extracted information.
+    
+}
+
+extract_ALL_metadata() {
+    local filename="$1"
+    exiftool -a -ee -u -g1 -api RequestAll=3 "${filename}"
+# Print all meta information in an image, including duplicate and unknown tags, sorted by group (for family 1). For performance reasons, this command may not extract all available metadata. (Metadata in embedded documents, metadata extracted by external utilities, and metadata requiring excessive processing time may not be extracted). Add -ee and -api RequestAll=3 to the command to extract absolutely everything available.
+
+}

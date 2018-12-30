@@ -237,11 +237,17 @@ base() {
           #binwalk \
           # Checking on status of file transfers
           progress \
+          ####################################
           # System Exploration
+          ####################################
           lsof \
           silversearcher-ag \
           tree \
+          # fdupes: https://www.tecmint.com/fdupes-find-and-delete-duplicate-files-in-linux/
+          fdupes \
+          ####################################
           # Productivity
+          ####################################
           taskwarrior \
           timewarrior )
 

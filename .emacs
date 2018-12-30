@@ -912,8 +912,8 @@ If point was already at that position, move point to beginning of line."
 (setq org-cycle-include-plain-lists t)
 
 ;; Bullets Mode
-(require 'org-bullets)
-(add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+;; (require 'org-bullets)
+;; (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
 
 
 ;; Tasks & Events
@@ -1515,6 +1515,19 @@ Usage example: To search for state changes that have moved from an non-done to d
 (add-to-list 'warning-suppress-types '(yasnippet backquote-change))
 
 
+
+(defun recode-region (start end &optional coding-system)
+  "Replace the region with a recoded text."
+  (interactive "r\n\zCoding System (utf-8): ")
+  (setq coding-system (or coding-system 'utf-8))
+  (let ((buffer-read-only nil)
+        (text (buffer-substring start end)))
+    (delete-region start end)
+    (insert (decode-coding-string (string-make-unibyte text) coding-system))))
+
+
+
+
 ;; ===  Linux Subsystem of Windows ===
 ;; Check to see if we are in it
 (setq is_windows_subsystem (call-process "is_windows_subsystem" nil nil nil))
@@ -1570,3 +1583,4 @@ Usage example: To search for state changes that have moved from an non-done to d
   (interactive "r")
   (call-process "powershell.exe" nil t nil " Get-Clipboard"))
 (global-set-key (kbd "M-Y") 'linux_subshell_on_windows-paste_region_from_clipboard)
+

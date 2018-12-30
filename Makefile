@@ -1,6 +1,6 @@
-.PHONY: bin dotfiles src etc
+.PHONY: bin dotfiles src
 
-all: bin dotfiles src etc
+all: bin dotfiles src
 
 bin:
 	# Move Binary Files to /usr/local/bin
@@ -27,12 +27,3 @@ dotfiles:
 	#ln -fn $(CURDIR)/gitignore $(HOME)/.gitignore;
 	#ln -fn $(CURDIR)/gitignore /usr/local/src/.gitignore;
 
-etc:
-	sudo mkdir -p /etc/docker/seccomp
-	sudo chmod 755 /etc/docker
-	for file in $(shell find $(CURDIR)/etc -type f -not -name ".*.swp"); do \
-		f=$$(echo $$file | sed -e 's|$(CURDIR)||'); \
-		sudo ln -f $$file $$f; \
-	done
-	systemctl --user daemon-reload || true
-	sudo systemctl daemon-reload
