@@ -35,7 +35,6 @@ else
 fi
 
 
-
 check_is_sudo() {
         if [ "$EUID" -ne 0 ]; then
                 echo "Please run as root."
@@ -59,7 +58,9 @@ setup_sources() {
                 dirmngr \
                 --no-install-recommends
 
+        sudo apt-get update
         sudo cat <<-EOF > /etc/apt/sources.list
+
 deb https://deb.debian.org/debian testing main contrib non-free
 deb-src https://deb.debian.org/debian testing main contrib non-free
 
@@ -73,11 +74,13 @@ deb http://www.deb-multimedia.org testing main non-free
 deb-src http://www.deb-multimedia.org testing main non-free
 
 # Power Management
-deb http://repo.linrunner.de/debian sid mai
+# deb http://repo.linrunner.de/debian sid mai
 
 EOF
+        # deb-multimedia key
+        apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 5C808C2B65558117
         # Power Management Key
-        sudo apt-key adv --keyserver pool.sks-keyservers.net --recv-keys CD4E8809
+        # sudo apt-key adv --keyserver pool.sks-keyservers.net --recv-keys CD4E8809
 
         cd /tmp
         curl -O https://www.deb-multimedia.org/pool/main/d/deb-multimedia-keyring/deb-multimedia-keyring_2016.8.1_all.deb
@@ -170,6 +173,11 @@ base() {
           equivs \
           libssl-dev \
           ####################################
+          # Writing
+          ####################################
+          ispell \
+          uuid-runtime \
+          ####################################
           # Comms Security
           ####################################
           gnupg-agent \
@@ -201,6 +209,7 @@ base() {
           # Media
           ####################################
           libav-tools \
+          # ffmpeg \
           youtube-dl \
           ####################################
           # Getting Debian to be a functional OS
@@ -212,6 +221,7 @@ base() {
           tlp-rdw \
           ack \
           xclip \
+          bash-completion \
           # libcanberra-gtk-module \
           # libgmime-2.6-dev \
           # libncurses5-dev \
@@ -227,11 +237,17 @@ base() {
           #binwalk \
           # Checking on status of file transfers
           progress \
+          ####################################
           # System Exploration
+          ####################################
           lsof \
           silversearcher-ag \
           tree \
+          # fdupes: https://www.tecmint.com/fdupes-find-and-delete-duplicate-files-in-linux/
+          fdupes \
+          ####################################
           # Productivity
+          ####################################
           taskwarrior \
           timewarrior )
 
@@ -1267,7 +1283,7 @@ main() {
         get_user
         get_dotfiles
     elif [[ $cmd == "emacs" ]]; then
-        check_is_sudo
+        # check_is_sudo
         install_emacs
     elif [[ $cmd == "mutt" ]]; then
         check_is_sudo
@@ -1334,6 +1350,7 @@ cleanup() {
     # put cleanup needs here
     exit 0
 }
+
 
 trap 'cleanup' EXIT
 
