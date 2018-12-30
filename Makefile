@@ -32,6 +32,8 @@ etc:
 	sudo chmod 755 /etc/docker
 	for file in $(shell find $(CURDIR)/etc -type f -not -name ".*.swp"); do \
 		f=$$(echo $$file | sed -e 's|$(CURDIR)||'); \
+		d=$$(dirname $$f); \
+		sudo mkdir -p $$d; \
 		sudo ln -f $$file $$f; \
 	done
 	systemctl --user daemon-reload || true
