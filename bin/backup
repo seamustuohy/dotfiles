@@ -57,6 +57,18 @@ google_backup_archive() {
               "${GOOGLE_ARCHIVE_BACKUP_LOCATION}"
 }
 
+google_backup_task() {
+    duplicity -v 5 --encrypt-key="${TASK_ENCRYPTION_KEY}" \
+              "${LOCAL_TASK_PATH}" \
+              "${GOOGLE_TASK_BACKUP_LOCATION}"
+}
+
+google_backup_org() {
+    duplicity -v 5 --encrypt-key="${TASK_ENCRYPTION_KEY}" \
+              "${LOCAL_ORG_PATH}" \
+              "${GOOGLE_ORG_BACKUP_LOCATION}"
+}
+
 duplicity_list_files() {
     BACKUP=$1
     duplicity list-current-files \
@@ -93,6 +105,10 @@ main() {
             google_backup_home
         elif [[ $backup == "Archive" ]]; then
             google_backup_archive
+        elif [[ $backup == "Task" ]]; then
+            google_backup_task
+        elif [[ $backup == "Org" ]]; then
+            google_backup_org
         fi
     elif [[ $cmd == "List Files" ]]; then
         if [[ $backup == "Device" ]]; then
