@@ -205,12 +205,15 @@ base() {
           # Data Analysis
           ####################################
           jq \
+          bc \
           ####################################
           # Media
           ####################################
           libav-tools \
           # ffmpeg \
           youtube-dl \
+          # Texlive is needed for pdf manipulation (pdfnup & pdfjam). See .functions/helpers
+          texlive-extra-utils \ 
           ####################################
           # Getting Debian to be a functional OS
           ####################################
