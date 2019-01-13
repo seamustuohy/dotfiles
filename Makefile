@@ -26,4 +26,3 @@ dotfiles:
 	ln -sfn $(CURDIR)/.gnupg/gpg-agent.conf $(HOME)/.gnupg/gpg-agent.conf;
 	#ln -fn $(CURDIR)/gitignore $(HOME)/.gitignore;
 	#ln -fn $(CURDIR)/gitignore /usr/local/src/.gitignore;
-

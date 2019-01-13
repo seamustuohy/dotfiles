@@ -372,6 +372,27 @@ install_docker() {
 }
 
 
+update_containerd() {
+        local tmp_tar=/tmp/containerd.tar.gz
+        local containerd_version
+        containerd_version=$(curl -sSL "https://api.github.com/repos/containerd/containerd/releases" | jq --raw-output .[0].tag_name)
+        containerd_version=${containerd_version#v}
+        local binary_uri="https://github.com/containerd/containerd/releases/download/v${containerd_version}/containerd-${containerd_version}.linux-amd64.tar.gz"
+        (
+        set -x
+        curl -fSL "$binary_uri" -o "$tmp_tar"
+        tar -C /usr/local/bin --strip-components 1 -xzvf "$tmp_tar"
+        rm "$tmp_tar"
+        containerd -v
+        )
+
+        # enable and start containerd
+        systemctl daemon-reload
+        systemctl enable containerd
+        systemctl start containerd
+}
+
+
 get_jfraz_dockerfiles() {
     JF_SRC_DIR="${SOURCE_DIR}/JF"
     download_jf_dockerfiles
@@ -1251,6 +1272,10 @@ main() {
     elif [[ $cmd == "docker" ]]; then
         get_user
         install_docker
+    elif [[ $cmd == "containerd" ]]; then
+        check_is_sudo
+        get_user
+        update_containerd
     elif [[ $cmd == "graphics" ]]; then
         check_is_sudo
         graphics_selector
@@ -1288,6 +1313,8 @@ main() {
         get_dockerfiles
     elif [[ $cmd == "viperdocker" ]]; then
         install_viper_docker
+    elif [[ $cmd == "jfrazdocker" ]]; then
+        get_jfraz_dockerfiles
 #    elif [[ $cmd == "maltoolsdocker" ]]; then
         #        install_maltools_docker
     elif [[ $cmd == "decodedocker" ]]; then
