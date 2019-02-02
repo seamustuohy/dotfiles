@@ -774,10 +774,25 @@ cyberchef_bash() {
        docker_del_stopped cyberchef
 
        docker run \
-       --rm -it \
-       -p 8080:8080 \
-       --name cyberchef \
-       ${DOCKER_REPO_PREFIX}/cyberchef bash
+              --rm -it \
+              -p 8080:8080 \
+              --name cyberchef \
+              ${DOCKER_REPO_PREFIX}/cyberchef bash
+}
+
+
+
+eyewitness_headless() {
+    docker_del_stopped eyewitness
+    set -x
+    docker run \
+           --rm \
+           -it \
+           --name eyewitness \
+           -v ~/malware/EyeWitness:/tmp/EyeWitness \
+           ${DOCKER_REPO_PREFIX}/eyewitness \
+           --web \
+           --single "${1}"
 }
 
 
