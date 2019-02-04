@@ -43,3 +43,37 @@ openimage() {
 
         feh --auto-zoom --borderless --scale-down --draw-filename --image-bg black --start-at "$file" *
 }
+
+####################################
+# Document Manipulation
+####################################
+
+pdf_manip_two_per_page() {
+    # apt get install texlive-extra-utils
+    pdfnup --nup 2x1 "${@}"
+}
+
+
+
+pdf_manip_booklet_half_page() {
+    # apt get install texlive-extra-utils
+    pdfjam --booklet 'true' --landscape --signature '4' --landscape "${1}" -o "${1%.*}_booklet.pdf"
+}
+
+pdf_create_tile_x_images_per_page() {
+    # to create a pdf with all images in local directory tiled 4x4 on it's pages do the following
+    # pdf_create_tile_x_images_per_page 4 4 .
+    #
+    # to create a pdf with all images in ~/images tiled 6x3 (six across three down) on it's pages do the following
+    # pdf_create_tile_x_images_per_page 6 3 ~/images
+    local x="$1"
+    local y="$2"
+    local path="$3"
+    local img_per_page=$(echo "${x}*${y}" | bc)
+    pdfnup --nup "${x}x${y}" --suffix "${x}x${y}" $(find "${path}" -type f -exec file {} \; | awk -F: '{if ($2 ~/image/) print $1}' | xargs -I % readlink -f % | xargs -n"${img_per_page}" echo)
+}
+
+pdf_concat() {
+    local output_path="${1}"
+    pdftk "${@:2}" cat output "${output_path}"
+}

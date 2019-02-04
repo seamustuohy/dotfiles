@@ -1196,23 +1196,30 @@ enable_namespaces() {
 }
 
 install_veracrypt() {
-    local VERSION=1.21
-curl https://www.idrix.fr/VeraCrypt/VeraCrypt_PGP_public_key.asc | gpg --import
-wget https://launchpad.net/veracrypt/trunk/"${VERSION}"/+download/veracrypt-"${VERSION}"-setup.tar.bz2
-wget https://launchpad.net/veracrypt/trunk/"${VERSION}"/+download/veracrypt-"${VERSION}"-setup.tar.bz2.sig
-gpg --verify veracrypt-"${VERSION}"-setup.tar.bz2.sig
-printf "ID=0x54DDD393, Fingerprint=993B7D7E8E413809828F0F29EB559C7C54DDD393\n\n\n"
-printf "OK?"
-read
-printf "\n\n"
-tar -xvf veracrypt-"${VERSION}"-setup.tar.bz2
-printf "\n\nInstall to /tmp (option 2)!\n\nOK?"
-read
-./veracrypt-"${VERSION}"-setup-gui-x64
-mkdir veracrypt_installed
-tar -xvf /tmp/veracrypt_"${VERSION}"_amd64.tar.gz -C veracrypt_installed
-sudo cp -R veracrypt_installed/usr/bin/* /usr/local/bin/
-sudo cp -R veracrypt_installed/usr/share/* /usr/local/share/
+    # Install Dependencies
+    sudo apt-get install fuse dmsetup libfuse2
+    tmpdir=$(mktemp -d)
+    echo $tmpdir
+    (
+        cd "$tmpdir"
+        local VERSION=1.21
+        curl https://www.idrix.fr/VeraCrypt/VeraCrypt_PGP_public_key.asc | gpg --import
+        wget https://launchpad.net/veracrypt/trunk/"${VERSION}"/+download/veracrypt-"${VERSION}"-setup.tar.bz2
+        wget https://launchpad.net/veracrypt/trunk/"${VERSION}"/+download/veracrypt-"${VERSION}"-setup.tar.bz2.sig
+        gpg --verify veracrypt-"${VERSION}"-setup.tar.bz2.sig || true
+        printf "ID=0x54DDD393, Fingerprint=993B7D7E8E413809828F0F29EB559C7C54DDD393\n\n\n"
+        printf "OK?"
+        read
+        printf "\n\n"
+        tar -xvf veracrypt-"${VERSION}"-setup.tar.bz2
+        printf "\n\nInstall to /tmp (option 2)!\n\nOK?"
+        read
+        ./veracrypt-"${VERSION}"-setup-gui-x64
+        mkdir veracrypt_installed
+        tar -xvf /tmp/veracrypt_"${VERSION}"_amd64.tar.gz -C veracrypt_installed
+        sudo cp -R veracrypt_installed/usr/bin/* /usr/local/bin/
+        sudo cp -R veracrypt_installed/usr/share/* /usr/local/share/
+    )
 }
 
 

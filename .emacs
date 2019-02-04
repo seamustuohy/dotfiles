@@ -1,8 +1,8 @@
 ;; === Debugging ===
 ;; uncomment for Debugging
-;;(setq debug-on-error t)
+(setq debug-on-error t)
 ;; Set debug at point
-;; (debug)
+;;(debug)
 
 
 ;; === WINDOWS <- The worst ===
@@ -1308,7 +1308,7 @@ Usage example: To search for state changes that have moved from an non-done to d
 ;; Set acceptable languages (whatever I want Babel, whatever I want.)
 (org-babel-do-load-languages
  'org-babel-load-languages
-'((sh               . t)
+'((shell               . t)
   (js                . t)
   (emacs-lisp . t)
   (ditaa           . t)
@@ -1318,7 +1318,7 @@ Usage example: To search for state changes that have moved from an non-done to d
   (makefile   . t)
   (sql        . t)
   (sqlite     . t)
-  (scala      . t)
+  ;;(scala      . t)
   (org        . t)
   (python     . t)
   (dot        . t)

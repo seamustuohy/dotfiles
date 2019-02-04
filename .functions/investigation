@@ -28,6 +28,12 @@ get_all_site_links() {
     rm -fr "${tmpdir}"
 }
 
+
+get_site_archives() {
+    year=$(date +"%Y")
+    curl "http://timetravel.mementoweb.org/api/json/${year}/${1}" | jq
+}
+
 ####################################
 # Encode / Decode
 ####################################
