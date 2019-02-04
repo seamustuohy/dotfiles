@@ -149,6 +149,8 @@ base() {
           ####################################
           duplicity \
           python-boto \
+          # Unison for archive transfer.
+          unison \ 
           ####################################
           # Investigation
           ####################################
@@ -455,6 +457,8 @@ get_other_dockerfiles() {
     install_boxjs_docker
     # AndroidRe
     install_android_RE_docker
+    # EyeWitness
+    install_eyewitness_docker
 }
 
 install_boxjs_docker() {
@@ -471,6 +475,14 @@ install_sloppy_archive_docker() {
     local SA_SRC="${HOME}/code/sloppy_archivist"
     get_git_package "$SA_SRC" https://github.com/seamustuohy/sloppy_archivist.git
     build_docker_container "$SA_SRC" sloppy_archivist
+}
+
+install_eyewitness_docker() {
+    # https://www.christophertruncer.com/eyewitness-2-0-release-and-user-guide/
+    cd "$HOME/code"
+    local SRC="${HOME}/code/EyeWitness"
+    get_git_package "$SRC" https://github.com/ChrisTruncer/EyeWitness.git
+    build_docker_container "$SRC" eyewitness
 }
 
 install_radare_docker() {
