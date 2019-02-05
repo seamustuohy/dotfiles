@@ -129,3 +129,23 @@ annotate() {
             -annotate +20+20 "$(fold -w ${foldchar} ${spacefold} <<< "${annotation}")" \
             "$image_name" text_"$image_name"
 }
+
+####################################
+# Bulk Download Media from Webpage
+####################################
+
+
+scrape_files_from_url() {
+    local url="$1"
+    local filetype="$2"
+    IFS=$'\n'
+    for item in $(python3 ~/dotfiles/bin/scrape_links_with_text_by_filetype.py -u "$url" -f "$filetype"); do
+        local fileurl=$(echo "$item" | sed 's/\(.*\)::::\(.*\)/\1/g')
+        local filename=$(echo "$item" | sed 's/\(.*\)::::\(.*\)/\2/g' | sed 's/[[:punct:]]//g' | sed 's/[[:space:]]/_/g')
+        local extension=$(echo "$item" | sed 's/\(.*\)::::\(.*\)/\1/g'| rev | cut -d. -f1 | rev)
+        #echo "$item"
+        #echo $fileurl
+        #echo "${filename}.${extension}"
+        wget -O "${filename}.${extension}" "${fileurl}"
+     done
+}

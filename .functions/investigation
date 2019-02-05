@@ -289,3 +289,4 @@ extract_ALL_metadata() {
 # Print all meta information in an image, including duplicate and unknown tags, sorted by group (for family 1). For performance reasons, this command may not extract all available metadata. (Metadata in embedded documents, metadata extracted by external utilities, and metadata requiring excessive processing time may not be extracted). Add -ee and -api RequestAll=3 to the command to extract absolutely everything available.
 
 }
+

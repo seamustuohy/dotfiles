@@ -214,3 +214,14 @@ compare_folder_contents() {
 compare_folder_contents_recursive() {
     comm -3 <(tree --noreport -I ".git" -ia "$1" | sort ) <(tree --noreport -I ".git" -ai "$2" | sort )
 }
+
+
+####################################
+# Find common patterns
+####################################
+
+find_changed_here_x_days_ago() {
+    local days_ago="$1"
+    find . -type f -newermt $(date --date="${days_ago} days ago" +%F) ! -newermt $(date +%F)
+}
+
