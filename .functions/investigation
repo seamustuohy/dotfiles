@@ -283,6 +283,8 @@ extract_images() {
     
 }
 
+alias exiftool_extract_images=extract_images
+
 extract_ALL_metadata() {
     local filename="$1"
     exiftool -a -ee -u -g1 -api RequestAll=3 "${filename}"
@@ -290,3 +292,4 @@ extract_ALL_metadata() {
 
 }
 
+alias exiftool_show_ALL=extract_ALL_metadata

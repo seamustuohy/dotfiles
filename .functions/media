@@ -138,14 +138,36 @@ annotate() {
 scrape_files_from_url() {
     local url="$1"
     local filetype="$2"
+    local is_verify_off="$3"
+    if [[ "${is_verify_off}" == "NO_VERIFY" ]]; then
+        verify_flag="--no-check-certificate"
+    else
+        verify_flag=""
+    fi
     IFS=$'\n'
-    for item in $(python3 ~/dotfiles/bin/scrape_links_with_text_by_filetype.py -u "$url" -f "$filetype"); do
+    for item in $(python3 ~/dotfiles/bin/scrape_links_with_text_by_filetype.py -u "$url" -f "$filetype" "$verify_flag"); do
         local fileurl=$(echo "$item" | sed 's/\(.*\)::::\(.*\)/\1/g')
         local filename=$(echo "$item" | sed 's/\(.*\)::::\(.*\)/\2/g' | sed 's/[[:punct:]]//g' | sed 's/[[:space:]]/_/g')
         local extension=$(echo "$item" | sed 's/\(.*\)::::\(.*\)/\1/g'| rev | cut -d. -f1 | rev)
         #echo "$item"
         #echo $fileurl
         #echo "${filename}.${extension}"
-        wget -O "${filename}.${extension}" "${fileurl}"
+        wget "$verify_flag" -O "${filename}.${extension}" "${fileurl}"
      done
 }
+
+alias download_files_from_url="scrape_files_from_url"
+
+scrape_files_from_url_no_rename() {
+    local url="$1"
+    local filetype="$2"
+    local is_verify_off="$3"
+    if [[ "${is_verify_off}" == "NO_VERIFY" ]]; then
+        verify_flag="--no-check-certificate"
+    else
+        verify_flag=""
+    fi
+    wget -r -np -nd -l 1 -A "$filetype" "$verify_flag" "${url}"
+}
+
+

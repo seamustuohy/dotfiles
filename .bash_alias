@@ -13,6 +13,7 @@ source ~/dotfiles/.functions/development
 source ~/dotfiles/.functions/helpers
 source ~/dotfiles/.functions/pretty
 source ~/dotfiles/.functions/desktop_management
+source ~/dotfiles/.functions/writing
 
 ############################################
 ## Misc

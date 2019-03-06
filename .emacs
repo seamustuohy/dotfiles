@@ -1,6 +1,6 @@
 ;; === Debugging ===
 ;; uncomment for Debugging
-(setq debug-on-error t)
+;;(setq debug-on-error t)
 ;; Set debug at point
 ;;(debug)
 
@@ -205,6 +205,20 @@
 (global-set-key [(f5)] 'flycheck-previous-error)
 (global-set-key [(f6)] 'flycheck-next-error)
 
+;; ;; proselint
+;; ;; TODO: Could never get this to work
+
+;; (flycheck-define-checker proselint
+;;   "A linter for prose."
+;;   :command ("proselint" source-inplace)
+;;   :error-patterns
+;;   ((warning line-start (file-name) ":" line ":" column ": "
+;; 	    (id (one-or-more (not (any " "))))
+;; 	    (message) line-end))
+;;   :modes (text-mode markdown-mode gfm-mode org-mode))
+
+;; (add-to-list 'flycheck-checkers 'proselint)
+
 ;; Prettyness
 (message "highlight")
 (require 'highlight-indentation)
@@ -306,9 +320,9 @@ Example:
 becomes
     http://zh.wikipedia.org/wiki/文本编辑器
 
-For string version, see `xah-html-url-percent-decode-string'.
-To encode, see `xah-html-encode-percent-encoded-url'.
-URL `http://ergoemacs.org/emacs/elisp_decode_uri_percent_encoding.html'
+;;For string version, see `xah-html-url-percent-decode-string'.
+;;To encode, see `xah-html-encode-percent-encoded-url'.
+;;URL `http://ergoemacs.org/emacs/elisp_decode_uri_percent_encoding.html'
 Version 2015-09-14."
   (interactive)
   (let ($boundaries $p1 $p2 $input-str)
@@ -454,6 +468,7 @@ by using nxml's indentation rules."
 ;; ;; loading code for our custom perspectives
 ;; ;; taken from Magnar Sveen
 
+(message "Initializing perspective")
 (defmacro custom-persp (name &rest body)
   `(let ((initialize (not (gethash ,name (perspectives-hash))))
          (current-perspective (persp-curr)))
@@ -463,10 +478,13 @@ by using nxml's indentation rules."
 
 ;; ;; Config
 (require 'perspective)
+
 (require 'projectile)
+
 
 ;; ;; Enable perspective mode
 (persp-mode t)
+
 
 ;; ;; Projectile
 (projectile-global-mode)
@@ -559,7 +577,7 @@ by using nxml's indentation rules."
 ;; Themes
 ;; I keep my themes in a separate themes directory in my .emacs.d folder.
 ;; (add-to-list 'custom-theme-load-path (in-emacs-d "themes"))
-
+(message "Initializing Themes")
 ;; Load my current theme.
 (load-theme 'tango-dark t)
 
@@ -1260,6 +1278,8 @@ Usage example: To search for state changes that have moved from an non-done to d
 ;; Save clock data and state changes and notes in the LOGBOOK drawer
 (setq org-clock-into-drawer t)
 
+
+
 (defvar bh/organization-task-id "NONE")
 (defun bh/is-task-p ()
   "Any task with a todo keyword and no subtask"
@@ -1584,3 +1604,18 @@ Usage example: To search for state changes that have moved from an non-done to d
   (call-process "powershell.exe" nil t nil " Get-Clipboard"))
 (global-set-key (kbd "M-Y") 'linux_subshell_on_windows-paste_region_from_clipboard)
 
+
+(defun set_buffer_to_unix-file ()
+  "Change the current buffer to Unix line-ends."
+  (interactive)
+  (set-buffer-file-coding-system 'unix t))
+
+(defun set_buffer_to_dos-file ()
+  "Change the current buffer to DOS line-ends."
+  (interactive)
+  (set-buffer-file-coding-system 'dos t))
+
+(defun set_buffer_to_mac-file ()
+  "Change the current buffer to Mac line-ends."
+  (interactive)
+  (set-buffer-file-coding-system 'mac t))

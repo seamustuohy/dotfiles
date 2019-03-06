@@ -822,6 +822,8 @@ install_emacs() {
     ## Requirements for packages
     # Helm-Dash
     sudo apt install sqlite3
+    # ProseLint
+    sudo pip3 install proselint
     # Setup environment
     # Create emacs config dir
     local CONF_DIR="${HOME}/.emacs.d"
