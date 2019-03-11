@@ -77,3 +77,23 @@ pdf_concat() {
     local output_path="${1}"
     pdftk "${@:2}" cat output "${output_path}"
 }
+
+
+pdf_strip_images_vectors() {
+    local filename="${1}"
+    local replacement="vectorless"
+    gs -o "${filename%.*}_${replacement}.pdf"  -sDEVICE=pdfwrite -dFILTERVECTOR "${filename}"
+}
+
+pdf_strip_images_bitmap() {
+    local filename="${1}"
+    local replacement="bitmapless"
+    gs -o "${filename%.*}_${replacement}.pdf"  -sDEVICE=pdfwrite -dFILTERIMAGE "${filename}"
+}
+
+pdf_strip_text() {
+    local filename="${1}"
+    local replacement="textless"
+    gs -o "${filename%.*}_${replacement}.pdf"  -sDEVICE=pdfwrite -dFILTERTEXT "${filename}"
+}
+
