@@ -192,6 +192,10 @@
 (message "Initializing code support")
 (setq-default fill-column 80) ;; Sets a 80 character line width
 
+
+;; Set helm dash to view docs in emacs instead of opening a browser
+(setq helm-dash-browser-func 'eww)
+
 ;; Return and indent on prog-mode variants
 (defun code/set-newline-and-indent ()
   (local-set-key [(return)] 'newline-and-indent))

@@ -359,8 +359,6 @@ get_jfraz_dockerfiles() {
     build_jfraz_dockerfiles
 }
 
-
-
 download_jf_dockerfiles() {
     if [[ ! -e "${JF_SRC_DIR}" ]]; then
         get_git_package "${JF_SRC_DIR}" https://github.com/jessfraz/dockerfiles.git
@@ -375,7 +373,6 @@ download_jf_dockerfiles() {
 build_jfraz_dockerfiles() {
     cd "${JF_SRC_DIR}"
     local repos=( \
-        slack \
         libreoffice \
         skype \
         keepassxc \
@@ -1156,23 +1153,23 @@ enable_namespaces() {
 }
 
 install_veracrypt() {
-    local VERSION=1.21
-curl https://www.idrix.fr/VeraCrypt/VeraCrypt_PGP_public_key.asc | gpg --import
-wget https://launchpad.net/veracrypt/trunk/"${VERSION}"/+download/veracrypt-"${VERSION}"-setup.tar.bz2
-wget https://launchpad.net/veracrypt/trunk/"${VERSION}"/+download/veracrypt-"${VERSION}"-setup.tar.bz2.sig
-gpg --verify veracrypt-"${VERSION}"-setup.tar.bz2.sig
-printf "ID=0x54DDD393, Fingerprint=993B7D7E8E413809828F0F29EB559C7C54DDD393\n\n\n"
-printf "OK?"
-read
-printf "\n\n"
-tar -xvf veracrypt-"${VERSION}"-setup.tar.bz2
-printf "\n\nInstall to /tmp (option 2)!\n\nOK?"
-read
-./veracrypt-"${VERSION}"-setup-gui-x64
-mkdir veracrypt_installed
-tar -xvf /tmp/veracrypt_"${VERSION}"_amd64.tar.gz -C veracrypt_installed
-sudo cp -R veracrypt_installed/usr/bin/* /usr/local/bin/
-sudo cp -R veracrypt_installed/usr/share/* /usr/local/share/
+    local VERSION=1.23
+    curl https://www.idrix.fr/VeraCrypt/VeraCrypt_PGP_public_key.asc | gpg --import
+    wget https://launchpad.net/veracrypt/trunk/"${VERSION}"/+download/veracrypt-"${VERSION}"-setup.tar.bz2
+    wget https://launchpad.net/veracrypt/trunk/"${VERSION}"/+download/veracrypt-"${VERSION}"-setup.tar.bz2.sig
+    gpg --verify veracrypt-"${VERSION}"-setup.tar.bz2.sig
+    printf "ID=0x54DDD393, Fingerprint=993B7D7E8E413809828F0F29EB559C7C54DDD393\n\n\n"
+    printf "OK?"
+    read
+    printf "\n\n"
+    tar -xvf veracrypt-"${VERSION}"-setup.tar.bz2
+    printf "\n\nInstall to /tmp (option 2)!\n\nOK?"
+    read
+    ./veracrypt-"${VERSION}"-setup-gui-x64
+    mkdir veracrypt_installed
+    tar -xvf /tmp/veracrypt_"${VERSION}"_amd64.tar.gz -C veracrypt_installed
+    sudo cp -R veracrypt_installed/usr/bin/* /usr/local/bin/
+    sudo cp -R veracrypt_installed/usr/share/* /usr/local/share/
 }
 
 
@@ -1267,6 +1264,9 @@ main() {
         install_vagrant "$2"
     elif [[ $cmd == "dockerfiles" ]]; then
         get_dockerfiles
+    elif [[ $cmd == "jfraz_docker" ]]; then
+        check_is_sudo
+        get_jfraz_dockerfiles
     elif [[ $cmd == "viperdocker" ]]; then
         install_viper_docker
 #    elif [[ $cmd == "maltoolsdocker" ]]; then

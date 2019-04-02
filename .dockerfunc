@@ -107,7 +107,7 @@ archive_site() {
 viper_test() {
         docker_del_stopped viper
         docker -D run \
-        -v ~/malware/2018:/malware \
+        -v ~/malware:/malware \
         -v viper_data:/root/.viper \
         -it \
         --name viper \
@@ -115,10 +115,33 @@ viper_test() {
         bash
 }
 
+viper_dev() {
+        docker_del_stopped viper_dev
+        docker run \
+        -v ~/malware:/malware \
+        -v viper_data:/root/.viper \
+        -it \
+        --name viper_dev \
+        ${DOCKER_REPO_PREFIX}/viper_dev \
+        bash
+}
+
+viper_local_dev() {
+        docker_del_stopped viper_dev
+        docker run \
+        -v ~/malware:/malware \
+        -v viper_data:/root/.viper \
+        -v ~/code/viper:/home/viper/local_viper \
+        -it \
+        --name viper_dev \
+        ${DOCKER_REPO_PREFIX}/viper_dev \
+        bash
+}
+
 viper() {
         docker_del_stopped viper
         docker run \
-        -v ~/malware/2018:/malware \
+        -v ~/malware:/malware \
         -v viper_data:/root/.viper \
         -it \
         --name viper \
@@ -137,11 +160,11 @@ viper_reconnect() {
 viper_bash() {
         docker_del_stopped viper-bash
         docker -D run \
-        -v ~/malware/2018:/malware \
+        -v ~/malware:/malware \
         -v ~/malware/tools:/tools \
         -v viper_data:/root/.viper \
         -it \
-        --name viper-bash \
+        --name viper -bash \
         ${DOCKER_REPO_PREFIX}/viper \
         bash
 }
@@ -149,7 +172,7 @@ viper_bash() {
 v2_bash() {
         docker_del_stopped v2-bash
         docker -D run \
-        -v ~/malware/2018:/malware \
+        -v ~/malware:/malware \
         -v viper_data:/root/.viper \
         -it \
         --name v2-bash \
@@ -589,23 +612,31 @@ docker-nlp() {
         bash
 }
 
-docker-jadx() {
+jadx() {
       # JADX
       # https://github.com/samsheff/docker-jadx
       # docker build --rm --force-rm -t "s2e/jadx" .
-      local NAME="jadx-bash"
+      local NAME="jadx"
       local SUFFIX="jadx"
         docker_del_stopped "${NAME}"
+        xhost +local:docker && \
         docker run \
               -v /tmp/.X11-unix:/tmp/.X11-unix \
+              -v /usr/share/X11/xkb:/usr/share/X11/xkb:ro \
                -e "DISPLAY=unix${DISPLAY}" \
                --rm \
                -it \
-               -v ~/malware:/home/user/workdir/malware \
+               -v ~/malware:/malware \
                --name "${NAME}" \
-               "${DOCKER_REPO_PREFIX}/${SUFFIX}" \
-               bash
+               "${DOCKER_REPO_PREFIX}/${SUFFIX}"
+               xhost -local:docker
 }
+
+
+
+
+
+
 
 docker-dex2jar() {
       # DEX2JAR
@@ -715,7 +746,29 @@ git-annex-bash(){
        sudo veracrypt -d "$local_path"
 }
 
+
+
+oletools() {
+        docker_del_stopped oletools
+        docker run \
+        -v ~/malware/2018:/malware \
+        -it \
+        --name oletools \
+        ${DOCKER_REPO_PREFIX}/oletools
+        bash
+}
+
+adb() {
+    docker run -it --device /dev/bus/usb  s2e/adb bash
+}
+
+jupyter() {
+          docker run -p 8888:8888 -v "$PWD":/home/jovyan/work jupyter/datascience-notebook
+
+}
+
+
 # Add private dockerfuncs if they exist
-if [ -d "${HOME}/dotfiles/private/.private_dockerfunc" ] ; then
+if [ -f "${HOME}/dotfiles/private/.private_dockerfunc" ] ; then
     source "${HOME}/dotfiles/private/.private_dockerfunc"
 fi
