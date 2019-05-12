@@ -28,10 +28,34 @@ get_all_site_links() {
     rm -fr "${tmpdir}"
 }
 
+####################################
+# Archiving
+####################################
 
-get_site_archives() {
+archive-get_all_archives() {
     year=$(date +"%Y")
     curl "http://timetravel.mementoweb.org/api/json/${year}/${1}" | jq
+}
+
+archive-check_is_archived() {
+    URL="$1"
+    archive_api="http://archive.org/wayback/available?url=${URL}"
+    UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"
+    # ---------- Alternative looser status check request
+    # Below commented request checks if there are any snapshots available no matter what status
+    # request_string='import requests; h = {"User-Agent":"'"${UA}"'"}; url ="'"${archive_api}"'";r = requests.get(url, headers=h); print("Archives Exist") if len(r.json().get("archived_snapshots",{}).keys()) > 0 else print("No Archives for this page");'
+    # -------
+    # Below request checks if the closest snapshot has a status of 200
+    request_string='import requests; h = {"User-Agent":"'"${UA}"'"}; url ="'"${archive_api}"'";r = requests.get(url, headers=h);print("Successful archives exist") if r.json().get("archived_snapshots",{}).get("closest",{}).get("status","401") == "200" else print("No (or failed) archives for this page")'
+    python3 -c "${request_string}"
+}
+
+archive-create_archive() {
+    URL="$1"
+    archive_api="http://web.archive.org/save/${URL}"
+    UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"
+    request_string='import requests; h = {"User-Agent":"'"${UA}"'"}; url ="'"${archive_api}"'";r = requests.get(url, headers=h); print("Archive Created") if r.status_code == 200 else print("Archive Failed: Status Code {0}".format(r.status_code));'
+    python3 -c "${request_string}"
 }
 
 ####################################
@@ -293,3 +317,5 @@ extract_ALL_metadata() {
 }
 
 alias exiftool_show_ALL=extract_ALL_metadata
+
+

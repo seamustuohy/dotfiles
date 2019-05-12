@@ -130,6 +130,20 @@ annotate() {
             "$image_name" text_"$image_name"
 }
 
+
+pdf_remove_password() {
+  # Requires xpdf-utils
+  local filename="$1"
+  local password="$2"
+  # pdftk input.pdf output output.pdf user_pw YOURPASSWORD-HERE
+  # pdftk input.pdf output output.pdf user_pw YOURPASSWORD-HERE owner_pw YOURPASSWORD-HERE
+  # pdftk input.pdf output output.pdf input_pw YOURPASSWORD-HERE
+  pdftops -upw "${password}" "${filename}"
+  ps2pdf "${filename/%.pdf/.ps}" "${filename/%.pdf/_no_password.pdf}"
+}
+
+
+
 ####################################
 # Bulk Download Media from Webpage
 ####################################
@@ -142,7 +156,7 @@ scrape_files_from_url() {
     if [[ "${is_verify_off}" == "NO_VERIFY" ]]; then
         verify_flag="--no-check-certificate"
     else
-        verify_flag=""
+        verify_flag="-i"
     fi
     IFS=$'\n'
     for item in $(python3 ~/dotfiles/bin/scrape_links_with_text_by_filetype.py -u "$url" -f "$filetype" "$verify_flag"); do

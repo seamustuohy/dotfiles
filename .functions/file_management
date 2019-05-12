@@ -182,6 +182,8 @@ nuke_all_metadata() {
 }
 
 
+alias exiftool_nuke_all_metadata=nuke_all_metadata
+
 ####################################
 # Moving Files
 ####################################
