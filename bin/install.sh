@@ -35,7 +35,6 @@ else
 fi
 
 
-
 check_is_sudo() {
         if [ "$EUID" -ne 0 ]; then
                 echo "Please run as root."
@@ -59,7 +58,9 @@ setup_sources() {
                 dirmngr \
                 --no-install-recommends
 
+        sudo apt-get update
         sudo cat <<-EOF > /etc/apt/sources.list
+
 deb https://deb.debian.org/debian testing main contrib non-free
 deb-src https://deb.debian.org/debian testing main contrib non-free
 
@@ -73,11 +74,13 @@ deb http://www.deb-multimedia.org testing main non-free
 deb-src http://www.deb-multimedia.org testing main non-free
 
 # Power Management
-deb http://repo.linrunner.de/debian sid mai
+# deb http://repo.linrunner.de/debian sid mai
 
 EOF
+        # deb-multimedia key
+        apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 5C808C2B65558117
         # Power Management Key
-        sudo apt-key adv --keyserver pool.sks-keyservers.net --recv-keys CD4E8809
+        # sudo apt-key adv --keyserver pool.sks-keyservers.net --recv-keys CD4E8809
 
         cd /tmp
         curl -O https://www.deb-multimedia.org/pool/main/d/deb-multimedia-keyring/deb-multimedia-keyring_2016.8.1_all.deb
@@ -146,6 +149,8 @@ base() {
           ####################################
           duplicity \
           python-boto \
+          # Unison for archive transfer.
+          unison \
           ####################################
           # Investigation
           ####################################
@@ -169,6 +174,11 @@ base() {
           devscripts \
           equivs \
           libssl-dev \
+          ####################################
+          # Writing
+          ####################################
+          ispell \
+          uuid-runtime \
           ####################################
           # Comms Security
           ####################################
@@ -197,11 +207,15 @@ base() {
           # Data Analysis
           ####################################
           jq \
+          bc \
           ####################################
           # Media
           ####################################
           libav-tools \
+          # ffmpeg \
           youtube-dl \
+          # Texlive is needed for pdf manipulation (pdfnup & pdfjam). See .functions/helpers
+          texlive-extra-utils \
           ####################################
           # Getting Debian to be a functional OS
           ####################################
@@ -212,6 +226,7 @@ base() {
           tlp-rdw \
           ack \
           xclip \
+          bash-completion \
           # libcanberra-gtk-module \
           # libgmime-2.6-dev \
           # libncurses5-dev \
@@ -227,11 +242,17 @@ base() {
           #binwalk \
           # Checking on status of file transfers
           progress \
+          ####################################
           # System Exploration
+          ####################################
           lsof \
           silversearcher-ag \
           tree \
+          # fdupes: https://www.tecmint.com/fdupes-find-and-delete-duplicate-files-in-linux/
+          fdupes \
+          ####################################
           # Productivity
+          ####################################
           taskwarrior \
           timewarrior )
 
@@ -353,6 +374,27 @@ install_docker() {
 }
 
 
+update_containerd() {
+        local tmp_tar=/tmp/containerd.tar.gz
+        local containerd_version
+        containerd_version=$(curl -sSL "https://api.github.com/repos/containerd/containerd/releases" | jq --raw-output .[0].tag_name)
+        containerd_version=${containerd_version#v}
+        local binary_uri="https://github.com/containerd/containerd/releases/download/v${containerd_version}/containerd-${containerd_version}.linux-amd64.tar.gz"
+        (
+        set -x
+        curl -fSL "$binary_uri" -o "$tmp_tar"
+        tar -C /usr/local/bin --strip-components 1 -xzvf "$tmp_tar"
+        rm "$tmp_tar"
+        containerd -v
+        )
+
+        # enable and start containerd
+        systemctl daemon-reload
+        systemctl enable containerd
+        systemctl start containerd
+}
+
+
 get_jfraz_dockerfiles() {
     JF_SRC_DIR="${SOURCE_DIR}/JF"
     download_jf_dockerfiles
@@ -412,6 +454,8 @@ get_other_dockerfiles() {
     install_boxjs_docker
     # AndroidRe
     install_android_RE_docker
+    # EyeWitness
+    install_eyewitness_docker
 }
 
 install_boxjs_docker() {
@@ -428,6 +472,14 @@ install_sloppy_archive_docker() {
     local SA_SRC="${HOME}/code/sloppy_archivist"
     get_git_package "$SA_SRC" https://github.com/seamustuohy/sloppy_archivist.git
     build_docker_container "$SA_SRC" sloppy_archivist
+}
+
+install_eyewitness_docker() {
+    # https://www.christophertruncer.com/eyewitness-2-0-release-and-user-guide/
+    cd "$HOME/code"
+    local SRC="${HOME}/code/EyeWitness"
+    get_git_package "$SRC" https://github.com/ChrisTruncer/EyeWitness.git
+    build_docker_container "$SRC" eyewitness
 }
 
 install_radare_docker() {
@@ -767,6 +819,8 @@ install_emacs() {
     ## Requirements for packages
     # Helm-Dash
     sudo apt install sqlite3
+    # ProseLint
+    sudo pip3 install proselint
     # Setup environment
     # Create emacs config dir
     local CONF_DIR="${HOME}/.emacs.d"
@@ -1153,23 +1207,30 @@ enable_namespaces() {
 }
 
 install_veracrypt() {
-    local VERSION=1.23
-    curl https://www.idrix.fr/VeraCrypt/VeraCrypt_PGP_public_key.asc | gpg --import
-    wget https://launchpad.net/veracrypt/trunk/"${VERSION}"/+download/veracrypt-"${VERSION}"-setup.tar.bz2
-    wget https://launchpad.net/veracrypt/trunk/"${VERSION}"/+download/veracrypt-"${VERSION}"-setup.tar.bz2.sig
-    gpg --verify veracrypt-"${VERSION}"-setup.tar.bz2.sig
-    printf "ID=0x54DDD393, Fingerprint=993B7D7E8E413809828F0F29EB559C7C54DDD393\n\n\n"
-    printf "OK?"
-    read
-    printf "\n\n"
-    tar -xvf veracrypt-"${VERSION}"-setup.tar.bz2
-    printf "\n\nInstall to /tmp (option 2)!\n\nOK?"
-    read
-    ./veracrypt-"${VERSION}"-setup-gui-x64
-    mkdir veracrypt_installed
-    tar -xvf /tmp/veracrypt_"${VERSION}"_amd64.tar.gz -C veracrypt_installed
-    sudo cp -R veracrypt_installed/usr/bin/* /usr/local/bin/
-    sudo cp -R veracrypt_installed/usr/share/* /usr/local/share/
+    # Install Dependencies
+    sudo apt-get install fuse dmsetup libfuse2
+    tmpdir=$(mktemp -d)
+    echo $tmpdir
+    (
+        cd "$tmpdir"
+        local VERSION=1.21
+        curl https://www.idrix.fr/VeraCrypt/VeraCrypt_PGP_public_key.asc | gpg --import
+        wget https://launchpad.net/veracrypt/trunk/"${VERSION}"/+download/veracrypt-"${VERSION}"-setup.tar.bz2
+        wget https://launchpad.net/veracrypt/trunk/"${VERSION}"/+download/veracrypt-"${VERSION}"-setup.tar.bz2.sig
+        gpg --verify veracrypt-"${VERSION}"-setup.tar.bz2.sig || true
+        printf "ID=0x54DDD393, Fingerprint=993B7D7E8E413809828F0F29EB559C7C54DDD393\n\n\n"
+        printf "OK?"
+        read
+        printf "\n\n"
+        tar -xvf veracrypt-"${VERSION}"-setup.tar.bz2
+        printf "\n\nInstall to /tmp (option 2)!\n\nOK?"
+        read
+        ./veracrypt-"${VERSION}"-setup-gui-x64
+        mkdir veracrypt_installed
+        tar -xvf /tmp/veracrypt_"${VERSION}"_amd64.tar.gz -C veracrypt_installed
+        sudo cp -R veracrypt_installed/usr/bin/* /usr/local/bin/
+        sudo cp -R veracrypt_installed/usr/share/* /usr/local/share/
+    )
 }
 
 
@@ -1229,6 +1290,10 @@ main() {
     elif [[ $cmd == "docker" ]]; then
         get_user
         install_docker
+    elif [[ $cmd == "containerd" ]]; then
+        check_is_sudo
+        get_user
+        update_containerd
     elif [[ $cmd == "graphics" ]]; then
         check_is_sudo
         graphics_selector
@@ -1239,7 +1304,7 @@ main() {
         get_user
         get_dotfiles
     elif [[ $cmd == "emacs" ]]; then
-        check_is_sudo
+        # check_is_sudo
         install_emacs
     elif [[ $cmd == "mutt" ]]; then
         check_is_sudo
@@ -1269,6 +1334,8 @@ main() {
         get_jfraz_dockerfiles
     elif [[ $cmd == "viperdocker" ]]; then
         install_viper_docker
+    elif [[ $cmd == "jfrazdocker" ]]; then
+        get_jfraz_dockerfiles
 #    elif [[ $cmd == "maltoolsdocker" ]]; then
         #        install_maltools_docker
     elif [[ $cmd == "decodedocker" ]]; then
@@ -1307,6 +1374,7 @@ cleanup() {
     # put cleanup needs here
     exit 0
 }
+
 
 trap 'cleanup' EXIT
 

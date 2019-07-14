@@ -26,7 +26,9 @@ set -u
 main() {
     check_dependencies
     # Get's USB_DEVICE
-    id_usb_dev
+    if [[ -z $USB_DEVICE ]]; then
+        id_usb_dev
+    fi
     mount_encrypted_device
 }
 
@@ -103,5 +105,12 @@ cleanup() {
 
 trap 'cleanup' EXIT
 
+while getopts d: option
+do
+    case "${option}"
+    in
+        d) USB_DEVICE=${OPTARG};;
+    esac
+done
 
 main

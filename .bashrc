@@ -179,3 +179,8 @@ fi
 
 export GPG_TTY=$(tty)
 gpg-connect-agent updatestartuptty /bye >/dev/null
+
+
+
+# Add go to path
+export PATH=$PATH:/usr/local/go/bin

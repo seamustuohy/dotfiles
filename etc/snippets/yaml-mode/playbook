@@ -1,0 +1,14 @@
+# -*- mode: snippet -*-
+# name: playbook
+# key: playbook
+# --
+id: `(insert-random-uuid)`
+name: "$1"
+date: `(format-time-string "%Y-%m-%d")`
+authors: ["$2"]
+version: "${3:0.1}"
+description: |-
+  $4
+scope: "$5"
+starttaskid: "$6"
+$0

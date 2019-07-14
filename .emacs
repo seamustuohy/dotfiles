@@ -2,7 +2,7 @@
 ;; uncomment for Debugging
 ;;(setq debug-on-error t)
 ;; Set debug at point
-;; (debug)
+;;(debug)
 
 
 ;; === WINDOWS <- The worst ===
@@ -21,23 +21,8 @@
 (setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
 
 
-;; Copy and Paste on Windows
-(defun linux_subshell_on_windows-copy_region_to_clipboard (&optional b e)
-  "Copies the region selected to the windows clipboard."
-  (interactive "r")
-  (shell-command-on-region b e "clip.exe"))
-(global-set-key (kbd "M-W") 'linux_subshell_on_windows-copy_region_to_clipboard)
-
-
-(defun linux_subshell_on_windows-paste_region_from_clipboard (&optional b e)
-  "Copies the region selected to the windows clipboard."
-  (interactive "r")
-  (call-process "powershell.exe" nil t nil " Get-Clipboard"))
-(global-set-key (kbd "M-Y") 'linux_subshell_on_windows-paste_region_from_clipboard)
-
-
+;; 00000000000000000000
 ;; === Packages ===
-
 
 (require 'package)
 
@@ -224,6 +209,20 @@
 (global-set-key [(f5)] 'flycheck-previous-error)
 (global-set-key [(f6)] 'flycheck-next-error)
 
+;; ;; proselint
+;; ;; TODO: Could never get this to work
+
+;; (flycheck-define-checker proselint
+;;   "A linter for prose."
+;;   :command ("proselint" source-inplace)
+;;   :error-patterns
+;;   ((warning line-start (file-name) ":" line ":" column ": "
+;; 	    (id (one-or-more (not (any " "))))
+;; 	    (message) line-end))
+;;   :modes (text-mode markdown-mode gfm-mode org-mode))
+
+;; (add-to-list 'flycheck-checkers 'proselint)
+
 ;; Prettyness
 (message "highlight")
 (require 'highlight-indentation)
@@ -325,9 +324,9 @@ Example:
 becomes
     http://zh.wikipedia.org/wiki/文本编辑器
 
-For string version, see `xah-html-url-percent-decode-string'.
-To encode, see `xah-html-encode-percent-encoded-url'.
-URL `http://ergoemacs.org/emacs/elisp_decode_uri_percent_encoding.html'
+;;For string version, see `xah-html-url-percent-decode-string'.
+;;To encode, see `xah-html-encode-percent-encoded-url'.
+;;URL `http://ergoemacs.org/emacs/elisp_decode_uri_percent_encoding.html'
 Version 2015-09-14."
   (interactive)
   (let ($boundaries $p1 $p2 $input-str)
@@ -473,6 +472,7 @@ by using nxml's indentation rules."
 ;; ;; loading code for our custom perspectives
 ;; ;; taken from Magnar Sveen
 
+(message "Initializing perspective")
 (defmacro custom-persp (name &rest body)
   `(let ((initialize (not (gethash ,name (perspectives-hash))))
          (current-perspective (persp-curr)))
@@ -482,10 +482,13 @@ by using nxml's indentation rules."
 
 ;; ;; Config
 (require 'perspective)
+
 (require 'projectile)
+
 
 ;; ;; Enable perspective mode
 (persp-mode t)
+
 
 ;; ;; Projectile
 (projectile-global-mode)
@@ -578,7 +581,7 @@ by using nxml's indentation rules."
 ;; Themes
 ;; I keep my themes in a separate themes directory in my .emacs.d folder.
 ;; (add-to-list 'custom-theme-load-path (in-emacs-d "themes"))
-
+(message "Initializing Themes")
 ;; Load my current theme.
 (load-theme 'tango-dark t)
 
@@ -624,8 +627,22 @@ Including indent-buffer, which should not be called automatically on save."
 (global-set-key (kbd "C-c n") 'file-management/cleanup-buffer)
 
 
+(defun my-delete-trailing-whitespace-even-final-newline()
+  "Deletes all blank lines at the end of the file, even the last one"
+  (interactive)
+  (save-excursion
+    (save-restriction
+      (widen)
+      (goto-char (point-max))
+      (delete-blank-lines)
+      (let ((trailnewlines (abs (skip-chars-backward "\n\t"))))
+        (if (> trailnewlines 0)
+            (progn
+              (delete-char trailnewlines)))))))
+
+
 ;; Add the hook.
-(add-hook 'before-save-hook 'file-management/cleanup-buffer-safe)
+(add-hook 'before-save-hyaook 'file-management/cleanup-buffer-safe)
 
 ;; When files change on disk I want the buffers to change to match them.
 ;; I will modify text files in bash while they are open in emacs when I need to do more automated modification.
@@ -917,8 +934,8 @@ If point was already at that position, move point to beginning of line."
 (setq org-cycle-include-plain-lists t)
 
 ;; Bullets Mode
-(require 'org-bullets)
-(add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+;; (require 'org-bullets)
+;; (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
 
 
 ;; Tasks & Events
@@ -1265,6 +1282,8 @@ Usage example: To search for state changes that have moved from an non-done to d
 ;; Save clock data and state changes and notes in the LOGBOOK drawer
 (setq org-clock-into-drawer t)
 
+
+
 (defvar bh/organization-task-id "NONE")
 (defun bh/is-task-p ()
   "Any task with a todo keyword and no subtask"
@@ -1323,7 +1342,7 @@ Usage example: To search for state changes that have moved from an non-done to d
   (makefile   . t)
   (sql        . t)
   (sqlite     . t)
-  (scala      . t)
+  ;;(scala      . t)
   (org        . t)
   (python     . t)
   (dot        . t)
@@ -1518,3 +1537,89 @@ Usage example: To search for state changes that have moved from an non-done to d
 ;; Otherwise we get errors
 (setq warning-suppress-types nil)
 (add-to-list 'warning-suppress-types '(yasnippet backquote-change))
+
+
+
+(defun recode-region (start end &optional coding-system)
+  "Replace the region with a recoded text."
+  (interactive "r\n\zCoding System (utf-8): ")
+  (setq coding-system (or coding-system 'utf-8))
+  (let ((buffer-read-only nil)
+        (text (buffer-substring start end)))
+    (delete-region start end)
+    (insert (decode-coding-string (string-make-unibyte text) coding-system))))
+
+
+
+
+;; ===  Linux Subsystem of Windows ===
+;; Check to see if we are in it
+(setq is_windows_subsystem (call-process "is_windows_subsystem" nil nil nil))
+
+;; linux subsystem for windows copy and paste connector
+(defun my-yanking-function (prop)
+  ;;(message "YEAAAAAAAAAAAAAAAAH")
+  (shell-command-on-region (region-beginning) (region-end) "clip.exe"))
+
+(defun my-yanking-no-region-function (begin end region)
+  (shell-command-on-region (region-beginning) (region-end) "clip.exe"))
+
+
+;; sldkfdslfk
+
+(defun my-pasting-function (prop)
+  (with-temp-buffer
+    (call-process "powershell.exe" nil t nil " Get-Clipboard")
+    ;;(message (buffer-string))
+    (delete-trailing-whitespace)
+    (my-delete-trailing-whitespace-even-final-newline)
+    (beginning-of-buffer)
+    (if (= 1 (buffer-size))
+        (message "Empty")
+      (kill-new (buffer-string)))))
+
+
+
+;; Turn copy/paste connectors on if in subsystem
+(if (equal is_windows_subsystem 0)
+    (progn
+      (add-function :before (symbol-function 'org-yank) #'my-pasting-function)
+      (add-function :before (symbol-function 'cua-paste) #'my-pasting-function))
+  (message "failed to add paste function"))
+(if (equal is_windows_subsystem 0)
+    (progn
+      (add-function :after (symbol-function 'kill-new) #'my-yanking-function))
+  (message "failed to add yank function"))
+(if (equal is_windows_subsystem 0)
+    (progn
+      (add-function :before (symbol-function 'kill-region) #'my-yanking-no-region-function))
+  (message "failed to add yank region function"))
+
+;; Sideloaded copy and Paste on Windows
+(defun linux_subshell_on_windows-copy_region_to_clipboard (&optional b e)
+  "Copies the region selected to the windows clipboard."
+  (interactive "r")
+  (shell-command-on-region b e "clip.exe"))
+(global-set-key (kbd "M-W") 'linux_subshell_on_windows-copy_region_to_clipboard)
+
+(defun linux_subshell_on_windows-paste_region_from_clipboard (&optional b e)
+  "Copies the region selected to the windows clipboard."
+  (interactive "r")
+  (call-process "powershell.exe" nil t nil " Get-Clipboard"))
+(global-set-key (kbd "M-Y") 'linux_subshell_on_windows-paste_region_from_clipboard)
+
+
+(defun set_buffer_to_unix-file ()
+  "Change the current buffer to Unix line-ends."
+  (interactive)
+  (set-buffer-file-coding-system 'unix t))
+
+(defun set_buffer_to_dos-file ()
+  "Change the current buffer to DOS line-ends."
+  (interactive)
+  (set-buffer-file-coding-system 'dos t))
+
+(defun set_buffer_to_mac-file ()
+  "Change the current buffer to Mac line-ends."
+  (interactive)
+  (set-buffer-file-coding-system 'mac t))

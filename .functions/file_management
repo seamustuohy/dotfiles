@@ -75,9 +75,12 @@ cd_func ()
 
 # Un-delete File
 undel_func(){
+        local string="$1"
+        # Device: i.e. /dev/sda
+        local device="$2"
         echo "Searching for deleted file with string $1"
         # *"Attempt"* to recover an accidentally removed file.
-        sudo fgrep --binary-files=text -C 2000 "$1" /dev/sda > recovereddata.out
+        sudo fgrep --binary-files=text -C 2000 "${string}" "${device}" > recovereddata.out
 }
 alias undelete=undel_func
 
@@ -179,6 +182,8 @@ nuke_all_metadata() {
 }
 
 
+# find . | xargs -I % exiftool -all= "%"
+
 ####################################
 # Moving Files
 ####################################
@@ -197,4 +202,27 @@ burnusb() {
         sync
         ding
         notify-send -u critical 'burnusb' 'done'
+}
+
+
+####################################
+# Compare contents of two folders
+####################################
+
+compare_folder_contents() {
+    comm -3 <(ls -1 "$1" ) <(ls -1 "$2" )
+}
+
+compare_folder_contents_recursive() {
+    comm -3 <(tree --noreport -I ".git" -ia "$1" | sort ) <(tree --noreport -I ".git" -ai "$2" | sort )
+}
+
+
+####################################
+# Find common patterns
+####################################
+
+find_changed_here_x_days_ago() {
+    local days_ago="$1"
+    find . -type f -newermt $(date --date="${days_ago} days ago" +%F) ! -newermt $(date +%F)
 }

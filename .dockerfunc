@@ -164,10 +164,24 @@ viper_bash() {
         -v ~/malware/tools:/tools \
         -v viper_data:/root/.viper \
         -it \
-        --name viper -bash \
+        --name viper-bash \
         ${DOCKER_REPO_PREFIX}/viper \
         bash
 }
+
+viper_dev() {
+        docker_del_stopped viper-dev
+        docker -D run \
+        -v ~/malware:/malware \
+        -v ~/malware/tools:/tools \
+        -v viper_data:/root/.viper \
+        -it \
+        --name viper-dev \
+        ${DOCKER_REPO_PREFIX}/viper_dev \
+        bash
+}
+
+
 
 v2_bash() {
         docker_del_stopped v2-bash
@@ -629,12 +643,61 @@ jadx() {
                -v ~/malware:/malware \
                --name "${NAME}" \
                "${DOCKER_REPO_PREFIX}/${SUFFIX}"
-               xhost -local:docker
+
+               # xhost -local:docker
+}
+
+jadx_bash() {
+      # JADX
+      # https://github.com/samsheff/docker-jadx
+      # docker build --rm --force-rm -t "s2e/jadx" .
+      local NAME="jadx-bash"
+      local SUFFIX="jadx"
+        docker_del_stopped "${NAME}"
+        docker run \
+               --rm \
+               -it \
+               -v ~/malware:/malware \
+               --name "${NAME}" \
+               "${DOCKER_REPO_PREFIX}/${SUFFIX}" \
+               bash
 }
 
 
+android_re() {
+      # JADX
+      # https://github.com/samsheff/docker-jadx
+      # docker build --rm --force-rm -t "s2e/jadx" .
+      local NAME="android_re"
+      local SUFFIX="android_re"
+        docker_del_stopped "${NAME}"
+        xhost +local:docker && \
+        docker run \
+              -v /tmp/.X11-unix:/tmp/.X11-unix \
+              -v /usr/share/X11/xkb:/usr/share/X11/xkb:ro \
+               -e "DISPLAY=unix${DISPLAY}" \
+               --rm \
+               -it \
+               -v ~/malware:/malware \
+               --name "${NAME}" \
+               "${DOCKER_REPO_PREFIX}/${SUFFIX}"
+
+               # xhost -local:docker
+}
 
 
+docker-imobiledevice() {
+    docker run --rm -it \
+           -v "${HOME}/malware:/malware" \
+           -v /etc/localtime:/etc/localtime:ro \
+           --device /dev/usb \
+           --device /dev/bus/usb \
+           # -v /dev:/dev \
+           # -v /var:/var \
+           # --privileged \
+           ${DOCKER_REPO_PREFIX}/libimobiledevice \
+           bash
+}
 
 
 
@@ -672,7 +735,7 @@ docker-apktool() {
 is_it_dangerous_bash() {
         docker_del_stopped pycirclean-bash
         docker -D run \
-        -v ~/malware:/home/viper/workdir/malware \
+        -v ~/malware:/malware \
         -it \
         --name pycirclean-bash \
         ${DOCKER_REPO_PREFIX}/pycirclean \
@@ -746,29 +809,84 @@ git-annex-bash(){
        sudo veracrypt -d "$local_path"
 }
 
-
-
-oletools() {
-        docker_del_stopped oletools
-        docker run \
-        -v ~/malware/2018:/malware \
-        -it \
-        --name oletools \
-        ${DOCKER_REPO_PREFIX}/oletools
-        bash
-}
-
 adb() {
     docker run -it --device /dev/bus/usb  s2e/adb bash
 }
 
 jupyter() {
           docker run -p 8888:8888 -v "$PWD":/home/jovyan/work jupyter/datascience-notebook
+}
 
+oletools() {
+       docker_del_stopped oletools
+       docker -D run \
+       -v ~/malware:/malware \
+       -it \
+       --name oletools \
+       ${DOCKER_REPO_PREFIX}/oletools \
+       bash
+}
+
+ooni-run_url() {
+       local_url_file=$(readlink -f "${1}")
+       docker_del_stopped oonirun
+       docker run \
+       -v "${local_url_file}:/tmp/local_urls.lsv" \
+       -it \
+       --rm \
+       --name oonirun \
+       ${DOCKER_REPO_PREFIX}/oonirun
+}
+
+cyberchef() {
+       docker_del_stopped cyberchef
+
+       docker run \
+       --rm -it \
+       -p 8080:8080 \
+       --name cyberchef \
+       ${DOCKER_REPO_PREFIX}/cyberchef
+
+}
+
+jstillery() {
+       docker_del_stopped jstillery
+
+       docker run \
+       --rm -it \
+       -p 3001:3001 \
+       --name jstillery \
+       ${DOCKER_REPO_PREFIX}/jstillery
+}
+
+cyberchef_bash() {
+       docker_del_stopped cyberchef
+
+       docker run \
+              --rm -it \
+              -p 8080:8080 \
+              --name cyberchef \
+              ${DOCKER_REPO_PREFIX}/cyberchef bash
+}
+
+
+
+eyewitness_headless() {
+    docker_del_stopped eyewitness
+    set -x
+    docker run \
+           --rm \
+           -it \
+           --name eyewitness \
+           -v ~/malware/EyeWitness:/tmp/EyeWitness \
+           ${DOCKER_REPO_PREFIX}/eyewitness \
+           --web \
+           --single "${1}"
 }
 
 
 # Add private dockerfuncs if they exist
-if [ -f "${HOME}/dotfiles/private/.private_dockerfunc" ] ; then
+# if [ -f "${HOME}/dotfiles/private/.private_dockerfunc" ] ; then
+if [ -a "${HOME}/dotfiles/private/.private_dockerfunc" ] ; then
     source "${HOME}/dotfiles/private/.private_dockerfunc"
 fi
