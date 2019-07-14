@@ -1,15 +1,36 @@
 ##############################
-## Time Warrior Aliases
+## Task Warrior Aliases
 ##############################
 
-# What I Do?
-# From https://github.com/drewstinnett/dotfiles/blob/master/.zshrc
-alias whatd_i_do_last_week="task end.after:today-1wk completed rc.detection:off rc.defaultwidth:184"
-alias whatd_i_do_last_month="task end.after:today-5wk completed rc.detection:off rc.defaultwidth:184"
-alias whatd_i_do_last_day="task end.after:today-1d completed rc.detection:off rc.defaultwidth:184"
 alias tk="task"
 alias tko="task overdue"
 alias tkm="task modify"
 alias tka="task add"
 alias tk_due_this_week="task due.before:today+1wk"
 alias tk_due_tomorrow="task due.before:today+1day"
+
+# task next for tiny screens
+function tk_short() {
+    while read -r taskline; do
+        local task_len=$(echo $taskline | awk '{ print length($0) }')
+        local dotcol=$((COLUMNS - 3))
+        if (( $task_len > $COLUMNS )); then
+            printf "%.${dotcol}s...\n" "${taskline}"
+        else
+            printf "%s\n" "${taskline}"
+        fi
+    done < <(task rc._forcecolor=no snext $@)
+}
+
+alias tks="tk_short"
+
+# What I Do?
+# From https://github.com/drewstinnett/dotfiles/blob/master/.zshrc
+alias tk_whatd_i_do_last_week="task end.after:today-1wk completed rc.detection:off rc.defaultwidth:184"
+alias tk_whatd_i_do_last_month="task end.after:today-5wk completed rc.detection:off rc.defaultwidth:184"
+alias tk_whatd_i_do_last_day="task end.after:today-1d completed rc.detection:off rc.defaultwidth:184"
+
+##############################
+## Time Warrior Aliases
+##############################
+alias tm="timewarrior-manage.sh"

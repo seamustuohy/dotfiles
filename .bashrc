@@ -62,7 +62,7 @@ shopt -s histappend
 
 # Don't record some commands
 
-export HISTIGNORE="&:[ ]*:exit:ls:bg:fg:history:clear:pwd:* --help:* -h:"
+export HISTIGNORE="&:[ ]*:exit:ls:bg:fg:history:clear:pwd"
 
 # remove duplicates while preserving input order
 

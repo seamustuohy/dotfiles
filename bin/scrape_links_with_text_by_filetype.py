@@ -27,8 +27,10 @@ def get_url(url, end_str, no_verify=True):
     if no_verify is True:
         verify = False
         requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+    else:
+        verify = True
     resp = requests.get(url, verify=verify)
-    # print(resp.)
+    # print(resp.text)
     http_encoding = resp.encoding if 'charset' in resp.headers.get('content-type', '').lower() else None
     html_encoding = EncodingDetector.find_declared_encoding(resp.content, is_html=True)
     encoding = html_encoding or http_encoding
@@ -49,7 +51,7 @@ def get_url(url, end_str, no_verify=True):
             # print(parsed_url)
         extension = path.splitext(parsed_url.path)[1].strip(".")
         linktext = link.get_text()
-        if  extension == end_str.strip("."):
+        if  extension.lower() == end_str.strip(".").lower():
             if raw.get(linktext, None) is None:
                 raw[linktext] = href
             else:
@@ -114,7 +116,8 @@ def parse_arguments():
     arg_p = argparse.ArgumentParser("Get raw text from a url\n\nUrls and URL text are deliniated by four colons '::::'")
     arg_p.add_argument("-u", "--url", type=str, help="A url to parse.")
     arg_p.add_argument("-f", "--filetype", type=str, help="A url to parse.")
-    arg_p.add_argument("-n", "--no-check-certificate", action='store_true', help="Use to not verify SSL certs (default true).")
+    arg_p.add_argument("-n", "--no-check-certificate", action='store_true', help="Use to not verify SSL certs (default true).", default=False)
+    arg_p.add_argument("-i", "--ignore-me", help="Does nothing. Ignore it", action='store_true')
     args = arg_p.parse_args()
     return args
 

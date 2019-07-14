@@ -47,6 +47,7 @@ from datetime import datetime, timezone
 
 
 def main(org_path):
+    FAIL_ON_ERROR = False
     # Make no changes to the task, simply observe.
     old = json.loads(sys.stdin.readline())
     new = json.loads(sys.stdin.readline())
@@ -54,10 +55,16 @@ def main(org_path):
     base = get_orgfile(org_path)
     uuid = old.get("uuid", None)
     project_name = old.get("project", "Misc")
-    node = get_from_project(uuid, project_name, base.root.content)
-    for key, val in new.items():
-        if old.get(key, None) != val:
-            update_node(key, val, node)
+    try:
+        node = get_from_project(uuid, project_name, base.root.content)
+        for key, val in new.items():
+            if old.get(key, None) != val:
+                update_node(key, val, node)
+    except ValueError as _e:
+        if FAIL_ON_ERROR is True:
+            raise _e
+        else:
+            print("WARNING: Cannot update node. Failing gracefully.")
 
     # If new project name move task
     new_project_name = new.get("project", "Misc")

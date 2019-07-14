@@ -1058,9 +1058,9 @@ If point was already at that position, move point to beginning of line."
  '(mode-line-buffer-id ((t (:foreground "black" :bold t))))
  '(org-block ((t (:background "#000000"))))
  '(org-block-background ((t (:background "#000000"))))
- '(org-block-begin-line ((t (:foreground "#008ED1" :background "#002E41"))) t)
- '(org-block-end-line ((t (:foreground "#008ED1" :background "#002E41"))) t)
- '(org-mode-line-clock ((t (:background "grey75" :foreground "red" :box (:line-width -1 :style released-button)))) t)
+ '(org-block-begin-line ((t (:foreground "#008ED1" :background "#002E41"))))
+ '(org-block-end-line ((t (:foreground "#008ED1" :background "#002E41"))))
+ '(org-mode-line-clock ((t (:background "grey75" :foreground "red" :box (:line-width -1 :style released-button)))))
  '(which-func ((t (:foreground "green")))))
 
 ;; . [[http://orgmode.org/worg/agenda-optimization.html][Speed up agenda mode]]
@@ -1439,7 +1439,7 @@ Usage example: To search for state changes that have moved from an non-done to d
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (ag markdown-mode+ markdown-mode ace-jump-mode graphviz-dot-mode php-refactor-mode php-mode org-bullets helm-swoop yasnippet yaml-mode writegood-mode wrap-region web-mode web-beautify use-package undo-tree switch-window solarized-theme smartscan rainbow-mode powershell persp-projectile logview json-mode js3-mode js2-mode highlight-indentation helm-projectile helm-flycheck helm-dash helm-ag guru-mode guide-key drag-stuff))))
+    (csharp-mode ag markdown-mode+ markdown-mode ace-jump-mode graphviz-dot-mode php-refactor-mode php-mode org-bullets helm-swoop yasnippet yaml-mode writegood-mode wrap-region web-mode web-beautify use-package undo-tree switch-window solarized-theme smartscan rainbow-mode powershell persp-projectile logview json-mode js3-mode js2-mode highlight-indentation helm-projectile helm-flycheck helm-dash helm-ag guru-mode guide-key drag-stuff))))
 
 ;; Forensics & Data Cleaning
 

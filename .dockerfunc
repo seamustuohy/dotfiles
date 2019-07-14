@@ -104,6 +104,22 @@ archive_site() {
       ${DOCKER_REPO_PREFIX}/sloppy_archivist
 }
 
+
+archive_specific_site() {
+      docker_del_stopped sloppy_specific_archivist
+
+      local archiver="$1"
+      local URL="$2"
+      docker run \
+      -v ${HOME}/code/sloppy_archivist:/etc/spider \
+      -e URL="${URL}" \
+      --name sloppy_specific_archivist \
+      ${DOCKER_REPO_PREFIX}/sloppy_archivist \
+      scrapy runspider "/etc/spider/site_specific/${archiver}" -o "/etc/spider/items.json"
+}
+
+
+
 viper_test() {
         docker_del_stopped viper
         docker -D run \
@@ -572,6 +588,22 @@ libreoffice(){
                 ${DOCKER_REPO_PREFIX}/libreoffice
 }
 
+libreoffice_bash() {
+        docker_del_stopped libreoffice
+
+        docker run -d \
+                --rm \
+                -it \
+                -v /etc/localtime:/etc/localtime:ro \
+                -v /tmp/.X11-unix:/tmp/.X11-unix \
+                -e "DISPLAY=unix${DISPLAY}" \
+                -v "${HOME}/slides:/root/slides" \
+                -e GDK_SCALE \
+                -e GDK_DPI_SCALE \
+                --name libreoffice \
+                ${DOCKER_REPO_PREFIX}/libreoffice bash
+}
+
 inkscape(){
         docker_del_stopped inkscape
         # xhost +local:docker && \
@@ -774,6 +806,23 @@ git-annex(){
        # unmount encrypted transfer drive
        sudo veracrypt -d "$local_path"
 }
+
+
+download_wiki(){
+        local url="$1"
+        docker_del_stopped wikiteam
+        local local_path="wikidump_$(date +"%Y-%m-%d-%T")"
+        # mkdir "$local_path"
+        
+        docker run \
+               --rm -it \
+               -v "$(pwd):/data" \
+               -e path="$local_path" \
+               -e url="$url" \
+               ${DOCKER_REPO_PREFIX}/wikiteam \
+               && sudo chown -R "$(id -u).$(id -g)" "$local_path"
+}
+
 
 git-annex-bash(){
         docker_del_stopped git-annex

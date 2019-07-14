@@ -208,6 +208,7 @@ base() {
           ####################################
           jq \
           bc \
+          python-q-text-as-data \
           ####################################
           # Media
           ####################################
@@ -896,6 +897,22 @@ install_vim_plugins() {
 
 }
 
+copy_over_windows_subsystem_dotfiles() {
+    win_profile=$(powershell.exe '$profile' \
+                      | sed 's/\r//' \
+                      | sed 's$\\$/$g' \
+                      | sed 's$C:/$/mnt/c/$')
+    win_profile=$(wslpath $(powershell.exe '$profile') | sed 's/\r//')
+    # wslpath -w
+    # win_profile=${win_profile#/C:\\/\/mnt\/c\//}
+    # win_profile=${win_profile/#C:\\/\/mnt\/c\/}
+    # win_username=$(powershell.exe '$env:UserName' | sed 's/\r//')
+    # win_profile_path="/mnt/c/Users/${win_username}/Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1"
+    mkdir -p $(dirname $win_profile)
+    cp ~/dotfiles/.Microsoft.PowerShell_profile.ps1 $win_profile
+    cp ~/dotfiles/powershell_bin/* "$(dirname $win_profile)/Scripts/."
+}
+
 
 # install_emacs() {
 #         # create subshell
@@ -1057,6 +1074,7 @@ install_wmapps() {
         pulseaudio \
         pavucontrol \
         blueman \
+        bluez-firmware \
         ####################################
         # Controlling backlight levels
         # Xbacklight does not work correctly on many machines
@@ -1306,6 +1324,9 @@ main() {
     elif [[ $cmd == "emacs" ]]; then
         # check_is_sudo
         install_emacs
+    elif [[ $cmd == "wsl_configs" ]]; then
+        # check_is_sudo
+        copy_over_windows_subsystem_dotfiles
     elif [[ $cmd == "mutt" ]]; then
         check_is_sudo
         get_neomutt

@@ -28,3 +28,17 @@ alias lport="sudo netstat -lepunt"
 # View HTTP traffic
 #alias sniff="sudo ngrep -d 'en1' -t '^(GET|POST) ' 'tcp and port 80'"
 #alias httpdump="sudo tcpdump -i en1 -n -s 0 -w - | grep -a -o -E \"Host\: .*|GET \/.*\""
+
+
+####################################
+# Diagnostics
+####################################
+
+curl_evade_firewall() {
+    local url="${@: -1}"
+    local file="${url##*/}"
+    # curl --no-keepalive -r 0-1 "$@" --output - > "${file}"
+    # curl --no-keepalive -C 2 "$@" --output - >> "${file}"
+    curl --header "Range: bytes=0-1" "$@" --output - > "${file}"
+    curl --header "Range: bytes=2-" "$@" --output - >> "${file}"
+}

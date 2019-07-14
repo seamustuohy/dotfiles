@@ -8,7 +8,10 @@ bin:
 		f=$$(basename $$file); \
 		sudo ln -sf $$file /usr/local/bin/$$f; \
 	done
-
+	for file in $(shell find $(CURDIR)/private/bin); do \
+		f=$$(basename $$file); \
+		sudo ln -sf $$file /usr/local/bin/$$f; \
+	done
 src:
 	# Move src Files to /usr/local/src
 	for file in $(shell find $(CURDIR)/src); do \

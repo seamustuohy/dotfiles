@@ -44,6 +44,44 @@ curl_w_resume() {
 
 
 
+# Evidence Collection
+
+get_evidence_wget_from_url() {
+    local url="$1"
+    local urlid=$(echo "$url" | tr -cd '[:alnum:]._-')
+    local urlid="${urlid:0:10}-$(uuidgen)"
+    mkdir "${urlid}"
+    cd "${urlid}"
+    wget_mirror_single_page \
+             --no-check-certificate \
+             -U "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36" \
+             "${url}"
+    cd ..
+    echo "Stored at ${urlid}"
+}
+
+get_evidence_youtube_from_url() {
+    local url="$1"
+    local urlid=$(echo "$url" | tr -cd '[:alnum:]._-')
+    local urlid="${urlid:0:10}-$(uuidgen)"
+    mkdir "${urlid}"
+    cd "${urlid}"
+    get_youtube_evidence --no-check-certificate "${url}"
+    cd ..
+    echo "Stored at ${urlid}"
+}
+
+get_youtube_evidence() {
+    # Downloads Youtube videos as evidence
+    youtube-dl -o '%(id)s-%(title)s-%(uploader)s-%(upload_date)s.%(ext)s' \
+               --write-description \
+               --write-annotations \
+               --write-all-thumbnails \
+               --all-subs  --write-sub --write-auto-sub \
+               --write-info-json \
+               $@
+}
+
 ####################################
 # Read Media
 ####################################
@@ -52,6 +90,11 @@ decode_qr() {
     # decode a QR code from an image
     # sudo apt-get install zbar-tools
     zbarimg "${1}"
+}
+
+
+markdown_quick_view() {
+    pandoc -s -f markdown -t man "${1}" | man -l -
 }
 
 
@@ -164,6 +207,17 @@ function get_color_histogram() {
         ; done
 }
 
+pdf_remove_password() {
+  # Requires xpdf-utils
+  local filename="$1"
+  local password="$2"
+  # pdftk input.pdf output output.pdf user_pw YOURPASSWORD-HERE
+  # pdftk input.pdf output output.pdf user_pw YOURPASSWORD-HERE owner_pw YOURPASSWORD-HERE
+  # pdftk input.pdf output output.pdf input_pw YOURPASSWORD-HERE
+  pdftops -upw "${password}" "${filename}"
+  ps2pdf "${filename/%.pdf/.ps}" "${filename/%.pdf/_no_password.pdf}"
+}
+
 
 ####################################
 # Bulk Download Media from Webpage
@@ -177,7 +231,7 @@ scrape_files_from_url() {
     if [[ "${is_verify_off}" == "NO_VERIFY" ]]; then
         verify_flag="--no-check-certificate"
     else
-        verify_flag=""
+        verify_flag="-i"
     fi
     IFS=$'\n'
     for item in $(python3 ~/dotfiles/bin/scrape_links_with_text_by_filetype.py -u "$url" -f "$filetype" "$verify_flag"); do
@@ -206,3 +260,20 @@ scrape_files_from_url_no_rename() {
 }
 
 
+download_open_directory() {
+    #set -x;
+    regex='^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?'
+
+    if [[ $1 =~ $regex ]]; then
+        dirs=${BASH_REMATCH[5]}
+        trimmed="${dirs:1:${#dirs}-2}"
+        slashes="${trimmed//[^\/]}"
+        count="${#slashes}"
+        wget --no-check-certificate -q --show-progress -r -np -nH --cut-dirs=${count} -R "index.html*" "$1/"
+    else
+        echo "URL not understood."
+    fi
+    #set +x;
+}
+
+alias wget_wget_download_open_directory=wget_download_open_directory

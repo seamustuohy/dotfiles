@@ -148,7 +148,7 @@ unzip_all_long_names() {
 
 
 # Compare original and gzipped file size
-function gz() {
+function gzip_compare() {
         local origsize=$(wc -c < "$1");
         local gzipsize=$(gzip -c "$1" | wc -c);
         local ratio=$(echo "$gzipsize * 100 / $origsize" | bc -l);
@@ -182,7 +182,10 @@ nuke_all_metadata() {
 }
 
 
+
 # find . | xargs -I % exiftool -all= "%"
+alias exiftool_nuke_all_metadata=nuke_all_metadata
+
 
 ####################################
 # Moving Files
@@ -191,7 +194,7 @@ nuke_all_metadata() {
 # DD-Status
 
 # Get the status of a currently running dd process
-# Use in a terminal NOT running the current dd!
+# Use in a terminal NOT running the current dd! (Because that's not possible)
 # Usage: ddstat
 #alias ddstat="sudo kill -USR1 `pgrep -l '^dd$' | cut -f 1 -d \" \"`"
 alias ddstat="sudo progress -m"
@@ -202,6 +205,11 @@ burnusb() {
         sync
         ding
         notify-send -u critical 'burnusb' 'done'
+}
+
+shorten_all_filenames_sloppily_and_recursively() {
+find . -type f -name '???????????????????????????????????????????????????????????????????????????????????????????????????????????*' -exec sh -c 'file="{}"; bn=$(basename "${file}"); dn=$(dirname "${file}"); mv -ni "${file}" "${dn}/$(echo ${bn} | cut -c1-50 | tr -d [:punct:]  )-$(uuidgen | cut -c1-8).$(echo ${bn##*.}| cut -c1-4)"' \;
+
 }
 
 

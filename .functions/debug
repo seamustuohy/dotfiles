@@ -85,3 +85,27 @@ git_debug() {
     GIT_CURL_VERBOSE=1 GIT_TRACE=1 git "${@}"
 }
 
+
+############################################
+## Fix Random Linux Subsystem for Windows  Problems
+############################################
+
+function repeat_slowly_forever_and_tell_me_about_it {
+    count=0; while true ; do "$@" ; count=$(($count + 1)); echo "Repeated $count times" ; sleep 2 ; done;
+}
+
+onedrive_constant_restart() {
+    repeat_slowly_forever_and_tell_me_about_it /home/s2e/windows/AppData/Local/Microsoft/OneDrive/OneDrive.exe  /restart # /background
+}
+
+find_files_misnamed_for_windows() {
+    LC_ALL=C find . -name '*[[:cntrl:]~\#%<>:"\\|?*]*' \
+          -o -iname 'CON' \
+          -o -iname 'PRN' \
+          -o -iname 'AUX' \
+          -o -iname 'NUL' \
+          -o -iname 'COM[1-9]' \
+          -o -iname 'LPT[1-9]' \
+          -o -name '* ' \
+          -o -name '?*.'
+}

@@ -14,10 +14,10 @@ source ~/dotfiles/.functions/helpers
 source ~/dotfiles/.functions/pretty
 source ~/dotfiles/.functions/desktop_management
 source ~/dotfiles/.functions/writing
+source ~/dotfiles/.functions/applications
+source ~/dotfiles/.functions/data_analysis
 
 ############################################
 ## Misc
 ############################################
 
-## email
-alias mutt="run_mutt.sh"
