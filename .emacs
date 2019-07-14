@@ -2,7 +2,7 @@
 ;; uncomment for Debugging
 ;;(setq debug-on-error t)
 ;; Set debug at point
-;; (debug)
+;;(debug)
 
 
 ;; === WINDOWS <- The worst ===
@@ -205,6 +205,20 @@
 (global-set-key [(f5)] 'flycheck-previous-error)
 (global-set-key [(f6)] 'flycheck-next-error)
 
+;; ;; proselint
+;; ;; TODO: Could never get this to work
+
+;; (flycheck-define-checker proselint
+;;   "A linter for prose."
+;;   :command ("proselint" source-inplace)
+;;   :error-patterns
+;;   ((warning line-start (file-name) ":" line ":" column ": "
+;; 	    (id (one-or-more (not (any " "))))
+;; 	    (message) line-end))
+;;   :modes (text-mode markdown-mode gfm-mode org-mode))
+
+;; (add-to-list 'flycheck-checkers 'proselint)
+
 ;; Prettyness
 (message "highlight")
 (require 'highlight-indentation)
@@ -306,9 +320,9 @@ Example:
 becomes
     http://zh.wikipedia.org/wiki/文本编辑器
 
-For string version, see `xah-html-url-percent-decode-string'.
-To encode, see `xah-html-encode-percent-encoded-url'.
-URL `http://ergoemacs.org/emacs/elisp_decode_uri_percent_encoding.html'
+;;For string version, see `xah-html-url-percent-decode-string'.
+;;To encode, see `xah-html-encode-percent-encoded-url'.
+;;URL `http://ergoemacs.org/emacs/elisp_decode_uri_percent_encoding.html'
 Version 2015-09-14."
   (interactive)
   (let ($boundaries $p1 $p2 $input-str)
@@ -454,6 +468,7 @@ by using nxml's indentation rules."
 ;; ;; loading code for our custom perspectives
 ;; ;; taken from Magnar Sveen
 
+(message "Initializing perspective")
 (defmacro custom-persp (name &rest body)
   `(let ((initialize (not (gethash ,name (perspectives-hash))))
          (current-perspective (persp-curr)))
@@ -463,10 +478,13 @@ by using nxml's indentation rules."
 
 ;; ;; Config
 (require 'perspective)
+
 (require 'projectile)
+
 
 ;; ;; Enable perspective mode
 (persp-mode t)
+
 
 ;; ;; Projectile
 (projectile-global-mode)
@@ -559,7 +577,7 @@ by using nxml's indentation rules."
 ;; Themes
 ;; I keep my themes in a separate themes directory in my .emacs.d folder.
 ;; (add-to-list 'custom-theme-load-path (in-emacs-d "themes"))
-
+(message "Initializing Themes")
 ;; Load my current theme.
 (load-theme 'tango-dark t)
 
@@ -1036,9 +1054,9 @@ If point was already at that position, move point to beginning of line."
  '(mode-line-buffer-id ((t (:foreground "black" :bold t))))
  '(org-block ((t (:background "#000000"))))
  '(org-block-background ((t (:background "#000000"))))
- '(org-block-begin-line ((t (:foreground "#008ED1" :background "#002E41"))) t)
- '(org-block-end-line ((t (:foreground "#008ED1" :background "#002E41"))) t)
- '(org-mode-line-clock ((t (:background "grey75" :foreground "red" :box (:line-width -1 :style released-button)))) t)
+ '(org-block-begin-line ((t (:foreground "#008ED1" :background "#002E41"))))
+ '(org-block-end-line ((t (:foreground "#008ED1" :background "#002E41"))))
+ '(org-mode-line-clock ((t (:background "grey75" :foreground "red" :box (:line-width -1 :style released-button)))))
  '(which-func ((t (:foreground "green")))))
 
 ;; . [[http://orgmode.org/worg/agenda-optimization.html][Speed up agenda mode]]
@@ -1260,6 +1278,8 @@ Usage example: To search for state changes that have moved from an non-done to d
 ;; Save clock data and state changes and notes in the LOGBOOK drawer
 (setq org-clock-into-drawer t)
 
+
+
 (defvar bh/organization-task-id "NONE")
 (defun bh/is-task-p ()
   "Any task with a todo keyword and no subtask"
@@ -1308,7 +1328,7 @@ Usage example: To search for state changes that have moved from an non-done to d
 ;; Set acceptable languages (whatever I want Babel, whatever I want.)
 (org-babel-do-load-languages
  'org-babel-load-languages
-'((sh               . t)
+'((shell               . t)
   (js                . t)
   (emacs-lisp . t)
   (ditaa           . t)
@@ -1318,7 +1338,7 @@ Usage example: To search for state changes that have moved from an non-done to d
   (makefile   . t)
   (sql        . t)
   (sqlite     . t)
-  (scala      . t)
+  ;;(scala      . t)
   (org        . t)
   (python     . t)
   (dot        . t)
@@ -1415,7 +1435,7 @@ Usage example: To search for state changes that have moved from an non-done to d
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (ag markdown-mode+ markdown-mode ace-jump-mode graphviz-dot-mode php-refactor-mode php-mode org-bullets helm-swoop yasnippet yaml-mode writegood-mode wrap-region web-mode web-beautify use-package undo-tree switch-window solarized-theme smartscan rainbow-mode powershell persp-projectile logview json-mode js3-mode js2-mode highlight-indentation helm-projectile helm-flycheck helm-dash helm-ag guru-mode guide-key drag-stuff))))
+    (csharp-mode ag markdown-mode+ markdown-mode ace-jump-mode graphviz-dot-mode php-refactor-mode php-mode org-bullets helm-swoop yasnippet yaml-mode writegood-mode wrap-region web-mode web-beautify use-package undo-tree switch-window solarized-theme smartscan rainbow-mode powershell persp-projectile logview json-mode js3-mode js2-mode highlight-indentation helm-projectile helm-flycheck helm-dash helm-ag guru-mode guide-key drag-stuff))))
 
 ;; Forensics & Data Cleaning
 
@@ -1584,3 +1604,18 @@ Usage example: To search for state changes that have moved from an non-done to d
   (call-process "powershell.exe" nil t nil " Get-Clipboard"))
 (global-set-key (kbd "M-Y") 'linux_subshell_on_windows-paste_region_from_clipboard)
 
+
+(defun set_buffer_to_unix-file ()
+  "Change the current buffer to Unix line-ends."
+  (interactive)
+  (set-buffer-file-coding-system 'unix t))
+
+(defun set_buffer_to_dos-file ()
+  "Change the current buffer to DOS line-ends."
+  (interactive)
+  (set-buffer-file-coding-system 'dos t))
+
+(defun set_buffer_to_mac-file ()
+  "Change the current buffer to Mac line-ends."
+  (interactive)
+  (set-buffer-file-coding-system 'mac t))

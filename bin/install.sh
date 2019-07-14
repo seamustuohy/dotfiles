@@ -207,12 +207,16 @@ base() {
           # Data Analysis
           ####################################
           jq \
+          bc \
+          python-q-text-as-data \
           ####################################
           # Media
           ####################################
           libav-tools \
           # ffmpeg \
           youtube-dl \
+          # Texlive is needed for pdf manipulation (pdfnup & pdfjam). See .functions/helpers
+          texlive-extra-utils \ 
           ####################################
           # Getting Debian to be a functional OS
           ####################################
@@ -819,6 +823,8 @@ install_emacs() {
     ## Requirements for packages
     # Helm-Dash
     sudo apt install sqlite3
+    # ProseLint
+    sudo pip3 install proselint
     # Setup environment
     # Create emacs config dir
     local CONF_DIR="${HOME}/.emacs.d"
@@ -892,6 +898,22 @@ install_vim_plugins() {
     mkdir -p ~/.vim/autoload/
     cp /tmp/pathogen/autoload/pathogen.vim ~/.vim/autoload/pathogen.vim
 
+}
+
+copy_over_windows_subsystem_dotfiles() {
+    win_profile=$(powershell.exe '$profile' \
+                      | sed 's/\r//' \
+                      | sed 's$\\$/$g' \
+                      | sed 's$C:/$/mnt/c/$')
+    win_profile=$(wslpath $(powershell.exe '$profile') | sed 's/\r//')
+    # wslpath -w
+    # win_profile=${win_profile#/C:\\/\/mnt\/c\//}
+    # win_profile=${win_profile/#C:\\/\/mnt\/c\/}
+    # win_username=$(powershell.exe '$env:UserName' | sed 's/\r//')
+    # win_profile_path="/mnt/c/Users/${win_username}/Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1"
+    mkdir -p $(dirname $win_profile)
+    cp ~/dotfiles/.Microsoft.PowerShell_profile.ps1 $win_profile
+    cp ~/dotfiles/powershell_bin/* "$(dirname $win_profile)/Scripts/."
 }
 
 
@@ -1206,23 +1228,30 @@ enable_namespaces() {
 }
 
 install_veracrypt() {
-    local VERSION=1.21
-curl https://www.idrix.fr/VeraCrypt/VeraCrypt_PGP_public_key.asc | gpg --import
-wget https://launchpad.net/veracrypt/trunk/"${VERSION}"/+download/veracrypt-"${VERSION}"-setup.tar.bz2
-wget https://launchpad.net/veracrypt/trunk/"${VERSION}"/+download/veracrypt-"${VERSION}"-setup.tar.bz2.sig
-gpg --verify veracrypt-"${VERSION}"-setup.tar.bz2.sig
-printf "ID=0x54DDD393, Fingerprint=993B7D7E8E413809828F0F29EB559C7C54DDD393\n\n\n"
-printf "OK?"
-read
-printf "\n\n"
-tar -xvf veracrypt-"${VERSION}"-setup.tar.bz2
-printf "\n\nInstall to /tmp (option 2)!\n\nOK?"
-read
-./veracrypt-"${VERSION}"-setup-gui-x64
-mkdir veracrypt_installed
-tar -xvf /tmp/veracrypt_"${VERSION}"_amd64.tar.gz -C veracrypt_installed
-sudo cp -R veracrypt_installed/usr/bin/* /usr/local/bin/
-sudo cp -R veracrypt_installed/usr/share/* /usr/local/share/
+    # Install Dependencies
+    sudo apt-get install fuse dmsetup libfuse2
+    tmpdir=$(mktemp -d)
+    echo $tmpdir
+    (
+        cd "$tmpdir"
+        local VERSION=1.21
+        curl https://www.idrix.fr/VeraCrypt/VeraCrypt_PGP_public_key.asc | gpg --import
+        wget https://launchpad.net/veracrypt/trunk/"${VERSION}"/+download/veracrypt-"${VERSION}"-setup.tar.bz2
+        wget https://launchpad.net/veracrypt/trunk/"${VERSION}"/+download/veracrypt-"${VERSION}"-setup.tar.bz2.sig
+        gpg --verify veracrypt-"${VERSION}"-setup.tar.bz2.sig || true
+        printf "ID=0x54DDD393, Fingerprint=993B7D7E8E413809828F0F29EB559C7C54DDD393\n\n\n"
+        printf "OK?"
+        read
+        printf "\n\n"
+        tar -xvf veracrypt-"${VERSION}"-setup.tar.bz2
+        printf "\n\nInstall to /tmp (option 2)!\n\nOK?"
+        read
+        ./veracrypt-"${VERSION}"-setup-gui-x64
+        mkdir veracrypt_installed
+        tar -xvf /tmp/veracrypt_"${VERSION}"_amd64.tar.gz -C veracrypt_installed
+        sudo cp -R veracrypt_installed/usr/bin/* /usr/local/bin/
+        sudo cp -R veracrypt_installed/usr/share/* /usr/local/share/
+    )
 }
 
 
@@ -1298,6 +1327,9 @@ main() {
     elif [[ $cmd == "emacs" ]]; then
         # check_is_sudo
         install_emacs
+    elif [[ $cmd == "wsl_configs" ]]; then
+        # check_is_sudo
+        copy_over_windows_subsystem_dotfiles
     elif [[ $cmd == "mutt" ]]; then
         check_is_sudo
         get_neomutt

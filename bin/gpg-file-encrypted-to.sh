@@ -77,6 +77,8 @@ main () {
                                  | cut -d' ' -f2)
         if [[ -z "${encrypted_kid// }" ]]; then
             printf "%s\n" "Decrypting unknown GPG key"
+            printf "%s\n" ${filedata} \
+                | gpg --batch --list-packets 2>&1
         else
             echo "${encrypted_kid}" \
                 | xargs -I % gpg --list-key --with-colons % \

@@ -1,0 +1,11 @@
+## RSS
+alias rss=newsboat
+
+## email
+alias mutt="run_mutt.sh"
+
+
+
+
+
+

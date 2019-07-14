@@ -1,0 +1,4 @@
+
+
+alias parse_csv="q -H -d,"
+

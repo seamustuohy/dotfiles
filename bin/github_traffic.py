@@ -15,10 +15,51 @@ except ImportError:
     print 'python-mechanize module not available.\n'
     sys.exit(1)
 
+
+def get_via_api(repos, password, minimal=False):
+    import requests
+    # p = getpass.getpass(prompt='Password')
+    headers = {'Authorization': 'token {0}'.format(password)}
+    minimal_stats = ['/traffic/views']
+    stats_paths = ['/traffic/popular/paths',
+                   '/traffic/popular/referrers',
+                   '/traffic/views',
+                   '/traffic/clones']
+    if minimal is True:
+        stats_paths = minimal_stats
+    for repo in repos:
+        print("Repo Name: {0}".format(repo))
+        if minimal is False:
+            print("\n\n")
+        for path in stats_paths:
+            url = 'https://api.github.com/repos/{0}{1}'.format(repo, path)
+            r = requests.get(url, headers=headers)
+            if minimal is False:
+                print('\n---\n')
+                print(url)
+            print_stats(r.json(), path, minimal)
+        if minimal is False:
+            print("\n--------------------------------------------\n")
+
+def print_stats(data, stat_type, minimal=False):
+    #print(data, stat_type)
+    if stat_type == '/traffic/views':
+        if minimal is True:
+            print("Count: {0: <5} \tUnique: {1: <5}".format(data.get('count', 0), data.get('uniques', 0)))
+        else:
+            for view_data in data.get('views', []):
+                for i in view_data:
+                    print(i)
+    else:
+        print(data)
+        # for i in data:
+        #     print(i)
+
+
 def webBrowser():
     # Browser
     br = mechanize.Browser()
-    #br.set_debug_http(True)
+    br.set_debug_http(True)
 
     # Cookie Jar
     cj = cookielib.LWPCookieJar()
@@ -119,6 +160,7 @@ def parseArgs(args=None):
     parser = argparse.ArgumentParser(description='Scrape GitHub for a webpage requiring authentication')
     parser.add_argument('--repo', '-r', nargs='?', help='Repository (example: foo/bar)')
     parser.add_argument('--log', '-l', help='Write stats to the default log location.', action='store_true')
+    parser.add_argument('--minimal', '-m', help='Just get minimal information on stats.', action='store_true')
     parser.add_argument('--write', '-w', nargs='?', help='Write to a file')
     try:
         parser.add_argument('--user', '-u', nargs='?', default=os.getenv('USER'), help='Authenticate using specified user. Defaults to: (' + os.getenv('USER') + ')')
@@ -132,30 +174,31 @@ if __name__ == '__main__':
     with open("/home/s2e/dotfiles/private/scraping/github_repos.txt") as fp:
         repos = fp.readlines()
         repos = [x.strip() for x in repos]
+    get_via_api(repos, args.password, args.minimal)
 
-    web_page = authenticatePage(args.user, args.password)
-    clones = []
-    visits = []
-    for repo in repos:
-        print("pulling {0}".format(repo))
-        payload = readPage(web_page, repo)
-        stats = {'clones'     : [],
-                         'visitors' : []}
-        for point in payload['Clones']['counts']:
-            clones.append([time.strftime("%Y-%b-%d", time.gmtime(point['bucket'])), repo, str(point['total']), str(point['unique'])])
-        for point in payload['Visitors']['counts']:
-            visits.append([time.strftime("%Y-%b-%d", time.gmtime(point['bucket'])), repo, str(point['total']), str(point['unique'])])
+    # web_page = authenticatePage(args.user, args.password)
+    # clones = []
+    # visits = []
+    # for repo in repos:
+    #     print("pulling {0}".format(repo))
+    #     payload = readPage(web_page, repo)
+    #     stats = {'clones'     : [],
+    #                      'visitors' : []}
+    #     for point in payload['Clones']['counts']:
+    #         clones.append([time.strftime("%Y-%b-%d", time.gmtime(point['bucket'])), repo, str(point['total']), str(point['unique'])])
+    #     for point in payload['Visitors']['counts']:
+    #         visits.append([time.strftime("%Y-%b-%d", time.gmtime(point['bucket'])), repo, str(point['total']), str(point['unique'])])
 
     #print("found clones {0}".format(clones))
     #print("found visits {0}".format(clones))
-    if args.write:
-        print("writing to files")
-        writeFile("{0}.clones.csv".format(args.write), clones)
-        writeFile("{0}.visits.csv".format(args.write), visits)
-    elif args.log:
-        print("writing to default log files")
-        writeFile("/tmp/github.clones.csv", clones)
-        writeFile("/tmp/github.visits.csv", visits)
-    else:
-        print '\nClones: (date, total, unique)\n', stats['clones']
-        print '\nVisitors: (date, total, unique)\n', stats['visitors']
+    # if args.write:
+    #     print("writing to files")
+    #     writeFile("{0}.clones.csv".format(args.write), clones)
+    #     writeFile("{0}.visits.csv".format(args.write), visits)
+    # elif args.log:
+    #     print("writing to default log files")
+    #     writeFile("/tmp/github.clones.csv", clones)
+    #     writeFile("/tmp/github.visits.csv", visits)
+    # else:
+    #     print '\nClones: (date, total, unique)\n', stats['clones']
+    #     print '\nVisitors: (date, total, unique)\n', stats['visitors']
