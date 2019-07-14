@@ -1055,6 +1055,7 @@ install_wmapps() {
         pulseaudio \
         pavucontrol \
         blueman \
+        bluez-firmware \
         ####################################
         # Controlling backlight levels
         # Xbacklight does not work correctly on many machines
