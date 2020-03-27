@@ -347,3 +347,34 @@ extract_ALL_metadata() {
 alias exiftool_show_ALL=extract_ALL_metadata
 
 
+############################################
+## Forensics
+############################################
+
+
+# Extract the binary of running process (Even if the original binary is deleted)
+get_process_binary_by_pid() {
+    local PID="${1}"
+    cat "/proc/${1}PID/exe"
+}
+
+# Copy the binary of running process (Even if the original binary is deleted) somewhere
+# This is great for when you REALLY mess up a system and "irreversibly" delete a critical script that is still being used by an active process
+cp_process_binary_by_pid() {
+    local PID="${1}"
+    local OUTPUT="${2}"
+    cp "/proc/${1}PID/exe" "${OUTPUT}"
+}
+
+
+# Untested 
+clamscan_extract_autoit_scripts() {
+    filename="$1"
+    
+    tempfile = $(clamscan ---debug --verbose --leave-temps "${filename}" 2>&1 | grep autoit | grep "script extracted to" | cut -d/ -f 2-)
+    cat "/${tempfile}"
+    
+    
+
+
+}

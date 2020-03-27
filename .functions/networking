@@ -18,6 +18,20 @@ alias new_wireless_mac=="source_as_root ~/dotfiles/bin/wifi_management.sh reset_
 alias not_the_droids=="source_as_root ~/dotfiles/bin/wifi_management.sh reset_wifi_with_changed_mac"
 
 
+# Get URL Certificate Chain
+
+function get_tls_certificates() {
+    URL="${1#https://}";
+    URL="${URL%%/*}";
+    currentdir="$(pwd)"
+    tmpdir=$(mktemp -d)
+    cd "${tmpdir}"
+    openssl s_client -showcerts -verify 5 -connect "${URL}":443 < /dev/null | awk '/BEGIN/,/END/{ if(/BEGIN/){a++}; out="cert"a".crt"; print >out}' && for cert in *.crt; do newname=$(openssl x509 -noout -subject -in $cert | sed -n 's/^.*CN=\(.*\)$/\1/; s/[ ,.*]/_/g; s/__/_/g; s/^_//g;p' | sed "s/['=\"]//g").pem; mv $cert $newname; done
+    cd "${currentdir}"
+    echo "Certs can be found in ${tmpdir}"
+}
+
+
 ####################################
 # Diagnostics
 ####################################
@@ -31,7 +45,7 @@ alias lport="sudo netstat -lepunt"
 
 
 ####################################
-# Diagnostics
+# MISC
 ####################################
 
 curl_evade_firewall() {
@@ -42,3 +56,20 @@ curl_evade_firewall() {
     curl --header "Range: bytes=0-1" "$@" --output - > "${file}"
     curl --header "Range: bytes=2-" "$@" --output - >> "${file}"
 }
+
+qr_code_wifi_access() {
+    local SSID
+    local PASSWORD
+    read -p "Enter SSID: " SSID
+    # Disable local echo
+    stty -echo
+    printf "Enter password: "
+    read PASSWORD
+    # Enable local echo again
+    stty echo
+    echo "$PASSWORD"
+    echo "$SSID"
+    qrencode -o wifi.png "WIFI:T:WPA;S:<$SSID>;P:<$PASSWORD>;;"
+}
+
+alias wifi_qr_code="qr_code_wifi_access"

@@ -101,9 +101,17 @@
 (setq tab-width 4)
 
 ;; UTF-8 by default
-(setq org-export-coding-system 'utf-8)
-(prefer-coding-system 'utf-8)
+
+(prefer-coding-system 'latin-1)
+(if (not (assoc "UTF-8" language-info-alist))
+    (set-language-environment "latin-1")
+  (set-language-environment "utf-8")
+  (set-keyboard-coding-system 'utf-8)
+  (set-terminal-coding-system 'utf-8)
+  (prefer-coding-system 'utf-8))
+
 (set-charset-priority 'unicode)
+(setq org-export-coding-system 'utf-8)
 (setq default-process-coding-system '(utf-8-unix . utf-8-unix))
 
 ;; === Emacs Environment ===
@@ -134,7 +142,24 @@
 
 (global-set-key "\C-x\C-c" 'paranoid-exit-from-emacs)
 
-;; Text Manipulation
+
+;; === Text Utilities and Shortcuts ===
+
+
+;; Insert Date
+;; This is a piece of code from [JorgenSchaefersEmacsConfig](https://www.emacswiki.org/emacs/JorgenSchaefersEmacsConfig)
+(defun insert-date (prefix)
+  "Insert the current date. Without prefix-argument, use ISO format. With
+   prefix arguments, write out the day and month name."
+  (interactive "P")
+  (let ((format (cond
+                 ((not prefix) "%Y-%m-%d")
+                 ((equal prefix '(4)) "%A, %d. %B %Y"))))
+    (insert (format-time-string format))))
+
+(global-set-key (kbd "C-c d") 'insert-date)
+
+;; === Text Manipulation ===
 (message "Initializing text manipulation")
 
 ;; Drag Stuff
@@ -1332,7 +1357,7 @@ Usage example: To search for state changes that have moved from an non-done to d
 ;; Set acceptable languages (whatever I want Babel, whatever I want.)
 (org-babel-do-load-languages
  'org-babel-load-languages
-'((sh               . t)
+'((shell               . t)
   (js                . t)
   (emacs-lisp . t)
   (ditaa           . t)
@@ -1580,20 +1605,20 @@ Usage example: To search for state changes that have moved from an non-done to d
 
 
 
-;; Turn copy/paste connectors on if in subsystem
-(if (equal is_windows_subsystem 0)
-    (progn
-      (add-function :before (symbol-function 'org-yank) #'my-pasting-function)
-      (add-function :before (symbol-function 'cua-paste) #'my-pasting-function))
-  (message "failed to add paste function"))
-(if (equal is_windows_subsystem 0)
-    (progn
-      (add-function :after (symbol-function 'kill-new) #'my-yanking-function))
-  (message "failed to add yank function"))
-(if (equal is_windows_subsystem 0)
-    (progn
-      (add-function :before (symbol-function 'kill-region) #'my-yanking-no-region-function))
-  (message "failed to add yank region function"))
+;; ;;Turn copy/paste connectors on if in subsystem
+;; (if (equal is_windows_subsystem 0)
+;;     (progn
+;;       (add-function :before (symbol-function 'org-yank) #'my-pasting-function)
+;;       (add-function :before (symbol-function 'cua-paste) #'my-pasting-function))
+;;   (message "failed to add paste function"))
+;; (if (equal is_windows_subsystem 0)
+;;     (progn
+;;       (add-function :after (symbol-function 'kill-new) #'my-yanking-function))
+;;   (message "failed to add yank function"))
+;; (if (equal is_windows_subsystem 0)
+;;     (progn
+;;       (add-function :before (symbol-function 'kill-region) #'my-yanking-no-region-function))
+;;   (message "failed to add yank region function"))
 
 ;; Sideloaded copy and Paste on Windows
 (defun linux_subshell_on_windows-copy_region_to_clipboard (&optional b e)
