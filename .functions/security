@@ -45,6 +45,10 @@ gpg-unlock-key() {
     echo "TEST" | gpg -ear "$1" | gpg -d
 }
 
+gpg-see-keys-in-file() {
+    cat "${1}" | gpg --with-colons --import-options show-only --import
+}
+
 
 
 

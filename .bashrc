@@ -184,3 +184,6 @@ gpg-connect-agent updatestartuptty /bye >/dev/null
 
 # Add go to path
 export PATH=$PATH:/usr/local/go/bin
+# Install Ruby Gems to ~/gems
+export GEM_HOME="$HOME/gems"
+export PATH="$HOME/gems/bin:$PATH"

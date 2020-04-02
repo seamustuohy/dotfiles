@@ -44,11 +44,11 @@ report.recurringall.sort=parent,due
 
 # better defaults for piping into less -RS, head etc.
 _forcecolor=yes
-defaultwidth=
+#defaultwidth=
 
 
 report.snext.columns=id,start.age,entry.age,due.relative,until.remaining,description
 report.snext.description="Short overview of urgent tasks"
 report.snext.filter=status:pending limit:page
 report.snext.labels=ID,Active,Age,Due,Until,Description
-report.snext.sort=urgency-
+report.snext.sort=urgency

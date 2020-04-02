@@ -138,6 +138,11 @@ base() {
           network-manager-gnome \
           curl \
           dnsutils \
+          ####################################
+          # Networking Troubleshooting
+          ####################################
+          mtr \
+          tcpdump  \
           # Need keyring for network manager
           gnome-keyring \
           ####################################
@@ -212,11 +217,12 @@ base() {
           ####################################
           # Media
           ####################################
-          libav-tools \
-          # ffmpeg \
+          # libav-tools \
+          ffmpeg \
           youtube-dl \
           # Texlive is needed for pdf manipulation (pdfnup & pdfjam). See .functions/helpers
           texlive-extra-utils \
+          imagemagick \
           ####################################
           # Getting Debian to be a functional OS
           ####################################
@@ -255,7 +261,13 @@ base() {
           # Productivity
           ####################################
           taskwarrior \
-          timewarrior )
+          timewarrior \
+          ####################################
+          # Language
+          ####################################
+          ispell \
+          dictionaries-common \
+          iamerican )
 
     # Swap out for Ubuntu specific packages if on ubuntu
     if $(grep -qi ubuntu /proc/version); then

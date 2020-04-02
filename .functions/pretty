@@ -97,3 +97,8 @@ pdf_strip_text() {
     gs -o "${filename%.*}_${replacement}.pdf"  -sDEVICE=pdfwrite -dFILTERTEXT "${filename}"
 }
 
+webpage_to_markdown() {
+    local website="${1}"
+    local outfile="${2}"
+    curl --silent "${website}" | pandoc -s -r html -o "${outfile}"
+}
