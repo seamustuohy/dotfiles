@@ -1,0 +1,11 @@
+
+
+
+function run_for_each_find() {
+    while IFS= read -r -d $'\0' line ; do
+    echo $line ;
+    done < <(find \
+                 . \
+                 -printf '%p\0' \
+                 2>/dev/null)
+}

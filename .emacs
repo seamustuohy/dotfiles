@@ -660,6 +660,8 @@ Including indent-buffer, which should not be called automatically on save."
 
 
 ;; Backups
+;; TODO : After having some serious losses after power-failures I may want to reevaluate /tmp and put recovery files in a folder with a cron job that clears saves older than a specfiic number of days. Bad for anti-forensics. May want to specify some sort of blacklist or exclusion string for files that are sensitive... But, would save me from 
+
 ;; I use close to the basic backup setup described in the [[http://emacswiki.org/emacs/BackupDirectory][emacswiki.]]
 
 ;;(setq temporary-file-directory "/tmp/")

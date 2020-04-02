@@ -11,6 +11,16 @@ get_current_wifi_psk_key() {
     python3 -c "from hashlib import pbkdf2_hmac as p; from binascii import hexlify as h;print('PSK',h(p('sha1', b'$p', b'$a', 4096, dklen=32)).decode('ascii'))"
 }
 
+
+# Get current WiFi password
+get_current_wifi_password() {
+    c='cut -d: -f2';
+    g=grep;
+    a=$(nmcli -t -f ACTIVE,SSID d w l|$g -E "^yes:"|$c);
+    p=$(nmcli -s -t c show $a|$g psk:|$c);
+    echo $p
+}
+
 # WiFi AccessPoint Commands
 
 alias you_dont_know_me="source_as_root ~/dotfiles/bin/wifi_management.sh reset_wifi_with_changed_mac"
