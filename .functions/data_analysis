@@ -1,4 +1,14 @@
 
 
-alias parse_csv="q -H -d,"
+alias parse_csv="q --skip-header --delimiter=,"
+alias csv_parse=parse_csv
+
+csv_get_column_by_name() {
+    q --skip-header --delimiter=, "select ${1} from ${2}"
+}
+
+csv_get_column_by_number() {
+    q  --delimiter=, "select c${1} from ${2}"
+}
+
 

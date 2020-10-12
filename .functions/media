@@ -218,20 +218,22 @@ pdf_remove_password() {
   ps2pdf "${filename/%.pdf/.ps}" "${filename/%.pdf/_no_password.pdf}"
 }
 
+pdf_remove_feature_protections() {
+    local filename="$1"
+    ps2pdf "${filename}" "${filename%.pdf}-unlocked.pdf"
+}
 
 pdf_extract_images() {
-  set -x
+  # set -x
   local filename="$1"
+  # Kill leading whitespace (found in find) and replace all non ASCII with underscores
+  local outdir=$(echo "$1" | sed -e 's/^[[:space:]]*//' | sed -e 's/[^a-zA-Z0-9]/_/g')
   local filedir=$(dirname "${filename}")
   local tmpdir=$(mktemp -dt "$(basename "EXTRACT_PDF_IMAGES").XXXXX")
   pdfimages -all "${filename}" "${tmpdir}/image"
-  # for i in ${tmpdir}/*.ppm ; do convert ${i} ${i%.ppm}.png ; rm ${i}; done
-  # for i in ${tmpdir}/*.pbm ; do convert ${i} ${i%.pbm}.png ; rm ${i}; done
-  # for i in ${tmpdir}/*.pgm ; do convert ${i} ${i%.pgm}.png ; rm ${i}; done
-  mv ${tmpdir}/image-* "${filedir}/."
-  cp -fr "${filedir}" ~/windows/tmp/pdftest
-  #rm -fr ${tmpdir}
-  set +x
+  mkdir "${filedir}/${outdir}"
+  mv ${tmpdir}/image-* "${filedir}/${outdir}/."
+  # set +x
 }
 
 
@@ -308,15 +310,35 @@ wget_download_open_directory_full_continuable() {
 }
 
 unprotect_docx() {
+    echo "This will only remove restrictions to editing. It will not un-encrypt a docx file."
     doc_path="${1}"
     tmpdir=$(mktemp -d)
     curdir=$(pwd)
     unzip "${doc_path}" -d "${tmpdir}"
-    sed -i
-    
-#    <w:documentProtection />
-
-
+    find "${tmpdir}"/. -name "*.xml" -exec sed -i 's/<w:documentProtection[^>]*>//' {} +
+    echo "TEMPDIR IS ${tmpdir}"
+    cd  "${tmpdir}"
+    find . -type f | xargs zip "${curdir}/${1%.docx}-unprotected.docx"
+    cd "${curdir}"
+    rm -fr "${tmpdir}"
 }
+
+unprotect_xlsx() {
+    echo "This will only remove sheet and workbook protections. It will not un-encrypt a xlsx file."
+    doc_path="${1}"
+    tmpdir=$(mktemp -d)
+    curdir=$(pwd)
+    unzip "${doc_path}" -d "${tmpdir}"
+    find "${tmpdir}"/. -name "*.xml" -exec sed -i 's/<sheetProtection[^>]*>//' {} +
+    find "${tmpdir}"/. -name "*.xml" -exec sed -i 's/<workbookProtection[^>]*>//' {} +
+    echo "TEMPDIR IS ${tmpdir}"
+    cd  "${tmpdir}"
+    find . -type f | xargs zip "${curdir}/${1%.xlsx}-unprotected.xlsx"
+    cd "${curdir}"
+    rm -fr "${tmpdir}"
+}
+
+
+
 
 alias find_duplicate_images=findimagedupes

@@ -242,8 +242,8 @@
 ;;   :command ("proselint" source-inplace)
 ;;   :error-patterns
 ;;   ((warning line-start (file-name) ":" line ":" column ": "
-;; 	    (id (one-or-more (not (any " "))))
-;; 	    (message) line-end))
+;;          (id (one-or-more (not (any " "))))
+;;          (message) line-end))
 ;;   :modes (text-mode markdown-mode gfm-mode org-mode))
 
 ;; (add-to-list 'flycheck-checkers 'proselint)
@@ -667,7 +667,7 @@ Including indent-buffer, which should not be called automatically on save."
 
 
 ;; Add the hook.
-(add-hook 'before-save-hyaook 'file-management/cleanup-buffer-safe)
+(add-hook 'before-save-hook 'file-management/cleanup-buffer-safe)
 
 ;; When files change on disk I want the buffers to change to match them.
 ;; I will modify text files in bash while they are open in emacs when I need to do more automated modification.
@@ -685,7 +685,7 @@ Including indent-buffer, which should not be called automatically on save."
 
 
 ;; Backups
-;; TODO : After having some serious losses after power-failures I may want to reevaluate /tmp and put recovery files in a folder with a cron job that clears saves older than a specfiic number of days. Bad for anti-forensics. May want to specify some sort of blacklist or exclusion string for files that are sensitive... But, would save me from 
+;; TODO : After having some serious losses after power-failures I may want to reevaluate /tmp and put recovery files in a folder with a cron job that clears saves older than a specfiic number of days. Bad for anti-forensics. May want to specify some sort of blacklist or exclusion string for files that are sensitive... But, would save me from
 
 ;; I use close to the basic backup setup described in the [[http://emacswiki.org/emacs/BackupDirectory][emacswiki.]]
 
@@ -1650,3 +1650,33 @@ Usage example: To search for state changes that have moved from an non-done to d
   "Change the current buffer to Mac line-ends."
   (interactive)
   (set-buffer-file-coding-system 'mac t))
+
+
+(defun s2e-defang-text (&optional @begin @end)
+  "Defang a url.
+
+When called interactively, work on current line or text selection."
+  (interactive)
+  (let (($charMap
+         [
+          ["http" "hXXp"]
+          ["ftp" "fXp"]
+          ["\\." "[.]"]
+          ["://" "[:]//"]
+          ])
+        $begin $end
+        )
+    (if (null @begin)
+        (if (use-region-p)
+            (setq $begin (region-beginning) $end (region-end))
+          (setq $begin (line-beginning-position) $end (line-end-position)))
+      (setq $begin @begin $end @end))
+    (let ((case-fold-search t))
+      (save-restriction
+        (narrow-to-region $begin $end)
+        (mapc
+         (lambda ($pair)
+           (goto-char (point-min))
+           (while (search-forward-regexp (elt $pair 0) (point-max) t)
+             (replace-match (elt $pair 1))))
+         $charMap)))))

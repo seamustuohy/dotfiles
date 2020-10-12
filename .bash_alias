@@ -16,8 +16,8 @@ source ~/dotfiles/.functions/desktop_management
 source ~/dotfiles/.functions/writing
 source ~/dotfiles/.functions/applications
 source ~/dotfiles/.functions/data_analysis
+source ~/dotfiles/.functions/mispellings
 
 ############################################
 ## Misc
 ############################################
-
