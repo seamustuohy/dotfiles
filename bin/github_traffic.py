@@ -6,13 +6,14 @@
 # For automated logging:
 # python github_traffic.py --log --user [USERNAME] --password [PASSWORD]
 
-import cookielib
+from http import cookiejar
+# import cookielib
 import sys, os, time, argparse, getpass, re, datetime, csv
 
 try:
     import mechanize
 except ImportError:
-    print 'python-mechanize module not available.\n'
+    print('python-mechanize module not available.\n')
     sys.exit(1)
 
 
@@ -62,7 +63,7 @@ def webBrowser():
     br.set_debug_http(True)
 
     # Cookie Jar
-    cj = cookielib.LWPCookieJar()
+    cj = cookiejar.LWPCookieJar()
     br.set_cookiejar(cj)
 
     # Browser options
@@ -100,24 +101,24 @@ def readPage(browser, repo):
         stats['Clones'] = eval(browser.open('https://github.com/' + repo + '/graphs/clone-activity-data').read())
         stats['Visitors'] = eval(browser.open('https://github.com/' + repo + '/graphs/traffic-data').read())
     except mechanize.HTTPError as e:
-        print 'There was an error obtaining traffic for said site.'
+        print('There was an error obtaining traffic for said site.')
         if str(e).find('406') != -1:
-            print '\tError 406: You do not have permission to view statistics. Or you supplied incorrect credentials'
+            print('\tError 406: You do not have permission to view statistics. Or you supplied incorrect credentials')
             sys.exit(1)
         if str(e).find('404') != -1:
-            print '\tError 404: Page not found'
+            print('\tError 404: Page not found')
             sys.exit(1)
     return stats
 
 def verifyArgs(args):
     if args.user is '':
-        print '\nYou must specify a user to authenticate with'
+        print('\nYou must specify a user to authenticate with')
         sys.exit(1)
     try:
         while args.password is '':
             args.password = getpass.getpass('Password for UserID ' + args.user + ' :',)
     except KeyboardInterrupt:
-        print ''
+        print('')
         sys.exit(0)
     return args
 

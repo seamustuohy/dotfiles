@@ -162,7 +162,8 @@ viper() {
         -it \
         --name viper \
         ${DOCKER_REPO_PREFIX}/viper
-        ../viper/viper.py -p malware
+        viper -p malware
+        # ../viper/viper.py -p malware
 }
 
 viper_reconnect() {
@@ -391,6 +392,7 @@ thug() {
         printf "Usage:\n\t thug [URL]\n"
     else
         get_new_thug_ua
+        # local THUG_UA_STRING="ipadsafari9"
         docker run \
                -it \
                -v ${HOME}/malware/thug/logs:/home/thug/logs \

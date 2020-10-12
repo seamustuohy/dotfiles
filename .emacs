@@ -344,6 +344,29 @@ Version 2015-09-14."
     (insert (decode-coding-string (url-unhex-string $input-str) 'utf-8))))
 
 
+;; Elisp: URL email equal Decode/Encode
+(defun s2e-email-decode-equal-encoded-url ()
+  "Decode equal sign encoded URI of URI under cursor or selection."
+  (interactive)
+  (let ($boundaries $p1 $p2 $input-str)
+    (if (use-region-p)
+        (progn
+          (setq $p1 (region-beginning))
+          (setq $p2 (region-end)))
+      (progn
+        (setq $boundaries (bounds-of-thing-at-point 'url))
+        (setq $p1 (car $boundaries))
+        (setq $p2 (cdr $boundaries))))
+    (setq $input-str
+          (replace-regexp-in-string "=" "%"
+                                    (buffer-substring-no-properties $p1 $p2)))
+    (require 'url-util)
+    (delete-region $p1 $p2)
+    (insert (decode-coding-string (url-unhex-string $input-str) 'utf-8))))
+
+
+
+
 ;; Pretty format XML markup in region. You need to have nxml-mode
 ;; http://www.emacswiki.org/cgi-bin/wiki/NxmlMode installed to do
 ;; this.  The function inserts linebreaks to separate tags that have
