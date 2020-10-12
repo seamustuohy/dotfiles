@@ -218,6 +218,33 @@ pdf_remove_password() {
   ps2pdf "${filename/%.pdf/.ps}" "${filename/%.pdf/_no_password.pdf}"
 }
 
+pdf_remove_feature_protections() {
+    local filename="$1"
+    ps2pdf "${filename}" "${filename%.pdf}-unlocked.pdf"
+}
+
+pdf_extract_images() {
+  # set -x
+  local filename="$1"
+  # Kill leading whitespace (found in find) and replace all non ASCII with underscores
+  local outdir=$(echo "$1" | sed -e 's/^[[:space:]]*//' | sed -e 's/[^a-zA-Z0-9]/_/g')
+  local filedir=$(dirname "${filename}")
+  local tmpdir=$(mktemp -dt "$(basename "EXTRACT_PDF_IMAGES").XXXXX")
+  pdfimages -all "${filename}" "${tmpdir}/image"
+  mkdir "${filedir}/${outdir}"
+  mv ${tmpdir}/image-* "${filedir}/${outdir}/."
+  # set +x
+}
+
+
+
+
+function mov2gif() {
+    name=`basename -s .mov $1`
+    echo "$1 => $name.gif"
+    ffmpeg -i "$1" -vf scale=980:-1 -pix_fmt rgb24 -r 10 -f gif - | gifsicle --optimize=2 --delay=6 > "${name}.gif"
+}
+
 
 ####################################
 # Bulk Download Media from Webpage
@@ -260,7 +287,7 @@ scrape_files_from_url_no_rename() {
 }
 
 
-download_open_directory() {
+download_open_directory_files_only_continuable() {
     #set -x;
     regex='^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?'
 
@@ -269,11 +296,49 @@ download_open_directory() {
         trimmed="${dirs:1:${#dirs}-2}"
         slashes="${trimmed//[^\/]}"
         count="${#slashes}"
-        wget --no-check-certificate -q --show-progress -r -np -nH --cut-dirs=${count} -R "index.html*" "$1/"
+        wget --no-check-certificate -q --show-progress --timestamping -c -N -r -np -nH --cut-dirs=${count} -R "index.html*" "$1/"
     else
         echo "URL not understood."
     fi
     #set +x;
 }
 
-alias wget_wget_download_open_directory=wget_download_open_directory
+alias wget_download_open_directory=wget_download_open_directory
+
+wget_download_open_directory_full_continuable() {
+    wget -q --show-progress -r -np -nH -c -N "$1/"
+}
+
+unprotect_docx() {
+    echo "This will only remove restrictions to editing. It will not un-encrypt a docx file."
+    doc_path="${1}"
+    tmpdir=$(mktemp -d)
+    curdir=$(pwd)
+    unzip "${doc_path}" -d "${tmpdir}"
+    find "${tmpdir}"/. -name "*.xml" -exec sed -i 's/<w:documentProtection[^>]*>//' {} +
+    echo "TEMPDIR IS ${tmpdir}"
+    cd  "${tmpdir}"
+    find . -type f | xargs zip "${curdir}/${1%.docx}-unprotected.docx"
+    cd "${curdir}"
+    rm -fr "${tmpdir}"
+}
+
+unprotect_xlsx() {
+    echo "This will only remove sheet and workbook protections. It will not un-encrypt a xlsx file."
+    doc_path="${1}"
+    tmpdir=$(mktemp -d)
+    curdir=$(pwd)
+    unzip "${doc_path}" -d "${tmpdir}"
+    find "${tmpdir}"/. -name "*.xml" -exec sed -i 's/<sheetProtection[^>]*>//' {} +
+    find "${tmpdir}"/. -name "*.xml" -exec sed -i 's/<workbookProtection[^>]*>//' {} +
+    echo "TEMPDIR IS ${tmpdir}"
+    cd  "${tmpdir}"
+    find . -type f | xargs zip "${curdir}/${1%.xlsx}-unprotected.xlsx"
+    cd "${curdir}"
+    rm -fr "${tmpdir}"
+}
+
+
+
+
+alias find_duplicate_images=findimagedupes

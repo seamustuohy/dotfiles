@@ -7,6 +7,7 @@
 
 [core]
         editor = emacs
+        autocrlf = input
 
 [push]
         default = current
@@ -35,7 +36,15 @@
         contrib = !sh -c 'git-contributor $1 $2' -
         merge = merge --no-ff
         lasttag = !sh -c 'git describe --tags $(git rev-list --tags --max-count=1)'
+        Ca = "!git add -A && git commit -m "
+        Cu = "!git add -u && git commit -m "
+        c = "!git commit -m "
+        pl = "!git pull"
+        ps = "!git push origin $(git rev-parse --abbrev-ref HEAD)"
+        b = "!git checkout -b"
+        # pr = "!f() { git fetch -fu ${2:-origin} refs/pull/$1/head:pr/$1 && git checkout pr/$1; }; f"
 
+        amend = !git add -A && git commit --amend --no-edit
         # Show the staged changes.
         dc = diff --cached
 
@@ -43,6 +52,7 @@
 
 [alias]
         churn = !sh -c 'git-churn'
+	pro = "!f() { git fetch -fu ${2:-origin} refs/pull/$1/head:pr/$1 && git checkout pr/$1; }; f"
 
 [color]
         ui = auto
@@ -65,3 +75,8 @@
 
 #[commit]
         #template=~/.dotfiles/git/template
+[filter "lfs"]
+        smudge = git-lfs smudge -- %f
+        process = git-lfs filter-process
+        required = true
+        clean = git-lfs clean -- %f

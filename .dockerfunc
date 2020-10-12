@@ -78,6 +78,15 @@ docker_build_container(){
     docker build --rm --force-rm -t "${DOCKER_REPO_PREFIX}/${NAME}" .
 }
 
+docker_rebuild_container(){
+    local SRC_DIR="${1}"
+    local NAME="${2}"
+    # Go to source directory
+    local DOCKER_REPO_PREFIX="s2e"
+    cd "${SRC_DIR}"
+    docker build --rm --force-rm --no-cache -t "${DOCKER_REPO_PREFIX}/${NAME}" .
+} 
+
 
 keypassxc(){
         docker_del_stopped keypassxc
@@ -860,7 +869,7 @@ git-annex-bash(){
        sudo veracrypt -d "$local_path"
 }
 
-adb() {
+adb_docker() {
     docker run -it --device /dev/bus/usb  s2e/adb bash
 }
 

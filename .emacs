@@ -101,9 +101,17 @@
 (setq tab-width 4)
 
 ;; UTF-8 by default
-(setq org-export-coding-system 'utf-8)
-(prefer-coding-system 'utf-8)
+
+(prefer-coding-system 'latin-1)
+(if (not (assoc "UTF-8" language-info-alist))
+    (set-language-environment "latin-1")
+  (set-language-environment "utf-8")
+  (set-keyboard-coding-system 'utf-8)
+  (set-terminal-coding-system 'utf-8)
+  (prefer-coding-system 'utf-8))
+
 (set-charset-priority 'unicode)
+(setq org-export-coding-system 'utf-8)
 (setq default-process-coding-system '(utf-8-unix . utf-8-unix))
 
 ;; === Emacs Environment ===
@@ -134,7 +142,24 @@
 
 (global-set-key "\C-x\C-c" 'paranoid-exit-from-emacs)
 
-;; Text Manipulation
+
+;; === Text Utilities and Shortcuts ===
+
+
+;; Insert Date
+;; This is a piece of code from [JorgenSchaefersEmacsConfig](https://www.emacswiki.org/emacs/JorgenSchaefersEmacsConfig)
+(defun insert-date (prefix)
+  "Insert the current date. Without prefix-argument, use ISO format. With
+   prefix arguments, write out the day and month name."
+  (interactive "P")
+  (let ((format (cond
+                 ((not prefix) "%Y-%m-%d")
+                 ((equal prefix '(4)) "%A, %d. %B %Y"))))
+    (insert (format-time-string format))))
+
+(global-set-key (kbd "C-c d") 'insert-date)
+
+;; === Text Manipulation ===
 (message "Initializing text manipulation")
 
 ;; Drag Stuff
@@ -217,8 +242,8 @@
 ;;   :command ("proselint" source-inplace)
 ;;   :error-patterns
 ;;   ((warning line-start (file-name) ":" line ":" column ": "
-;; 	    (id (one-or-more (not (any " "))))
-;; 	    (message) line-end))
+;;          (id (one-or-more (not (any " "))))
+;;          (message) line-end))
 ;;   :modes (text-mode markdown-mode gfm-mode org-mode))
 
 ;; (add-to-list 'flycheck-checkers 'proselint)
@@ -665,7 +690,7 @@ Including indent-buffer, which should not be called automatically on save."
 
 
 ;; Add the hook.
-(add-hook 'before-save-hyaook 'file-management/cleanup-buffer-safe)
+(add-hook 'before-save-hook 'file-management/cleanup-buffer-safe)
 
 ;; When files change on disk I want the buffers to change to match them.
 ;; I will modify text files in bash while they are open in emacs when I need to do more automated modification.
@@ -683,6 +708,8 @@ Including indent-buffer, which should not be called automatically on save."
 
 
 ;; Backups
+;; TODO : After having some serious losses after power-failures I may want to reevaluate /tmp and put recovery files in a folder with a cron job that clears saves older than a specfiic number of days. Bad for anti-forensics. May want to specify some sort of blacklist or exclusion string for files that are sensitive... But, would save me from
+
 ;; I use close to the basic backup setup described in the [[http://emacswiki.org/emacs/BackupDirectory][emacswiki.]]
 
 ;;(setq temporary-file-directory "/tmp/")
@@ -1355,7 +1382,7 @@ Usage example: To search for state changes that have moved from an non-done to d
 ;; Set acceptable languages (whatever I want Babel, whatever I want.)
 (org-babel-do-load-languages
  'org-babel-load-languages
-'((sh               . t)
+'((shell               . t)
   (js                . t)
   (emacs-lisp . t)
   (ditaa           . t)
@@ -1603,20 +1630,20 @@ Usage example: To search for state changes that have moved from an non-done to d
 
 
 
-;; Turn copy/paste connectors on if in subsystem
-(if (equal is_windows_subsystem 0)
-    (progn
-      (add-function :before (symbol-function 'org-yank) #'my-pasting-function)
-      (add-function :before (symbol-function 'cua-paste) #'my-pasting-function))
-  (message "failed to add paste function"))
-(if (equal is_windows_subsystem 0)
-    (progn
-      (add-function :after (symbol-function 'kill-new) #'my-yanking-function))
-  (message "failed to add yank function"))
-(if (equal is_windows_subsystem 0)
-    (progn
-      (add-function :before (symbol-function 'kill-region) #'my-yanking-no-region-function))
-  (message "failed to add yank region function"))
+;; ;;Turn copy/paste connectors on if in subsystem
+;; (if (equal is_windows_subsystem 0)
+;;     (progn
+;;       (add-function :before (symbol-function 'org-yank) #'my-pasting-function)
+;;       (add-function :before (symbol-function 'cua-paste) #'my-pasting-function))
+;;   (message "failed to add paste function"))
+;; (if (equal is_windows_subsystem 0)
+;;     (progn
+;;       (add-function :after (symbol-function 'kill-new) #'my-yanking-function))
+;;   (message "failed to add yank function"))
+;; (if (equal is_windows_subsystem 0)
+;;     (progn
+;;       (add-function :before (symbol-function 'kill-region) #'my-yanking-no-region-function))
+;;   (message "failed to add yank region function"))
 
 ;; Sideloaded copy and Paste on Windows
 (defun linux_subshell_on_windows-copy_region_to_clipboard (&optional b e)
@@ -1646,3 +1673,33 @@ Usage example: To search for state changes that have moved from an non-done to d
   "Change the current buffer to Mac line-ends."
   (interactive)
   (set-buffer-file-coding-system 'mac t))
+
+
+(defun s2e-defang-text (&optional @begin @end)
+  "Defang a url.
+
+When called interactively, work on current line or text selection."
+  (interactive)
+  (let (($charMap
+         [
+          ["http" "hXXp"]
+          ["ftp" "fXp"]
+          ["\\." "[.]"]
+          ["://" "[:]//"]
+          ])
+        $begin $end
+        )
+    (if (null @begin)
+        (if (use-region-p)
+            (setq $begin (region-beginning) $end (region-end))
+          (setq $begin (line-beginning-position) $end (line-end-position)))
+      (setq $begin @begin $end @end))
+    (let ((case-fold-search t))
+      (save-restriction
+        (narrow-to-region $begin $end)
+        (mapc
+         (lambda ($pair)
+           (goto-char (point-min))
+           (while (search-forward-regexp (elt $pair 0) (point-max) t)
+             (replace-match (elt $pair 1))))
+         $charMap)))))

@@ -51,7 +51,7 @@ wget_mirror_single_page() {
          --restrict-file-names=windows \
          --no-directories \
          "$@"
-         
+
     # set +x
 }
 
@@ -84,38 +84,6 @@ archive-create_archive() {
     UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"
     request_string='import requests; h = {"User-Agent":"'"${UA}"'"}; url ="'"${archive_api}"'";r = requests.get(url, headers=h); print("Archive Created") if r.status_code == 200 else print("Archive Failed: Status Code {0}".format(r.status_code));'
     python3 -c "${request_string}"
-}
-
-####################################
-# Encode / Decode
-####################################
-
-# URL-encode strings
-
-alias encode_url_percent='python -c "import sys, urllib as ul; print ul.quote_plus(sys.argv[1]);"'
-
-# Url-decode strings
-alias decode_percent='sed "s@+@ @g;s@%@\\\\x@g" | xargs -0 printf "%b"'
-
-
-# UTF-8-encode a string of Unicode symbols
-encode_x() {
-        local args
-        mapfile -t args < <(printf "%s" "$*" | xxd -p -c1 -u)
-        printf "\\\\x%s" "${args[@]}"
-        # print a newline unless we’re piping the output to another program
-        if [ -t 1 ]; then
-                echo ""; # newline
-        fi
-}
-
-# Decode \x{ABCD}-style Unicode escape sequences
-decode_x() {
-        perl -e "binmode(STDOUT, ':utf8'); print \"$*\""
-        # print a newline unless we’re piping the output to another program
-        if [ -t 1 ]; then
-                echo ""; # newline
-        fi
 }
 
 
@@ -347,3 +315,86 @@ extract_ALL_metadata() {
 alias exiftool_show_ALL=extract_ALL_metadata
 
 
+############################################
+## Forensics
+############################################
+
+
+# Extract the binary of running process (Even if the original binary is deleted)
+get_process_binary_by_pid() {
+    local PID="${1}"
+    cat "/proc/${1}PID/exe"
+}
+
+# Copy the binary of running process (Even if the original binary is deleted) somewhere
+# This is great for when you REALLY mess up a system and "irreversibly" delete a critical script that is still being used by an active process
+cp_process_binary_by_pid() {
+    local PID="${1}"
+    local OUTPUT="${2}"
+    cp "/proc/${1}PID/exe" "${OUTPUT}"
+}
+
+
+# Untested
+clamscan_extract_autoit_scripts() {
+    filename="$1"
+
+    tempfile = $(clamscan ---debug --verbose --leave-temps "${filename}" 2>&1 | grep autoit | grep "script extracted to" | cut -d/ -f 2-)
+    cat "/${tempfile}"
+}
+
+
+
+####################################
+# Encode / Decode
+####################################
+
+# URL-encode strings
+
+alias encode_url_percent='python -c "import sys, urllib as ul; print ul.quote_plus(sys.argv[1]);"'
+
+# Url-decode strings
+decode_percent() {
+    echo "${1}" | python3 -c 'import urllib.parse, sys; s=sys.stdin.read(); print(urllib.parse.unquote(s))'
+}
+alias unescape_percent=decode_percent
+alias decode_percent_pipe='sed "s@+@ @g;s@%@\\\\x@g" | xargs -0 printf "%b"'
+alias unescape_percent_pipe=decode_percent_pipe
+
+# UTF-8-encode a string of Unicode symbols
+encode_x() {
+        local args
+        mapfile -t args < <(printf "%s" "$*" | xxd -p -c1 -u)
+        printf "\\\\x%s" "${args[@]}"
+        # print a newline unless we’re piping the output to another program
+        if [ -t 1 ]; then
+                echo ""; # newline
+        fi
+}
+
+# Decode \x{ABCD}-style Unicode escape sequences
+decode_x() {
+        perl -e "binmode(STDOUT, ':utf8'); print \"$*\""
+        # print a newline unless we’re piping the output to another program
+        if [ -t 1 ]; then
+                echo ""; # newline
+        fi
+}
+alias unescape_x=decode_x
+
+## Decoding ampersand hash strings
+# https://web.archive.org/web/20200824165514/https://deskspace.com/html_special_characte.html
+decode_ampersand() {
+    echo "${1}" | python3 -c 'import html, sys; s=sys.stdin.read(); print(html.unescape(s))'
+}
+alias unescape_ampersand=decode_ampersand
+decode_ampersand_hash() {
+    # echo "${1}" | python3 -c 'import sys; s=sys.stdin.read(); print("".join([chr(int(u.strip(";\n, "))) for u in s.split("&#") if u]))'
+    echo "${1}" | python3 -c 'import html, sys; s=sys.stdin.read(); print(html.unescape(s))'
+}
+alias unescape_ampersand_hash=decode_ampersand_hash
+
+decode_email_header() {
+    echo "${1}" | python3 -c "from email.header import decode_header; import sys; h=sys.stdin.read(); print(decode_header(h))"
+}
+alias unescape_email_header=decode_email_header
