@@ -23,7 +23,8 @@
 [diff]
         # Use more time to create better diffs. E.g. matching opening/closing braces
         # from neighbour functions.
-        algorithm = patience
+        # "In contrast with the Myers, the Histogram algorithm provides diff results that are easier for software archives miners to understand, as the Histogram more clearly separates the changed code lines. This algorithm splits the changed lines of code by trying to match up unique lines between two versions of the same file. Thus, it will reduce the occurrences of conflict (i.e. a line of an unchanged code identified as a changed code, so that in the diff list, this code is written in duplicate as both a deleted and inserted code)." - https://link.springer.com/article/10.1007/s10664-019-09772-z
+        algorithm = histogram
 
         # Tells Git to detect renames. If set to "true", it will enable basic
         # rename detection. If set to "copies", it will detect copies, as well.
@@ -52,7 +53,8 @@
 
 [alias]
         churn = !sh -c 'git-churn'
-	pro = "!f() { git fetch -fu ${2:-origin} refs/pull/$1/head:pr/$1 && git checkout pr/$1; }; f"
+        # Create a new branch from a specific pull request made against a git repository by giving it the PR number on github. (PR doesn't have to be from that same repository.)
+        pro = "!f() { git fetch -fu ${2:-origin} refs/pull/$1/head:pr/$1 && git checkout pr/$1; }; f"
 
 [color]
         ui = auto
