@@ -32,3 +32,6 @@ set completion-map-case on
 
 # List all matches in case multiple possible completions are possible
 set show-all-if-ambiguous on
+
+# Prevent execution of commands if accidentally pasting multi-line text in your terminal
+set enable-bracketed-paste
