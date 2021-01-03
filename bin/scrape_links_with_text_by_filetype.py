@@ -2,7 +2,7 @@
 #!/usr/bin/env python3
 
 # 'get me all the urls and text for X style links from here a webpage'
-# Used in my .functions/media snippets to download all files from a webpage with more appropriate names than anyone ever gives a file.
+# Used in my functions/media snippets to download all files from a webpage with more appropriate names than anyone ever gives a file.
 # Why do people release files with machine readable names and no legit exif title in the metadata? Seriously?!
 
 # Imports

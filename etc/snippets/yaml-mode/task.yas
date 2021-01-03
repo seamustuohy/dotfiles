@@ -1,0 +1,18 @@
+# -*- mode: snippet -*-
+# name: task
+# key: task
+# --
+  "$1"
+    id: "$1"
+    taskid: `(insert-random-uuid)`
+    type: "${2:$$(yas-choose-value '("start" "title" "regular" "condition"))}"
+    role: "${2:$$(yas-choose-value '("Incident Handler" "Security Lead" "Help Desk Staff" "IT Staff"))}"
+    task:
+      version: ${4:-1}
+      name: "$5"
+      description: "$6"
+      iscommand: ${7:$$(yas-choose-value '("false" "true"))}
+      nexttasks:
+        "${8:$$(yas-choose-value '("all" "no" "yes" ))}":
+          - "$9"
+$0

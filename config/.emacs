@@ -730,7 +730,7 @@ Including indent-buffer, which should not be called automatically on save."
       (current (float-time (current-time))))
   (dolist (file (directory-files temporary-file-directory t))
     (when (and (backup-file-name-p file)
-               (> (- current (float-time (fifth (file-attributes file))))
+               (> (- current (float-time (nth 5 (file-attributes file))))
                   week))
       (message "%s" file)
       (delete-file file))))
@@ -786,17 +786,19 @@ Including indent-buffer, which should not be called automatically on save."
 ;; Keep region when undoing in region
 ;; Make it so the region does not keep jumping about when I use it.
 ;; Via" [[http://whattheemacsd.com/my-misc.el-02.html][what the emacs.d]]
-(defadvice undo-tree-undo (around keep-region activate)
-  (if (use-region-p)
-      (let ((m (set-marker (make-marker) (mark)))
-            (p (set-marker (make-marker) (point))))
-        ad-do-it
-        (goto-char p)
-        (set-mark m)
-        (set-marker p nil)
-        (set-marker m nil))
-    ad-do-it))
+;; (defadvice undo-tree-undo (around keep-region activate)
+;;   (if (use-region-p)
+;;       (let ((m (set-marker (make-marker) (mark)))
+;;             (p (set-marker (make-marker) (point))))
+;;         ad-do-it
+;;         (goto-char p)
+;;         (set-mark m)
+;;         (set-marker p nil)
+;;         (set-marker m nil))
+;;     ad-do-it))
 
+;; The author of undo-tree (Dr. Toby Cubitt) admits that undo/redo-in-region has always been buggy and difficult to debug. He suggests disabling undo/redo in region until he has free time at some point in the future to work on this library again. To read about the most common bug with undo-in region, see the following two bug reports:
+(setq undo-tree-enable-undo-in-region nil)
 
 ;; Yasnippet
 (require 'yasnippet)

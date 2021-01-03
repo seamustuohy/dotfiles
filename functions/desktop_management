@@ -26,3 +26,9 @@ rotate_gpd() {
 
 #
 alias wsl_ssh_reset="eval $(ssh-agent -s)"
+
+i3-switch_to_named_workspace() {
+    WORKSPACE=$(i3-msg -t get_workspaces | jq '.[].name' | tr -d $'\042'| sort -h | dmenu -l 21 -p "Workspace to switch to")
+    i3-msg workspace ${WORKSPACE}
+}
+alias i3s=i3-switch_to_named_workspace

@@ -72,10 +72,12 @@ relies_on(){
 docker_build_container(){
     local SRC_DIR="${1}"
     local NAME="${2}"
+    # local FILENAME="${3}"
     # Go to source directory
     local DOCKER_REPO_PREFIX="s2e"
     cd "${SRC_DIR}"
     docker build --rm --force-rm -t "${DOCKER_REPO_PREFIX}/${NAME}" .
+    # docker build --rm --force-rm -t "${DOCKER_REPO_PREFIX}/${NAME}" -f "${FILENAME}" .
 }
 
 docker_rebuild_container(){
@@ -85,7 +87,7 @@ docker_rebuild_container(){
     local DOCKER_REPO_PREFIX="s2e"
     cd "${SRC_DIR}"
     docker build --rm --force-rm --no-cache -t "${DOCKER_REPO_PREFIX}/${NAME}" .
-} 
+}
 
 
 keypassxc(){
@@ -824,7 +826,7 @@ download_wiki(){
         docker_del_stopped wikiteam
         local local_path="wikidump_$(date +"%Y-%m-%d-%T")"
         # mkdir "$local_path"
-        
+
         docker run \
                --rm -it \
                -v "$(pwd):/data" \

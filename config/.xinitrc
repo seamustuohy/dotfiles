@@ -27,6 +27,12 @@ fi
 # run local xhost
 xhost local:root
 
+# Setup fonts
+xset +fp $XDG_CONFIG_HOME/fonts/
+
+# Run Xresources
+[ -f ~/.Xresources ] && xrdb -merge -I$HOME ~/.Xresources
+
 # uncomment this if not using a login manager
 # so i3 will start correctly
-exec i3 -V >> ~/.i3/logfile 2>&1 # && exit
+exec i3 #-V >> ~/.i3/logfile 2>&1 # && exit

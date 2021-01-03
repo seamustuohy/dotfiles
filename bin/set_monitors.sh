@@ -26,6 +26,7 @@ set -x
 main() {
     local monitor_num=$(xrandr |grep " connected" |wc -l)
     local desk_horiz=$(xrandr |grep -E "^DP-2-2 connected" |wc -l)
+    local desk_2020=$(xrandr |grep -E "^DP-2-3 connected" |wc -l)
     local desk_vert=$(xrandr |grep -E "^DP-1 connected" |wc -l)
     local work_left=$(xrandr |grep -E "^DP-2 connected" |wc -l)
 
@@ -37,6 +38,10 @@ main() {
     fi
     if [[ 1 == ${desk_vert} ]] ; then
         echo "Vertical Connected"
+    fi
+
+    elif [[ 1 == ${desk_2020} ]]  ; then
+        2020_setup
     fi
 
     if [[ 1 == ${desk_horiz} ]] && [[ 1 == ${desk_vert} ]] ; then
@@ -54,9 +59,15 @@ main() {
     fi
 }
 
+2020_setup(){
+    xrandr --output DP-2-3 --auto
+    xrandr --output eDP-1 --rotate normal --auto --right-of DP-2-3
+}
+
 setup_work() {
     xrandr --output DP-2 --auto
-    xrandr --output eDP-1 --off
+    xrandr --output eDP-1 --rotate normal --auto --left-of DP-2
+    # xrandr --output eDP-1 --off
 }
 
 desktop_setup() {

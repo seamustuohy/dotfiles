@@ -8,7 +8,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of ${1:package name}, a ${2:package description short}.
-# Copyright © ${3:`(third (calendar-current-date))`} ${4:`(user-full-name)`}, <${5:`(message user-mail-address)`}>
+# Copyright © ${3:`(nth 2 (calendar-current-date))`} ${4:`(user-full-name)`}, <${5:`(message user-mail-address)`}>
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -53,9 +53,6 @@ def parse_arguments():
                         action='store_true')
     args = parser.parse_args()
     return args
-
-def usage():
-    print("TODO: usage needed")
 
 if __name__ == '__main__':
     main()

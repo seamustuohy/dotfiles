@@ -1,0 +1,36 @@
+
+!# Scrolling Lines
+XTerm.vt100.saveLines: 4096
+
+!# Force UTF-8
+XTerm*utf8: True
+XTerm*locale: True
+XTerm*utf8Title: True
+XTerm*renderFont: True
+XTerm*preeditType: Root
+XTerm*xftAntialias: true
+!# Font Face
+xterm*faceName: RobotoMono
+xterm*faceSize: 12
+
+!# Send ASCII Delete when backspace is pressed
+XTerm.vt100.backarrowKey: false
+XTerm.ttyModes: erase ^?
+
+!# Make 'Alt' key behave as on other terminal emulators
+!# The default Alt key behavior in xterm is a modifier to send eight bit input characters e.g. insert æ by pressing Alt+f. To make Alt instead send a ^[ (escape) key (as in gnome-terminal and konsole)
+XTerm.vt100.metaSendsEscape: true
+
+!# Scrollbar
+!# The scrollbar is not shown by default. It can be enabled and its appearance tweaked through resource settings (note the differing capitalization of "scrollbar"!)
+! NOTE: I dont like this at the moment
+!XTerm.vt100.scrollBar: true
+!XTerm.vt100.scrollbar.width: 8
+
+!# Copy and paste like gnome keyboard
+XTerm*translations: #override \
+        Ctrl Shift <KeyPress> C: copy-selection(CLIPBOARD) \n\
+        Ctrl Shift <KeyPress> V: insert-selection(CLIPBOARD)
+
+!# Colors
+#include "/home/s2e/dotfiles/config/.Xresources.d/xcolors"

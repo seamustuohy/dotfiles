@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+source ~/dotfiles/functions/debug
+source ~/dotfiles/functions/file_management
+source ~/dotfiles/functions/hardware
+source ~/dotfiles/functions/investigation
+source ~/dotfiles/functions/media
+source ~/dotfiles/functions/networking
+source ~/dotfiles/functions/pranks
+source ~/dotfiles/functions/task_management
+source ~/dotfiles/functions/security
+source ~/dotfiles/functions/development
+source ~/dotfiles/functions/helpers
+source ~/dotfiles/functions/pretty
+source ~/dotfiles/functions/desktop_management
+source ~/dotfiles/functions/writing
+source ~/dotfiles/functions/applications
+source ~/dotfiles/functions/data_analysis
+source ~/dotfiles/functions/mispellings
+
+############################################
+## Misc
+############################################

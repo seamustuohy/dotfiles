@@ -1,10 +1,16 @@
 __pycache__/
 # == MUTT ==
 # Exclude all
-.mutt/*
+config/.mutt/*
 # Only show configs
-!.mutt/mutt*
+!config/.mutt/mutt*
 
+# Don't show logfile
+config/.i3/logfile
+
+# I don't know why it appears and I'll figure it out at some point, but I don't want it
+bin/bin
+src/src
 
 # == PRIVATE EXAMPLES ==
 # Exclude all
@@ -12,8 +18,8 @@ private/*
 # Allow EXAMPLES
 !private/EXAMPLES
 
-# !.mutt/accounts
+# !config/.mutt/accounts
 # # Exclude all real accounts
-# .mutt/accounts/*
-# !.mutt/accounts/EXAMPLE
+# config/.mutt/accounts/*
+# !config/.mutt/accounts/EXAMPLE
 # #!.mutt/accounts/EXAMPLE/account_info

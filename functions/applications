@@ -1,0 +1,6 @@
+## RSS
+alias rss='newsboat --url-file="$HOME/dotfiles/private/rss/urls"'
+
+## email
+alias mutt="run_mutt.sh"
+alias contacts="khard -c ~/.khard.conf"

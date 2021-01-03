@@ -220,14 +220,14 @@ base() {
           # libav-tools \
           ffmpeg \
           youtube-dl \
-          # Texlive is needed for pdf manipulation (pdfnup & pdfjam). See .functions/helpers
+          # Texlive is needed for pdf manipulation (pdfnup & pdfjam). See functions/helpers
           texlive-extra-utils \
           imagemagick \
           ####################################
           # Getting Debian to be a functional OS
           ####################################
           sudo \
-          terminator \
+          # terminator \ #Using xterm now
           unzip \
           tlp \
           tlp-rdw \
@@ -267,7 +267,11 @@ base() {
           ####################################
           ispell \
           dictionaries-common \
-          iamerican )
+          iamerican \
+          ####################################
+          # News & Info
+          ####################################
+          newsboat )
 
     # Swap out for Ubuntu specific packages if on ubuntu
     if $(grep -qi ubuntu /proc/version); then

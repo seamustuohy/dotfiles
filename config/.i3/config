@@ -35,7 +35,8 @@ font pango:DejaVu Sans Mono 8
 floating_modifier $mod
 
 # start a terminal
-bindsym $mod+Return exec i3-sensible-terminal
+# bindsym $mod+Return exec i3-sensible-terminal
+bindsym $mod+Return exec xterm
 
 # kill focused window
 bindsym $mod+Shift+q kill
@@ -111,6 +112,9 @@ bindsym $mod+7 workspace 7
 bindsym $mod+8 workspace 8
 bindsym $mod+9 workspace 9
 bindsym $mod+0 workspace 10
+# Create a searchable dropdown menu of workspaces and choose (or create) one to go to.
+# $'\042'  == "
+bindsym $mod+grave exec "i3-msg -t get_workspaces | jq '.[].name' | tr -d $'\042'| sort -h |  dmenu -l 21 -p 'Workspace to switch to' | xargs -I % i3-msg workspace %"
 
 # move focused container to workspace
 bindsym $mod+Shift+1 move container to workspace 1
@@ -281,7 +285,7 @@ exec --no-startup-id nm-applet # Network manager applet
 ## CURRENTLY DISABLED
 ## TODO FIX AND REENABLE
 # exec_always --no-startup-id "python3 ${HOME}/code/i3_hydra/i3_hydra/interface.py"
-# exec_always "${HOME}/dotfiles/newdots/bin/i3_hydra_restart.sh"
+exec_always "${HOME}/dotfiles/bin/i3_hydra_restart.sh"
 
 ## SRATCHPAD
 # Make the currently focused window a scratchpad
@@ -323,11 +327,9 @@ assign [instance="google-chrome \(/tmp/.*\)"] selenium
 
 # display_mode
 mode "display_mode" {
-#Brighten
-        bindsym Up  exec xbacklight -inc 20
-#Darken
-        bindsym Down  exec xbacklight -dec 20
-        bindsym r  exec "set_monitors.sh"; mode "default"
+        bindsym Up  exec "xbacklight -inc 20"; nop #LABEL Brighten Screen
+        bindsym Down  exec "xbacklight -dec 20"; nop #LABEL Darken Screen
+        bindsym r  exec "set_monitors.sh"; mode "default"; nop #LABEL Refresh Monitor Setup
         bindsym Escape mode "default"
         bindsym Return mode "default"
         bindsym Control+g mode "go_back"
@@ -337,11 +339,11 @@ mode "display_mode" {
 # screenshot_mode
 mode "screenshot_mode" {
 #Fullscreen
-        bindsym f  exec "scrot -q 100 ${HOME}'/Pictures/Screenshots/%Y-%m-%d-%H-%M-%S_$wx$h.png'"; mode "default"
+        bindsym f  exec "scrot -q 100 ${HOME}'/Pictures/Screenshots/%Y-%m-%d-%H-%M-%S_$wx$h.png'"; mode "default"; nop #LABEL Screenshot Fullscreen
 #Window
-        bindsym w  exec "scrot -q 100 -u ${HOME}'/Pictures/Screenshots/%Y-%m-%d-%H-%M-%S_$wx$h.png'"; mode "default"
+        bindsym w  exec "scrot -q 100 -u ${HOME}'/Pictures/Screenshots/%Y-%m-%d-%H-%M-%S_$wx$h.png'"; mode "default"; nop #LABEL Screenshot Window
 #Selection
-        bindsym s  exec "sleep 0.4; scrot -q 100 -s ${HOME}'/Pictures/Screenshots/%Y-%m-%d-%H-%M-%S_$wx$h.png'"; mode "default"
+        bindsym s  exec "sleep 0.4; scrot -q 100 -s ${HOME}'/Pictures/Screenshots/%Y-%m-%d-%H-%M-%S_$wx$h.png'"; mode "default" #LABEL Screenshot Selection
         bindsym Escape mode "default"
         bindsym Return mode "default"
         bindsym Control+g mode "go_back"
@@ -354,31 +356,25 @@ mode "go_back" {
         bindsym i  mode "default"
         bindsym Escape mode "default"
         bindsym Return mode "default"
-        bindsym Control+g mode "go_back"
 }
 
 
 # security_mode
 mode "security_mode" {
 #Lock
-        bindsym l  mode "default"; exec "printf '493843\n61988E\n5D737E\n7FC6A4\nD6F8D6' | shuf -n 1 | xargs -I % i3lock -c %"
+        bindsym l  mode "default"; exec "printf '493843\n61988E\n5D737E\n7FC6A4\nD6F8D6' | shuf -n 1 | xargs -I % i3lock -c %"; nop #LABEL Lock Screen
         bindsym Escape mode "default"
         bindsym Return mode "default"
-        bindsym Control+g mode "go_back"
 }
 
 
 # fix_it_mode
 mode "fix_it_mode" {
-#Fix Capslock
-        bindsym c  exec "capslock_off.sh"; mode "default"
-#i3 Reload
-        bindsym r  reload; mode "default"
-#i3 Restart
-        bindsym Shift+r  restart; mode "default"
+        bindsym c  exec "capslock_off.sh"; mode "default"; nop #LABEL Fix Capslock
+        bindsym r  reload; mode "default"; nop #LABEL i3 Reload
+        bindsym Shift+r  restart; mode "default"; nop #LABEL i3 Restart
         bindsym Escape mode "default"
         bindsym Return mode "default"
-        bindsym Control+g mode "go_back"
 }
 
 
@@ -388,68 +384,51 @@ mode "design_mode" {
         bindsym s  mode "screenshot_mode"
         bindsym Escape mode "default"
         bindsym Return mode "default"
-        bindsym Control+g mode "go_back"
 }
 
 
 # networking_mode
 mode "networking_mode" {
 #Stunnel
-        bindsym s  exec terminator -e "sudo openvpn /etc/openvpn/*-stunnel.ovpn"; mode "default"
+        bindsym s  exec terminator -e "sudo openvpn /etc/openvpn/*-stunnel.ovpn"; mode "default"; nop #LABEL Stunnel
 #VPN
-        bindsym v  exec terminator -e "sudo openvpn /etc/openvpn/*-direct.ovpn"; mode "default"
+        bindsym v  exec terminator -e "sudo openvpn /etc/openvpn/*-direct.ovpn"; mode "default"; nop #LABEL Run VPN
         bindsym Escape mode "default"
         bindsym Return mode "default"
-        bindsym Control+g mode "go_back"
 }
 
 
 # audio_mode
 mode "audio_mode" {
-#Headphones
-        bindsym h  exec "movesinks.sh $(pactl list short sinks |grep Logitech_USB_Headset  | cut -f 1)"; mode "default"
-#Internal Speakers
-        bindsym s  exec  "movesinks.sh $(pactl list short sinks |grep 'alsa_output.pci-0000_00_1b.0.analog-stereo' | cut -f 1)"; mode "default"
-#Mute
-        bindsym m  exec amixer set Master 1+ toggle; mode "default"
-#Volume Down
-        bindsym Down  exec amixer set Master 5%-
-#Volume Up
-        bindsym Up  exec amixer set Master 5%+
+        bindsym h  exec "movesinks.sh $(pactl list short sinks |grep Logitech_USB_Headset  | cut -f 1)"; mode "default" ; nop #LABEL Swap to headphones
+        bindsym s  exec  "movesinks.sh $(pactl list short sinks |grep 'alsa_output.pci-0000_00_1b.0.analog-stereo' | cut -f 1)"; mode "default"; nop #LABEL Swap to internal speakers
+        bindsym m  exec amixer set Master 1+ toggle; mode "default"; nop #LABEL Mute
+        bindsym Down  exec "amixer set Master 5%-"; nop #LABEL Volume Down
+        bindsym Up  exec "amixer set Master 5%+"; nop #LABEL Volume Up
         bindsym Escape mode "default"
         bindsym Return mode "default"
-        bindsym Control+g mode "go_back"
 }
 Bindsym $mod+Shift+a mode "audio_mode"
 
 # time_clocking_mode
 mode "time_clocking_mode" {
 #View Tasks
-        bindsym t  exec terminator -e "task"; mode "default"
+        bindsym t  exec terminator -e "task"; mode "default"; nop #LABEL View Tasks
         bindsym Escape mode "default"
         bindsym Return mode "default"
-        bindsym Control+g mode "go_back"
 }
 
 
 # master_mode
 mode "master_mode" {
-#♪
-        bindsym a  mode "audio_mode"
-#⏱
-        bindsym t  mode "time_clocking_mode"
-#⚿
-        bindsym s  mode "security_mode"
-#⎚
-        bindsym d  mode "display_mode"
-#⚛
-        bindsym n  mode "networking_mode"
-#⚠
-        bindsym f  mode "fix_it_mode"
-#♪
-        bindsym Shift+d  mode "design_mode"
+        bindsym a  mode "audio_mode"; nop #LABEL ♪ Mode
+        bindsym s  mode "security_mode"; nop #LABEL ⚿ Mode
+        bindsym d  mode "display_mode"; nop #LABEL Display Mode
+        bindsym n  mode "networking_mode"; nop #LABEL Net Mode
+        bindsym f  mode "fix_it_mode"; nop #LABEL ⚠ Mode
+        bindsym Shift+d  mode "design_mode"; nop #LABEL Design Mode
+        bindsym t  mode "time_clocking_mode"; nop #LABEL ⏱ Mode
         bindsym Escape mode "default"
         bindsym Return mode "default"
-        bindsym Control+g mode "go_back"
 }
 Bindsym Shift+Control+Return mode "master_mode"

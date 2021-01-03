@@ -342,3 +342,25 @@ unprotect_xlsx() {
 
 
 alias find_duplicate_images=findimagedupes
+
+
+
+####################################
+# Mount/Un-Mount Bitlocker Encrypted Media
+####################################
+
+mount_bitlocker_encrypted_media() {
+    # You need the dislocker package for this
+    mkdir -p /media/bitlocker_image
+    mkdir -p /media/bitlocker_open
+    sudo fdisk -l | grep -B 1 -A 6 -E "/dev/[a-zA-Z0-9]*"
+    echo "Look at the fdisk data above and tell us the device to decrypt. This needs a number i.e. \"/dev/xxx1\""
+    read -e -p "Device to decrypt:" DEVICE
+    sudo dislocker -r -V "${DEVICE}" -u -- /media/bitlocker_image
+    sudo mount -r -o loop /media/bitlocker/bitlocker_image /media/bitlocker_open
+}
+
+unmount_bitlocker_encrypted_media() {
+    sudo umount /media/bitlocker_open
+    sudo umount /media/bitlocker_image
+}

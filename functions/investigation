@@ -92,8 +92,10 @@ archive-create_archive() {
 ####################################
 
 # Run `dig` and display the most useful info
+# Automatically directs queries to the authoritative name server for that domain.
 function digga() {
-        dig +nocmd "$1" any +multiline +noall +answer;
+    local URL="$1"
+    dig +nocmd "$URL" ANY +multiline +noall +answer @`dig +short SOA "$URL" | cut -d' ' -f1`
 }
 
 # Show all the names (CNs and SANs) listed in the SSL certificate
