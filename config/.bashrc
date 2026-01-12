@@ -19,9 +19,9 @@ if [ -f ~/.bash_alias ]; then
 fi
 
 # Docker Functions
-if [ -f ~/.dockerfunc ]; then
-    source ~/.dockerfunc
-fi
+#if [ -f ~/.dockerfunc ]; then
+#    source ~/.dockerfunc
+#fi
 
 #####################################
 # Variables
@@ -178,7 +178,7 @@ fi
 # Also set the GPG_TTY and refresh the TTY in case user has switched into an X session as stated in gpg-agent(1). For example:
 
 export GPG_TTY=$(tty)
-gpg-connect-agent updatestartuptty /bye >/dev/null
+# gpg-connect-agent updatestartuptty /bye >/dev/null
 
 
 
@@ -187,3 +187,7 @@ export PATH=$PATH:/usr/local/go/bin
 # Install Ruby Gems to ~/gems
 export GEM_HOME="$HOME/gems"
 export PATH="$HOME/gems/bin:$PATH"
+
+
+# TMSU Database
+export TMSU_DB=/home/s2e/.tmsu/db

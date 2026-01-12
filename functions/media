@@ -2,13 +2,40 @@
 # Get Media from Online
 ####################################
 
+
+alias youtube-dl=yt-dlp
+
+get_video_with_subs() {
+    URL="${1}" # Url of video
+    NAME="${2}" # Title of the session found in H1
+    yt-dlp --output "$NAME.%(ext)s" \
+           --write-subs --write-auto-sub --write-annotations --write-description \
+           "$URL"
+}
+
+
+get_rightscon_panel() {
+    RURL="${1}" # Refferal URL = main url
+    URL="${2}" # Url to video. Found in paylaod of network packet with the name that starts with oembed.json
+    NAME="${3}" # Title of the session found in H1
+    yt-dlp --referer "${RURL}" \
+           --cookies summit.tc_cookies.txt \
+           --output "$NAME.%(ext)s" \
+           --write-subs --write-auto-sub --write-annotations --write-description \
+           "$URL"
+
+           # --verbose \
+           # -f best \
+}
+
+
 get_song_from_youtube() {
       local SITE=${1}
       local LOCATION=$(pwd)
       cd ~/Music
-      youtube-dl --audio-format mp3 -x ${SITE}
+      yt-dlp --audio-format mp3 -x ${SITE}
       cd ${LOCATION}
-  }
+}
 
 alias getsong=get_song_from_youtube
 
@@ -238,18 +265,37 @@ pdf_extract_images() {
 
 
 
-
 function mov2gif() {
+    # Note this arbitrary scale, etc. becuase it was what I needed for this one time.
     name=`basename -s .mov $1`
     echo "$1 => $name.gif"
     ffmpeg -i "$1" -vf scale=980:-1 -pix_fmt rgb24 -r 10 -f gif - | gifsicle --optimize=2 --delay=6 > "${name}.gif"
 }
+
+function mp42gif() {
+   # Note this arbitrary scale, etc. becuase it was what I needed for this one time.
+    name=`basename -s .mov $1`
+    echo "$1 => $name.gif"
+    ffmpeg -i "$1" -vf scale=512:-1 -r 15 -f gif - "${name}.gif"
+}
+
+alias convert_mov_2_gif=mov2gif
+alias convert_mp4_2_gif=mp42gif
 
 
 ####################################
 # Bulk Download Media from Webpage
 ####################################
 
+timesheet_sign() {
+    filename=$1
+    signdate=$2
+    text=$3
+    printf "~color{1 0 0}\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n $text $signdate" \
+        | enscript -B -f Courier-Bold16 -e~ -o- \
+        | ps2pdf - \
+        | pdftk $filename stamp - output ${filename/.*/_signed}.${filename/*./}
+}
 
 scrape_files_from_url() {
     local url="$1"
@@ -303,7 +349,7 @@ download_open_directory_files_only_continuable() {
     #set +x;
 }
 
-alias wget_download_open_directory=wget_download_open_directory
+alias wget_download_open_directory=wget_download_open_directory_full_continuable
 
 wget_download_open_directory_full_continuable() {
     wget -q --show-progress -r -np -nH -c -N "$1/"
@@ -351,16 +397,107 @@ alias find_duplicate_images=findimagedupes
 
 mount_bitlocker_encrypted_media() {
     # You need the dislocker package for this
-    mkdir -p /media/bitlocker_image
-    mkdir -p /media/bitlocker_open
+    sudo mkdir -p /media/bitlocker_image
+    sudo mkdir -p /media/bitlocker_open
     sudo fdisk -l | grep -B 1 -A 6 -E "/dev/[a-zA-Z0-9]*"
     echo "Look at the fdisk data above and tell us the device to decrypt. This needs a number i.e. \"/dev/xxx1\""
     read -e -p "Device to decrypt:" DEVICE
     sudo dislocker -r -V "${DEVICE}" -u -- /media/bitlocker_image
-    sudo mount -r -o loop /media/bitlocker/bitlocker_image /media/bitlocker_open
+    sudo mount -r -o loop /media/bitlocker_image/dislocker-file /media/bitlocker_open/
 }
 
 unmount_bitlocker_encrypted_media() {
     sudo umount /media/bitlocker_open
     sudo umount /media/bitlocker_image
+}
+
+
+
+
+trim_audio_front_to_position() {
+    local FPATH=$1
+    local AUDIO_END=$2 # Format: "00:00:00"
+    set -x
+    local EXTENSION=$(echo "${FPATH}" | sed 's/\(.*\)::::\(.*\)/\1/g'| rev | cut -d. -f1 | rev)
+    ffmpeg -i "${FPATH}" -ss 00:00:00 -to "${AUDIO_END}" -c copy "${FPATH%.*}_trimmed.${EXTENSION}"
+    set +x
+}
+
+
+trim_audio_position_to_back() {
+    local FPATH=$1
+    local AUDIO_START=$2 # Format: "00:00:00"
+    set -x
+    local EXTENSION=$(echo "${FPATH}" | sed 's/\(.*\)::::\(.*\)/\1/g'| rev | cut -d. -f1 | rev)
+    ffmpeg -i "${FPATH}" -ss "${AUDIO_START}" -to 00:00:00 -c copy "${FPATH%.*}_trimmed.${EXTENSION}"
+    set +x
+}
+
+
+####################################
+# Camera Settings
+####################################
+
+alias show_camera='ffplay /dev/video0'
+alias webcam_show=show_camera
+alias video_show=show_camera
+alias camera_show=show_camera
+
+alias get_camera_settings="v4l2-ctl -l | grep int | sed 's/\s*/ /' | cut -d ' ' -f 2,13 | sed 's/ value//'"
+alias camera_settings_get=get_camera_settings
+alias video_settings_get=get_camera_settings
+alias webcam_settings_get=get_camera_settings
+
+set_webcam_default_settings() {
+    v4l2-ctl --set-ctrl=white_balance_temperature_auto=0
+    v4l2-ctl \
+        --set-ctrl=brightness=2 \
+        --set-ctrl=contrast=7 \
+        --set-ctrl=saturation=70 \
+        --set-ctrl=hue=0 \
+        --set-ctrl=gamma=125 \
+        --set-ctrl=gain=1 \
+        --set-ctrl=white_balance_temperature=3185 \
+        --set-ctrl=sharpness=2 \
+        --set-ctrl=backlight_compensation=3 \
+        --set-ctrl=exposure_absolute=156
+}
+alias webcam_set_settings=set_webcam_default_settings
+alias camera_set_settings=set_webcam_default_settings
+alias video_set_settings=set_webcam_default_settings
+
+alias webcam_settings_change=qv4l2
+alias camera_settings_change=qv4l2
+alias video_settings_change=qv4l2
+
+
+
+
+# Get RightsCon Panels
+
+get_rightscon_panel() {
+    cd ~/library/to_file/RightsCon_2022/
+    RURL="${1}" # Refferal URL = main url
+    URL="${2}" # Url to video. Found in paylaod of network packet with the name that starts with oembed.json
+    NAME="${3}" # Title of the session found in H1
+    yt-dlp --referer "${RURL}" \
+           --cookies summit.tc_cookies.txt \
+           --output "$NAME.%(ext)s" \
+           --write-subs --write-auto-sub --write-annotations --write-description \
+           "$URL"
+
+           # --verbose \
+           # -f best \
+}
+
+get_rightscon_panel_LIVE() {
+    cd ~/library/to_file/RightsCon_2022/
+    # RURL="${1}" # Refferal URL = main url
+    URL="${1}" # Url to video. Found in paylaod of network packet with the name that starts with oembed.json
+    NAME="${2}" # Title of the session found in H1
+    yt-dlp --cookies summit.tc_cookies.txt \
+           --output "$NAME.%(ext)s" \
+           --downloader ffmpeg \
+           --write-subs --write-auto-sub --write-annotations --write-description \
+           "$URL"
 }

@@ -51,6 +51,19 @@ gpg-see-keys-in-file() {
 
 
 
+ssh-keygen-s2e() {
+    # https://infosec.mozilla.org/guidelines/openssh
+    # https://blog.peterruppel.de/ed25519-for-ssh/
+    COMMENT=${1}
+    if [[ -z "$var" ]]; then
+        read -p 'Add a short comment to identify the key: ' COMMENT
+    fi
+    keyname="id_ed25519_$(date +%Y-%m-%d)"
+    ssh-keygen -t ed25519 -a 200 -C "$COMMENT" -f ~/.ssh/"$keyname" && echo "Your new key can be found at ~/.ssh/$keyname"
+    ssh-add ~/.ssh/${keyname}
+}
+
+
 
 ##################################
 ## I screwed up

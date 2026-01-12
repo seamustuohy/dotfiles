@@ -33,6 +33,7 @@ cleanup() {
 
 trap 'cleanup' EXIT
 
+
 google_backup_home() {
     duplicity -v 5 --encrypt-key="${ENCRYPTION_KEY}" \
               --exclude="${HOME}/temp" \

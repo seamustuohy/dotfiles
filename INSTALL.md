@@ -11,3 +11,12 @@ sudo install.sh first_boot
 install.sh emacs
 # Anything else you want
 ```
+
+
+## Qubes Installation
+
+```
+git clone https://github.com/seamustuohy/dotfiles.git
+cd dotfiles
+bin/qubes/install_qubes.sh firstboot
+```

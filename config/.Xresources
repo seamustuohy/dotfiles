@@ -33,4 +33,6 @@ XTerm*translations: #override \
         Ctrl Shift <KeyPress> V: insert-selection(CLIPBOARD)
 
 !# Colors
-#include "/home/s2e/dotfiles/config/.Xresources.d/xcolors"
+!#include "/home/s2e/dotfiles/config/.Xresources.d/xcolors"
+!#include "/home/s2e/dotfiles/config/.Xresources.d/google_dark.xcolor"
+#include "/home/s2e/dotfiles/config/.Xresources.d/s2e.xcolor"

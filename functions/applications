@@ -4,3 +4,8 @@ alias rss='newsboat --url-file="$HOME/dotfiles/private/rss/urls"'
 ## email
 alias mutt="run_mutt.sh"
 alias contacts="khard -c ~/.khard.conf"
+
+## Memory Eaters
+BAD_APP="nice -n 15 chrt -i 0 ionice -c3"
+alias chrome_nice="$BAD_APP google-chrome"
+alias google-chrome_nice="$BAD_APP google-chrome"

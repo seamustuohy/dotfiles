@@ -4,9 +4,14 @@
 
 alias listserv='time get_listserv'
 
+# get_site_links() {
+#     local SITE=${1}
+#     wget -w 1 --no-check-certificate --spider -r ${SITE} 2>&1 | grep '^--' | awk '{ print $3 }' | grep -v '\.\(css\|js\|png\|gif\|jpg\|JPG\)$' > urls.txt
+# }
+
 get_site_links() {
-    local SITE=${1}
-    wget -w 1 --no-check-certificate --spider -r ${SITE} 2>&1 | grep '^--' | awk '{ print $3 }' | grep -v '\.\(css\|js\|png\|gif\|jpg\|JPG\)$' > urls.txt
+    local URL="$1"
+    lynx -listonly -dump "${URL}"  | grep -E "^[[:space:]]*[[:digit:]]+" | cut -d . -f 2- | sed 's/^ *//g' | sort | uniq
 }
 
 
@@ -27,6 +32,8 @@ get_all_site_links() {
         | grep -v '\.\(css\|js\|png\|gif\|jpg\|JPG\)$'
     rm -fr "${tmpdir}"
 }
+
+
 
 
 wget_mirror_single_page() {
@@ -54,6 +61,28 @@ wget_mirror_single_page() {
 
     # set +x
 }
+
+
+get_full_website_and_resources_over_tor() {
+    DOMAIN=$(python3 -c "from urllib.parse import urlparse; print('.'.join((urlparse('$1').netloc).split('.')[-2:]))")
+    tsocks wget \
+           --no-clobber \
+           --mirror \
+           --recursive \
+           --convert-links \
+           --backup-converted \
+           --page-requisites \
+           --span-hosts \
+           --domains="$DOMAIN" \
+           --restrict-file-names=unix \
+           --waitretry=5 \
+           --wait=2 \
+           --random-wait \
+           -e robots=off \
+           "$1"
+}
+
+
 
 
 ####################################
@@ -85,6 +114,60 @@ archive-create_archive() {
     request_string='import requests; h = {"User-Agent":"'"${UA}"'"}; url ="'"${archive_api}"'";r = requests.get(url, headers=h); print("Archive Created") if r.status_code == 200 else print("Archive Failed: Status Code {0}".format(r.status_code));'
     python3 -c "${request_string}"
 }
+
+get_all_github_repos_for_user() {
+    # https://handheld.computer/?page_id=1336
+    local USERNAME=$1
+    curl -s "https://api.github.com/users/${USERNAME}/repos?per_page=100&page=1" | jq -r ".[].git_url" | xargs -L1 git clone
+}
+alias clone_all_github_repos_for_user=get_all_github_repos_for_user
+alias git_clone_all_github_repos_for_user=get_all_github_repos_for_user
+
+
+get_website_from_wayback_machine() {
+    # https://github.com/hartator/wayback-machine-downloader
+    wayback_machine_downloader "$1"
+
+}
+
+get_google_book() {
+    # https://handheld.computer/?page_id=1336
+    echo "THIS REQUIRED TESSERACT AND IS UNTESTED."
+    if [ $# -eq 0 ]
+    then
+        echo << EOF
+For downloading a book GoBooDo requires the book id which can be fetched from the url of the book. For instance consider the example below:
+    https://books.google.co.in/books?id=XUwOtdcIWdkC&printsec=frontcover#v=onepage&q&f=false
+in this url the id=XXX is the part we are interested in.
+To start downloading:
+    python GoBooDo.py --id=XUwOtdcIWdkC
+
+For More Info: https://github.com/vaibhavk97/GoBooDo
+EOF
+    else
+        ID="$1"
+    fi
+    local CURDIR=$(pwd)
+    cd /tmp/
+    tmpdir=$(mktemp -dt "$(basename "$0").XXXXX")
+    cd tmpdir
+    cat <<EOF >> settings.json
+{
+    "country": "us",
+    "page_resolution": 1500,
+    "tesseract_path": "/usr/bin/tesseract",
+    "proxy_links": 0,
+    "proxy_images": 0,
+    "max_retry_links": 1,
+    "max_retry_images": 1,
+    "global_retry_time": 30
+}
+EOF
+    python GoBooDo.py --id "${ID}"
+    echo pwd
+}
+
+
 
 
 ####################################
@@ -196,7 +279,6 @@ alias oledump="python2 /tools/oledump/oledump.py --plugindir /tools/oledump"
 
 #  --pluginoptions=-k
 alias msgdump="python2 /tools/oledump/oledump.py --plugindir /tools/oledump -q -p plugin_msg"
-
 
 
 

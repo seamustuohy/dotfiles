@@ -51,8 +51,8 @@ set edit_headers                        # let me edit the message headers
 
 # Editor Information
 # set editor="vim +13 -c 'set nobackup' -c 'set noswapfile' -c 'set nowritebackup' -c 'set tw=72 ft=mail noautoindent'"
-set editor="vim +13 -c 'set nobackup' -c 'set noswapfile' -c 'set nowritebackup' -c 'set ft=mail noautoindent' -c 'set fo-=t' -c 'set wrap linebreak nolist' "
-
+# set editor="vim +13 -c 'set nobackup' -c 'set noswapfile' -c 'set nowritebackup' -c 'set ft=mail noautoindent' -c 'set fo-=t' -c 'set wrap linebreak nolist' "
+set editor="emacs -nw"
 format=flowed                           # https://joeclark.org/ffaq.html
 
 

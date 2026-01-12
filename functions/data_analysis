@@ -1,5 +1,6 @@
 
 
+# Download q Here: https://github.com/harelba/q/releases
 alias parse_csv="q --skip-header --delimiter=,"
 alias csv_parse=parse_csv
 

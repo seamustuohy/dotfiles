@@ -1,0 +1,1 @@
+javascript:(function()%7B"use strict"%3B var all %3D document.getElementsByTagName("*")%3B var i%3B var max%3B for (i %3D 0%2C max %3D all.length%3B i < max%3B i %2B%3D 1) %7B if (all%5Bi%5D.onCopy) %7B all%5Bi%5D.onCopy %3D null%3B %7D if (all%5Bi%5D.onPaste) %7B all%5Bi%5D.onPaste %3D null%3B %7D %7D %7D)()

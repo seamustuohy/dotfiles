@@ -37,7 +37,6 @@
     (add-to-list 'package-archives '("gnu" . (concat proto "://elpa.gnu.org/packages/")))))
 (package-initialize)
 
-
 (unless package-archive-contents
   (package-refresh-contents))
 
@@ -46,13 +45,13 @@
                      drag-stuff
                      guide-key
                      guru-mode
-                     persp-projectile
                      ag
-                     helm-ag
+                     helm
                      helm-dash
                      helm-flycheck
                      helm-projectile
                      highlight-indentation
+                     popwin
                      js2-mode
                      js3-mode
                      json-mode
@@ -62,20 +61,25 @@
                      rainbow-mode
                      solarized-theme
                      switch-window
+                     org
                      undo-tree
-                     helm-swoop
                      use-package
                      web-beautify
                      web-mode
                      wrap-region
                      writegood-mode
+                     vimrc-mode
                      yaml-mode))
+;; persp-projectile
 
 (dolist (package package-list)
   (unless (package-installed-p package)
     (package-install package)))
 
 (require 'use-package)
+
+;; org mode first
+(require 'org)
 
 ;; === Information ===
 ;; Personal Information
@@ -92,6 +96,7 @@
 (load (file-truename "~/dotfiles/private/emacs_locations.el"))
 
 ;; Overwrite Highlighted Text
+;; Also does the same as delete selection mode
 ;; cua-selection-mode - enables typing over a region to replace it
 (cua-selection-mode t)
 
@@ -101,7 +106,6 @@
 (setq tab-width 4)
 
 ;; UTF-8 by default
-
 (prefer-coding-system 'latin-1)
 (if (not (assoc "UTF-8" language-info-alist))
     (set-language-environment "latin-1")
@@ -114,12 +118,21 @@
 (setq org-export-coding-system 'utf-8)
 (setq default-process-coding-system '(utf-8-unix . utf-8-unix))
 
+;; === Working with RTL languages ===
+(defun reorder-rtl-text ()
+  (interactive)
+  (setq bidi-display-reordering nil)
+  )
+(defalias 'make-right-to-left-text-left-to-right 'reorder-rtl-text)
+(defalias 'display-text-left-to-right 'reorder-rtl-text)
+
+
 ;; === Emacs Environment ===
 (message "Initializing Emacs Environment")
 
 ;; Personal key space
 (define-prefix-command 'personal-global-map)
-(global-set-key (kbd "C-C s") 'personal-global-map)
+(global-set-key (kbd "C-c s") 'personal-global-map)
 
 ;; Server
 ;; Start a server when there is not a server already running.
@@ -202,7 +215,6 @@
 (message "Initializing code support")
 (setq-default fill-column 80) ;; Sets a 80 character line width
 
-
 ;; Set helm dash to view docs in emacs instead of opening a browser
 (setq helm-dash-browser-func 'eww)
 
@@ -247,6 +259,13 @@
 ;;   :modes (text-mode markdown-mode gfm-mode org-mode))
 
 ;; (add-to-list 'flycheck-checkers 'proselint)
+
+
+;; Read and activate on vimrc strings in qubes files
+(require 'vimrc-mode)
+(add-to-list 'auto-mode-alist '("\\.sls\\'" . vimrc-mode))
+(add-to-list 'auto-mode-alist '("\\.top\\'" . vimrc-mode))
+
 
 ;; Prettyness
 (message "highlight")
@@ -306,7 +325,64 @@
 (require 'web-mode)
 (add-to-list 'auto-mode-alist '("\\.html\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.hbs\\'" . web-mode))
+(eval-after-load "web-mode"
+  '(set-face-background 'web-mode-current-element-highlight-face "Blue"))
 
+;;(require 'rainbow-delimiters)
+;; Enable it globally or for specific modes
+;;(add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
+;;(add-hook 'html-mode-hook 'rainbow-delimiters-mode)
+;;(add-hook 'web-mode-hook 'rainbow-delimiters-mode)
+
+;; treesit mode
+;; https://github.com/mickeynp/combobulate?tab=readme-ov-file#complete-example-with-tree-sitter-grammar-installation
+
+(use-package treesit
+  :mode (("\\.tsx\\'" . tsx-ts-mode))
+  :preface
+  (defun mp-setup-install-grammars ()
+    "Install Tree-sitter grammars if they are absent."
+    (interactive)
+    (dolist (grammar
+             ;; Note the version numbers. These are the versions that
+             ;; are known to work with Combobulate *and* Emacs.
+             '((css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
+               (go . ("https://github.com/tree-sitter/tree-sitter-go" "v0.20.0"))
+               (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
+               (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
+               (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
+               (markdown . ("https://github.com/ikatyang/tree-sitter-markdown" "v0.7.1"))
+               (python . ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
+               (rust . ("https://github.com/tree-sitter/tree-sitter-rust" "v0.21.2"))
+               (toml . ("https://github.com/tree-sitter/tree-sitter-toml" "v0.5.1"))
+               (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
+               (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
+               (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))))
+      (add-to-list 'treesit-language-source-alist grammar)
+      ;; Only install `grammar' if we don't already have it
+      ;; installed. However, if you want to *update* a grammar then
+      ;; this obviously prevents that from happening.
+      (unless (treesit-language-available-p (car grammar))
+        (treesit-install-language-grammar (car grammar)))))
+
+
+  ;; You can remap major modes with `major-mode-remap-alist'. Note
+  ;; that this does *not* extend to hooks! Make sure you migrate them
+  ;; also
+  (dolist (mapping
+           '((python-mode . python-ts-mode)
+             (css-mode . css-ts-mode)
+             (typescript-mode . typescript-ts-mode)
+             (js2-mode . js-ts-mode)
+             (bash-mode . bash-ts-mode)
+             (conf-toml-mode . toml-ts-mode)
+             (go-mode . go-ts-mode)
+             (css-mode . css-ts-mode)
+             (json-mode . json-ts-mode)
+             (js-json-mode . json-ts-mode)))
+    (add-to-list 'major-mode-remap-alist mapping))
+  :config
+  (mp-setup-install-grammars))
 
 
 ;; UNESCAPE URLS
@@ -368,6 +444,39 @@ Version 2015-09-14."
     (delete-region $p1 $p2)
     (insert (decode-coding-string (url-unhex-string $input-str) 'utf-8))))
 
+(defun xah-html-percent-encode-url (&optional Begin End)
+  "Percent encode URL in current line or selection.
+
+Example:
+ http://example.org/(Dürer)
+becomes
+ http://example.org/(D%C3%BCrer)
+
+Example:
+ http://example.org/文本编辑器
+becomes
+ http://example.org/%E6%96%87%E6%9C%AC%E7%BC%96%E8%BE%91%E5%99%A8
+
+URL `http://xahlee.info/emacs/emacs/emacs_url_percent_decode.html'
+Created: 2022-04-08
+Version: 2023-09-24"
+  (interactive)
+  (require 'url-util)
+  (let (xbeg xend xinput xnewStr)
+    (if (and Begin End)
+        (setq xbeg Begin xend End)
+      (if (region-active-p)
+          (setq xbeg (region-beginning) xend (region-end))
+        (setq xbeg (line-beginning-position) xend (line-end-position))))
+    (setq xinput (buffer-substring-no-properties xbeg xend)
+          xnewStr (url-encode-url xinput))
+    (if (string-equal xnewStr xinput)
+        (message "no change")
+      (progn
+        (delete-region xbeg xend)
+        (insert xnewStr)))
+    xnewStr
+    ))
 
 ;; Elisp: URL email equal Decode/Encode
 (defun s2e-email-decode-equal-encoded-url ()
@@ -421,6 +530,10 @@ by using nxml's indentation rules."
 
 (require 'yaml-mode)
 (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode))
+(add-to-list 'auto-mode-alist '("\\.sls\\'" . yaml-mode))
+(add-to-list 'auto-mode-alist '("\\.top\\'" . yaml-mode))
+
+
 
 ;; JSON
 
@@ -447,9 +560,7 @@ by using nxml's indentation rules."
 (message "Initializing display")
 ;; Mark and Cursor
 ;; I like to have the mark always active when I am selecting text.  This highlights the mark area.
-;; NOTE: I am currently exploring how to correctly use the mark, so this may become an annoyance.
 (setq transient-mark-mode t)
-
 
 ;; I like to know exactly what character my cursor is on. This sets the cursor to be a box on top of that character.
 (setq-default cursor-type 'box)
@@ -466,7 +577,6 @@ by using nxml's indentation rules."
 ;; I want to know what column I am on when dealing with error messages. I just keep it on globally
 (setq column-number-mode t)
 
-
 ;; Frame shows buffer name
 ;; When not clocked into a task I want to see the full path of the current buffer I am in in the title frame.
 (setq frame-title-format '(buffer-file-name "%f" ("%b")))
@@ -478,7 +588,7 @@ by using nxml's indentation rules."
 
 ;; Line Numbers for coding
 ;; When coding I  want to have my line number displayed on every line.
-(add-hook 'prog-mode-hook '(lambda () (linum-mode)))
+(add-hook 'prog-mode-hook '(lambda () (display-line-numbers-mode)))
 
 ;; visual bells
 (setq ring-bell-function 'ignore)
@@ -498,6 +608,8 @@ by using nxml's indentation rules."
 ;; I use popwin mode to make sure that temporary buffers act as pop-up windows and can be closed with <C-g>.
 (require 'popwin)
 (popwin-mode 1)
+
+
 
 ;; Splitting Windows
 
@@ -520,111 +632,16 @@ by using nxml's indentation rules."
 ;; ;; loading code for our custom perspectives
 ;; ;; taken from Magnar Sveen
 
-(message "Initializing perspective")
-(defmacro custom-persp (name &rest body)
-  `(let ((initialize (not (gethash ,name (perspectives-hash))))
-         (current-perspective (persp-curr)))
-     (persp-switch ,name)
-     (when initialize ,@body)
-     (setq persp-last current-perspective)))
-
-;; ;; Config
-(require 'perspective)
-
+(message "Initializing projectile")
 (require 'projectile)
-
-
-;; ;; Enable perspective mode
-(persp-mode t)
-
 
 ;; ;; Projectile
 (projectile-global-mode)
 (projectile-mode)
-
 (setq projectile-completion-system 'helm)
 (helm-projectile-on)
 ; (setq projectile-keymap-prefix (kbd "C-c p"))
 (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
-
-;; ;;..fix link.. [[http://www.wickeddutch.com/2014/01/03/gaining-some-perspective-in-emacs/][Mostly taken from Wicked Dutch]]
-;; Setup perspectives, or workspaces, to switch between
-;; Enable perspective mode
-
-;; (with-eval-after-load "persp-mode-autoloads"
-;;   (setq wg-morph-on nil)
-;;   ;; switch off the animation of restoring window configuration
-;;   (add-hook 'after-init-hook #'(lambda () (persp-mode 1))))
-
-(setq persp-keymap-prefix (kbd "C-x x"))
-
-;; loading code for our custom perspectives
-;; taken from Magnar Sveen
-(defmacro custom-persp (name &rest body)
-  `(let ((initialize (not (gethash ,name (perspectives-hash))))
-         (current-perspective persp-curr))
-     (persp-switch ,name)
-     (when initialize ,@body)
-     (setq persp-last current-perspective)))
-
-;; Jump to last perspective
-;; taken from Magnar Sveen
-(defun custom-persp-last ()
-  (interactive)
-  (persp-switch (persp-name persp-last)))
-
-;; Easily switch to your last perspective
-(define-key persp-mode-map (kbd "C-x p -") 'custom-persp-last)
-
-;; org-base persp
-(defun custom-persp/org-base ()
-  (interactive)
-  (custom-persp "org"))
-
-(define-key persp-mode-map (kbd "C-x p o") 'custom-persp/org-base)
-
-(defun custom-persp/org-base-start ()
-  (interactive)
-  (custom-persp "org")
-  (delete-other-windows) ;Delete all windows in this perspective.
-  (find-file org_directory_path))
-
-(define-key persp-mode-map (kbd "C-x p O") 'custom-persp/org-base-start)
-;; library-base persp
-(defun custom-persp/library-base ()
-  (interactive)
-  (custom-persp "library"))
-(define-key persp-mode-map (kbd "C-x p l") 'custom-persp/library-base)
-(defun custom-persp/library-base-start ()
-  (interactive)
-  (custom-persp "library")
-  (delete-other-windows) ;Delete all windows in this perspective.
-  (find-file "c:/Users/User/OneDrive - Human Rights Watch/library/s2e_resource_links/digit-sec.org"))
-(define-key persp-mode-map (kbd "C-x p L") 'custom-persp/library-base-start)
-
-;; Incident Response base persp
-(defun custom-persp/IR-base ()
-  (interactive)
-  (custom-persp "IR"))
-(define-key persp-mode-map (kbd "C-x p r") 'custom-persp/IR-base)
-(defun custom-persp/IR-base-start ()
-  (interactive)
-  (custom-persp "IR")
-  (delete-other-windows) ;Delete all windows in this perspective.
-  (find-file "c:/Users/User/OneDrive - Human Rights Watch/Incident Response/base.org"))
-(define-key persp-mode-map (kbd "C-x p R") 'custom-persp/IR-base-start)
-
-
-;; Init
-(defun custom-persp/start-init ()
-  (interactive)
-  (custom-persp "init")
-  (find-file org_init_path))
-(defun custom-persp/init ()
-  (interactive)
-  (custom-persp "init"))
-(define-key persp-mode-map (kbd "C-x p I") 'custom-persp/start-init)
-(define-key persp-mode-map (kbd "C-x p i") 'custom-persp/init)
 
 ;; Themes
 ;; I keep my themes in a separate themes directory in my .emacs.d folder.
@@ -753,9 +770,12 @@ Including indent-buffer, which should not be called automatically on save."
 ;; helps me write-good.
 
 (require 'writegood-mode)
-(define-key personal-global-map (kbd "ww") 'writegood-mode)
-(define-key personal-global-map (kbd "wl") 'writegood-grade-level)
-(define-key personal-global-map (kbd "we") 'writegood-reading-ease)
+(define-prefix-command 'writegood-global-map)
+(global-set-key (kbd "C-c w") 'writegood-global-map)
+
+(define-key writegood-global-map (kbd "m") 'writegood-mode)
+(define-key writegood-global-map (kbd "g") 'writegood-grade-level)
+(define-key writegood-global-map (kbd "e") 'writegood-reading-ease)
 
 ;; Guide Key
 ;; ;;..fix link.. [[https://github.com/kai2nenobu/guide-key][guide-key.el]] displays the available key bindings automatically and dynamically. guide-key aims to be an alternative of one-key.el.
@@ -770,10 +790,8 @@ Including indent-buffer, which should not be called automatically on save."
 (require 'guru-mode)
 
 
-;; Currently running this globally. I may want to change this if I get too annoyed.
+;; Currently running this globally.
 (guru-global-mode +1)
-;;(add-hook 'prog-mode-hook 'guru-mode)
-
 
 ;; I only want to get warnings when I use the arrow keys.
 (setq guru-warn-only t)
@@ -782,6 +800,10 @@ Including indent-buffer, which should not be called automatically on save."
 ;; Undo tree makes complex undo actions easy
 (require 'undo-tree)
 (global-undo-tree-mode t)
+
+;; Prevent undo tree files from polluting your git repo
+(setq undo-tree-auto-save-history nil)
+(setq undo-tree-history-directory-alist '(("." . "/tmp/")))
 
 ;; Keep region when undoing in region
 ;; Make it so the region does not keep jumping about when I use it.
@@ -852,7 +874,7 @@ If point was already at that position, move point to beginning of line."
 (use-package helm
   :init
   (progn
-    (require 'helm-config)
+    ;;(require 'helm-config)
     (setq helm-candidate-number-limit 100)
     ;; From https://gist.github.com/antifuchs/9238468
     (setq helm-idle-delay 0.0 ; update fast sources immediately (doesn't).
@@ -870,8 +892,8 @@ If point was already at that position, move point to beginning of line."
          ("M-i" . helm-semantic-or-imenu)))
 
 ;; Helm swoop is amazing! I use it far more than search, but I am still afraid to replace search with it.
-(use-package helm-swoop
-  :bind ("C-c C-M-s" . helm-swoop))
+(use-package helm-occur
+  :bind ("C-c C-M-s" . helm-occur))
 
 
 ;; Projectile
@@ -936,13 +958,37 @@ If point was already at that position, move point to beginning of line."
     (transpose-lines 1)
     (forward-line -1)))
 
-(global-set-key (kbd "M-<up>") 'move-line-up)
-(global-set-key (kbd "M-<down>") 'move-line-down)
+
+(global-set-key [(meta shift up)]  'move-line-up)
+(global-set-key [(meta shift down)]  'move-line-down)
 
 ;; Org-Mode
 (message "Initializing org mode")
 
 (require 'org)
+
+;;Org source block babel expansion (quotes, snippets, etc)
+(require 'org-tempo)
+;; (global-set-key (kbd "<C-c TAB>") 'org-insert-structure-template)
+
+;; ==== org citations ====
+;; C-c C-x @
+;; https://orgmode.org/manual/Citations.html
+;; Org-cite use better bibliograpyh
+(require 'bibtex)
+(bibtex-set-dialect 'biblatex)
+;; bibtex-misc - C-c C-e M
+
+(setq bibtex-entry-format '(opts-or-alts
+                            required-fields
+                            numerical-fields
+                            whitespace
+                            last-comma
+                            braces
+                            sort-fields
+                            unify-case))
+
+
 
 ;; Files to activate org for
 ;; Open org-mode for .org files and for .org.gpg files.
@@ -1283,6 +1329,7 @@ Usage example: To search for state changes that have moved from an non-done to d
 
 (require 'epa-file)
 (epa-file-enable)
+;;(epa-file-encrypt-to "0xB6193EC73CF07AA7")
 
 (require 'org-crypt)
 (org-crypt-use-before-save-magic)
@@ -1484,14 +1531,6 @@ Usage example: To search for state changes that have moved from an non-done to d
     )
   (yank))
 (define-key personal-global-map (kbd "p") 'stuohy-paste-from-pdf-with-extra-spaces)
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   (quote
-    (csharp-mode ag markdown-mode+ markdown-mode ace-jump-mode graphviz-dot-mode php-refactor-mode php-mode org-bullets helm-swoop yasnippet yaml-mode writegood-mode wrap-region web-mode web-beautify use-package undo-tree switch-window solarized-theme smartscan rainbow-mode powershell persp-projectile logview json-mode js3-mode js2-mode highlight-indentation helm-projectile helm-flycheck helm-dash helm-ag guru-mode guide-key drag-stuff))))
 
 ;; Forensics & Data Cleaning
 
@@ -1507,10 +1546,8 @@ Usage example: To search for state changes that have moved from an non-done to d
 (fset 'convert_clipboard_to_underscore_string
    [escape ?< ?\C-y nil ?\C-a ?\M-x ?r ?e ?a ?p ?l backspace backspace backspace ?p ?l ?a ?c ?e ?- ?s ?t ?r ?i ?n ?g return ?  return ?_ return ?\C-a ?\M-x ?r ?e ?p ?l ?a ?c ?e ?_ backspace ?- ?s ?t ?r ?i ?n ?g return ?: return ?_ backspace return ?\C-a ?\M-x ?r ?e ?p ?l ?a ?c ?e ?- ?s ?t ?r ?i ?n ?g return ?? return return ?\C-a ?\M-x ?r ?e ?p ?l ?a ?c ?e ?- ?s ?t ?r ?i ?n ?g return ?/ return return ?\C-a ?\M-x ?r ?e ?p ?l ?a ?c ?e ?- ?s ?t ?i backspace ?r ?i ?n ?g return ?| return return ?\C-  ?\C-e ?\M-w ?\C-  ?\C-a ?\C-d])
 
-
 (fset 'convert_clipboard_to_underscored
    [escape ?< ?\C-  escape ?> ?\C-d ?\C-y nil ?\C-a ?\M-x ?r ?e ?p ?l ?a ?c ?e ?- ?s ?t ?r ?i ?n ?g return ?  return ?_ return ?\C-a ?\C-  ?\C-e ?\C-w])
-
 
 (defun title-to-filename (title)
   "Convert a copied document title into a filename"
@@ -1591,7 +1628,6 @@ Usage example: To search for state changes that have moved from an non-done to d
 (add-to-list 'warning-suppress-types '(yasnippet backquote-change))
 
 
-
 (defun recode-region (start end &optional coding-system)
   "Replace the region with a recoded text."
   (interactive "r\n\zCoding System (utf-8): ")
@@ -1604,62 +1640,7 @@ Usage example: To search for state changes that have moved from an non-done to d
 
 
 
-;; ===  Linux Subsystem of Windows ===
-;; Check to see if we are in it
-(setq is_windows_subsystem (call-process "is_windows_subsystem" nil nil nil))
-
-;; linux subsystem for windows copy and paste connector
-(defun my-yanking-function (prop)
-  ;;(message "YEAAAAAAAAAAAAAAAAH")
-  (shell-command-on-region (region-beginning) (region-end) "clip.exe"))
-
-(defun my-yanking-no-region-function (begin end region)
-  (shell-command-on-region (region-beginning) (region-end) "clip.exe"))
-
-
-;; sldkfdslfk
-
-(defun my-pasting-function (prop)
-  (with-temp-buffer
-    (call-process "powershell.exe" nil t nil " Get-Clipboard")
-    ;;(message (buffer-string))
-    (delete-trailing-whitespace)
-    (my-delete-trailing-whitespace-even-final-newline)
-    (beginning-of-buffer)
-    (if (= 1 (buffer-size))
-        (message "Empty")
-      (kill-new (buffer-string)))))
-
-
-
-;; ;;Turn copy/paste connectors on if in subsystem
-;; (if (equal is_windows_subsystem 0)
-;;     (progn
-;;       (add-function :before (symbol-function 'org-yank) #'my-pasting-function)
-;;       (add-function :before (symbol-function 'cua-paste) #'my-pasting-function))
-;;   (message "failed to add paste function"))
-;; (if (equal is_windows_subsystem 0)
-;;     (progn
-;;       (add-function :after (symbol-function 'kill-new) #'my-yanking-function))
-;;   (message "failed to add yank function"))
-;; (if (equal is_windows_subsystem 0)
-;;     (progn
-;;       (add-function :before (symbol-function 'kill-region) #'my-yanking-no-region-function))
-;;   (message "failed to add yank region function"))
-
-;; Sideloaded copy and Paste on Windows
-(defun linux_subshell_on_windows-copy_region_to_clipboard (&optional b e)
-  "Copies the region selected to the windows clipboard."
-  (interactive "r")
-  (shell-command-on-region b e "clip.exe"))
-(global-set-key (kbd "M-W") 'linux_subshell_on_windows-copy_region_to_clipboard)
-
-(defun linux_subshell_on_windows-paste_region_from_clipboard (&optional b e)
-  "Copies the region selected to the windows clipboard."
-  (interactive "r")
-  (call-process "powershell.exe" nil t nil " Get-Clipboard"))
-(global-set-key (kbd "M-Y") 'linux_subshell_on_windows-paste_region_from_clipboard)
-
+;; ===  File Encoding===
 
 (defun set_buffer_to_unix-file ()
   "Change the current buffer to Unix line-ends."
@@ -1705,3 +1686,73 @@ When called interactively, work on current line or text selection."
            (while (search-forward-regexp (elt $pair 0) (point-max) t)
              (replace-match (elt $pair 1))))
          $charMap)))))
+
+
+
+(defun html2org-clipboard ()
+  "Convert clipboard contents from HTML to Org and then paste (yank)."
+  (interactive)
+  (setq cmd "xclip -o -selection clipboard -t text/html | pandoc -f html -t json | pandoc -f json -t org --lua-filter ~/dotfiles/etc/pandoc/remove_attr.lua")
+  (kill-new (shell-command-to-string cmd))
+  (yank))
+
+(defun html2md-clipboard ()
+  "Convert clipboard contents from HTML to Org and then paste (yank)."
+  (interactive)
+  (setq cmd "xclip -o -selection clipboard -t text/html | pandoc -f html -t json | pandoc -f json -t markdown-smart --lua-filter ~/dotfiles/etc/pandoc/remove_attr.lua")
+  (kill-new (shell-command-to-string cmd))
+  (yank))
+
+(defun html2json-clipboard ()
+  "Convert clipboard contents from HTML to Org and then paste (yank)."
+  (interactive)
+  (setq cmd "xclip -o -selection clipboard -t text/html | pandoc -f html -t json --lua-filter ~/dotfiles/etc/pandoc/remove_attr.lua")
+  (kill-new (shell-command-to-string cmd))
+  (yank))
+
+(defun html2rawhtml-clipboard ()
+  "Convert clipboard contents from HTML to Org and then paste (yank)."
+  (interactive)
+  (setq cmd "xclip -o -selection clipboard -t text/html | pandoc -f html -t gfm-raw_html --lua-filter ~/dotfiles/etc/pandoc/remove_attr.lua")
+  (kill-new (shell-command-to-string cmd))
+  (yank))
+
+(defun slugify-region (beg end)
+  "Slugify the text in the active region and replace it in the buffer.
+
+A slug contains only lowercase alphanumeric characters and hyphens.
+Leading/trailing hyphens are removed, and multiple consecutive
+hyphens are replaced by a single one."
+  (interactive "r")
+  (let* ((original-text (buffer-substring beg end))
+         ;; Replace non-alphanumeric (except hyphens and spaces) with nothing
+         (cleaned-text (replace-regexp-in-string "[^[:alnum:] -]" "" original-text))
+         ;; Replace spaces and multiple hyphens with a single hyphen
+         (hyphenated-text (replace-regexp-in-string "[ -]+" "-" cleaned-text))
+         ;; Convert to lowercase
+         (lowercase-text (downcase hyphenated-text))
+         ;; Remove leading and trailing hyphens
+         (slug (replace-regexp-in-string "^-|-$" "" lowercase-text)))
+
+    ;; Replace the region content with the new slug
+    (delete-region beg end)
+    (insert slug)
+    (message "Region slugified: %s" slug)))
+
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(ignored-local-variable-values
+   '((org-odt-content-template-file
+      . /media/truecrypt1/code/.dotfiles/templates/emacs/OrgOdtContentTemplate/xml)))
+ '(package-selected-packages
+   '(ag drag-stuff guide-key guru-mode helm-ag helm-dash helm-flycheck
+        helm-projectile helm-swoop highlight-indentation js2-mode js3-mode
+        json-mode logview markdown-mode nlinum persp-mode persp-projectile
+        powershell rainbow-delimiters rainbow-mode smartscan solarized-theme
+        switch-window undo-tree use-package vimrc-mode web-beautify web-mode
+        wrap-region writegood-mode yaml-mode yasnippet))
+ '(warning-suppress-types '((comp) (yasnippet backquote-change))))

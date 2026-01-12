@@ -34,6 +34,7 @@ alias mkproj=make_project
 
 # Alias git
 alias g=git
+alias ga="git add"
 
 # Git Go!
 # Run a git command in another directory

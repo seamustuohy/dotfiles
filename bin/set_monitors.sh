@@ -27,12 +27,17 @@ main() {
     local monitor_num=$(xrandr |grep " connected" |wc -l)
     local desk_horiz=$(xrandr |grep -E "^DP-2-2 connected" |wc -l)
     local desk_2020=$(xrandr |grep -E "^DP-2-3 connected" |wc -l)
+    local desk_2021=$(xrandr |grep -E "^DP-1-3 connected" |wc -l)
+    local desk_2021_right=$(xrandr |grep -E "^DP-3-3 connected" |wc -l)
     local desk_vert=$(xrandr |grep -E "^DP-1 connected" |wc -l)
     local work_left=$(xrandr |grep -E "^DP-2 connected" |wc -l)
+
+
 
     if [[ 1 == ${work_left} ]] ; then
         echo "Work Connected"
     fi
+
     if [[ 1 == ${desk_horiz} ]] ; then
         echo "Horizontal Connected"
     fi
@@ -40,9 +45,6 @@ main() {
         echo "Vertical Connected"
     fi
 
-    elif [[ 1 == ${desk_2020} ]]  ; then
-        2020_setup
-    fi
 
     if [[ 1 == ${desk_horiz} ]] && [[ 1 == ${desk_vert} ]] ; then
         desktop_setup
@@ -52,6 +54,12 @@ main() {
         lap_plus_vert_setup
     elif [[ 1 == ${work_left} ]]  ; then
         setup_work
+    elif [[ 1 == ${desk_2020} ]]  ; then
+        2020_setup
+    elif [[ 1 == ${desk_2021} ]]  ; then
+        2021_setup
+    elif [[ 1 == ${desk_2021_right} ]]  ; then
+        2021_setup_right
     elif [[ 2 == ${monitor_num} ]]  ; then
         external_setup
     else
@@ -60,8 +68,44 @@ main() {
 }
 
 2020_setup(){
-    xrandr --output DP-2-3 --auto
-    xrandr --output eDP-1 --rotate normal --auto --right-of DP-2-3
+    # --fb 1800x1000
+    # 1920x1080
+     xrandr --output eDP-1 --off --output DP-2-3 --off
+     xrandr --output eDP-1 --rotate normal --mode 1600x900 \
+            --output DP-2-3 --mode 1920x1080 --pos 1600x0 --right-of eDP-1
+    # --transform 1,0,-20,0,1,-10,0,0,1
+    #  --scale 1.00x1.00
+    # --fb 1920x1020
+
+    # xrandr
+    # --pos 1366x0
+}
+2021_setup_right(){
+    # --fb 1800x1000
+    # 1920x1080
+     xrandr --output eDP-1 --off --output DP-3-3 --off
+     xrandr --output eDP-1 --rotate normal --mode 1400x900 \
+            --output DP-3-3 --mode 1920x1080 --pos 1600x0 --right-of eDP-1
+    # --transform 1,0,-20,0,1,-10,0,0,1
+    #  --scale 1.00x1.00
+    # --fb 1920x1020
+
+    # xrandr
+    # --pos 1366x0
+}
+
+2021_setup(){
+    # --fb 1800x1000
+    # 1920x1080
+     xrandr --output eDP-1 --off --output DP-1-3 --off
+     xrandr --output eDP-1 --rotate normal --mode 1600x900 \
+            --output DP-1-3 --mode 1920x1080 --pos 1600x0 --right-of eDP-1
+    # --transform 1,0,-20,0,1,-10,0,0,1
+    #  --scale 1.00x1.00
+    # --fb 1920x1020
+
+    # xrandr
+    # --pos 1366x0
 }
 
 setup_work() {

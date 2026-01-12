@@ -15,6 +15,10 @@ alias ...='cd ../..'
 alias cd=cd_func
 
 
+# Allow xargs to use aliased commands
+# Adding a trailing space to the command being aliased causes other aliased commands to expand:
+alias xargs='xargs '
+
 
 # cd function for providing easy movement and history.
 
@@ -199,6 +203,31 @@ alias exiftool_nuke_all_metadata=nuke_all_metadata
 #alias ddstat="sudo kill -USR1 `pgrep -l '^dd$' | cut -f 1 -d \" \"`"
 alias ddstat="sudo progress -m"
 
+# Sync Status
+alias syncstat="watch -d grep -e Dirty: -e Writeback: /proc/meminfo"
+
+dd_progress() {
+    # Use DD in a way that makes it provide useful progress information.
+
+    # https://unix.stackexchange.com/questions/379947/how-to-prevent-dds-progress-from-being-meaningless-on-linux
+    # https://stackoverflow.com/questions/33485108/why-is-dd-with-the-direct-o-direct-flag-so-dramatically-faster
+    # https://www.ukuug.org/events/linux2001/papers/html/aarcangeli-o_direct.html
+    # https://www.linux.co.cr/free-unix-os/review/acrobat/011207.pdf
+    IF="$1"
+    OF="$2"
+    IS_GNOME_TERMINAL="$([[ $(basename $(ps -p $(ps -p $$ -o ppid=) -o cmd=)) == gnome-terminal* ]] && echo 'TRUE' || echo 'FALSE')"
+    if [[ "${IS_GNOME_TERMINAL}" == "TRUE" ]]; then
+        gnome-terminal --tab --  sudo progress -m
+        # TODO: One day figure out how to use `/sys/block/[OUTPUT DEVICE NAME i.e. sdb]/queue/optimal_io_size` to determine the best large block size.
+        dd if="${IF}" of="${OF}" oflag=direct bs=4M status=progress conv=fsync
+        echo "Completed Transfer"
+    else
+        echo "In a different terminal you should run `ddstat` to see the progress of this dd command"
+        dd if="${IF}" of="${OF}" oflag=direct bs=4M status=progress conv=fsync
+        echo "Completed Transfer"
+    fi
+}
+
 # Burn USB with alert
 burnusb() {
         sudo dd if=$1 of=$2 bs=4M conv=sync
@@ -225,6 +254,22 @@ compare_folder_contents_recursive() {
     comm -3 <(tree --noreport -I ".git" -ia "$1" | sort ) <(tree --noreport -I ".git" -ai "$2" | sort )
 }
 
+filename_does_not_exist_in_directory_recursive() {
+    local PATH="$1"
+    local FILENAME="$2"
+    # echo "${PATH}" "${FILENAME}"
+    /usr/bin/find "${PATH}" -type f -name "${FILENAME}" -print0 | /usr/bin/grep -qz . || echo "${i}"
+}
+
+find_file_not_in_other_directory_recursive() {
+    local EXISTS_PATH="$1"
+    local CHECK_PATH="$2"
+    for i in ${EXISTS_PATH}/*/**; do
+        [[ -d "${i}" ]] && continue
+        local FILENAME=$(basename "${i}")
+        filename_does_not_exist_in_directory_recursive "${CHECK_PATH}" "${FILENAME}"
+   done
+}
 
 ####################################
 # Find common patterns
@@ -232,5 +277,80 @@ compare_folder_contents_recursive() {
 
 find_changed_here_x_days_ago() {
     local days_ago="$1"
-    find . -type f -newermt $(date --date="${days_ago} days ago" +%F) ! -newermt $(date +%F)
+    /usr/bin/find . -type f -newermt $(date --date="${days_ago} days ago" +%F) ! -newermt $(date +%F)
 }
+
+
+####################################
+# Backups and Archives
+####################################
+
+backup_local_to_empty_location() {
+    local from_path="$1"
+    local to_path="$2"
+    local today=$(date +%F)
+    # -a, --archive               archive mode; equals -rlptgoD (no -H,-A,-X)
+    # -s, --protect-args          no space-splitting; wildcard chars only
+    # -q, --quiet                 suppress non-error messages
+    # -v, --verbose               increase verbosity (Never go beyond 2 vv's because it can cause freezing)
+    # --ignore-existing           skip updating files that exist on receiver
+    set -x
+    nice -n 19 rsync -avqs --ignore-existing --log-file="/tmp/rsync-${today}.log" "${from_path}" "${to_path}"  2>"/tmp/rsync-${today}.err"
+    set +x
+}
+
+backup_local_with_continue() {
+    local from_path="$1"
+    local to_path="$2"
+    local today=$(date +%F)
+    # -a, --archive               archive mode; equals -rlptgoD (no -H,-A,-X)
+    # -c, --checksum              skip based on checksum, not mod-time & size
+    # -s, --protect-args          no space-splitting; wildcard chars only
+    # -q, --quiet                 suppress non-error messages
+    # -v, --verbose               increase verbosity (Never go beyond 2 vv's because it can cause freezing)
+    # --partial                   keep partially transferred files
+    # --append                    append data onto shorter files
+    # --append-verify             --append w/old data in file checksum
+    nice -n 19 rsync -acvqs --partial --append-verify --log-file="/tmp/rsync-${today}.log" "${from_path}" "${to_path}"  2>"/tmp
+/rsync-${today}.err"
+}
+
+
+# --itemize-changes, -i
+#     Requests a simple itemized list of the changes that are being made to each file, including attribute changes. This is exactly the same as specifying --out-format='%i %n%L'. If you repeat the option, unchanged files will also be output, but only if the receiving rsync is at least version 2.6.7 (you can use -vv with older versions of rsync, but that also turns on the output of other verbose messages).
+#     The "%i" escape has a cryptic output that is 11 letters long. The general format is like the string YXcstpoguax, where Y is replaced by the type of update being done, X is replaced by the file-type, and the other letters represent attributes that may be output if they are being modified.
+#
+#     The update types that replace the Y are as follows:
+#         A < means that a file is being transferred to the remote host (sent).
+#         A > means that a file is being transferred to the local host (received).
+#         A c means that a local change/creation is occurring for the item (such as the creation of a directory or the changing of a symlink, etc.).
+#         A h means that the item is a hard link to another item (requires --hard-links).
+#         A . means that the item is not being updated (though it might have attributes that are being modified).
+#         A * means that the rest of the itemized-output area contains a message (e.g. "deleting").
+
+#     The file-types that replace the X are: f for a file, a d for a directory, an L for a symlink, a D for a device, and a S for a special file (e.g. named sockets and fifos).
+
+#     The other letters in the string indicate if some attributes of the file have changed, as follows:
+
+#         "." -⁠ the attribute is unchanged.
+#         "+" -⁠ the file is newly created.
+#         " " -⁠ all the attributes are unchanged (all dots turn to spaces).
+#         "?" -⁠ the change is unknown (when the remote rsync is old).
+#         A letter indicates an attribute is being updated.
+
+#     The attribute that is associated with each letter is as follows:
+
+#         A c means either that a regular file has a different checksum (requires --checksum) or that a symlink, device, or special file has a changed value. Note that if you are sending files to an rsync prior to 3.0.1, this change flag will be present only for checksum-differing regular files.
+#         A s means the size of a regular file is different and will be updated by the file transfer.
+#         A t means the modification time is different and is being updated to the sender's value (requires --times). An alternate value of T means that the modification time will be set to the transfer time, which happens when a file/symlink/device is updated without --times and when a symlink is changed and the receiver can't set its time. (Note: when using an rsync 3.0.0 client, you might see the s flag combined with t instead of the proper T flag for this time-setting failure.)
+#         A p means the permissions are different and are being updated to the sender's value (requires --perms).
+#         An o means the owner is different and is being updated to the sender's value (requires --owner and super-user privileges).
+#         A g means the group is different and is being updated to the sender's value (requires --group and the authority to set the group).
+#         A u|n|b indicates the following information:
+#             u means the access (use) time is different and is being updated to the sender's value (requires --atimes)
+#             n means the create time (newness) is different and is being updated to the sender's value (requires --crtimes)
+#             b means that both the access and create times are being updated
+#         The a means that the ACL information is being changed.
+#         The x means that the extended attribute information is being changed.
+
+#     One other output is possible: when deleting files, the "%i" will output the string "*deleting" for each item that is being removed (assuming that you are talking to a recent enough rsync that it logs deletions instead of outputting them as a verbose message).

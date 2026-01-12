@@ -1,0 +1,26 @@
+####################################
+# Service Management
+####################################
+
+get_service_logs() {
+    #set -x
+    IFS=$'\n' options=($(systemctl list-units --type=service | grep running | tr -s ' ' | cut -f 2 -d ' '))
+    echo "Select Service to get logs about:"
+    select opt in "${options[@]}"; do
+        SERVICE_NAME=$opt
+        break
+    done
+    # echo "$SERVICE_NAME"
+    journalctl -xef -u "${SERVICE_NAME}"
+    #set +x
+}
+alias service_get_logs=get_service_logs
+
+
+####################################
+# Troubleshooting Computer
+####################################
+
+fix_audio_no_output_devices() {
+    rm -r ~/.config/pulse; pulseaudio -k
+}

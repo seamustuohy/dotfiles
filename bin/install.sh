@@ -148,14 +148,14 @@ base() {
           ####################################
           # App Security
           ####################################
-          apparmor \
+          # apparmor \
           ####################################
           # Backups
           ####################################
           duplicity \
-          python-boto \
+          # python-boto \
           # Unison for archive transfer.
-          unison \
+          # unison \
           ####################################
           # Investigation
           ####################################
@@ -170,10 +170,12 @@ base() {
           ####################################
           git \
           pylint \
-          python-pip \
+          # python-pip \
           python3-dev \
           python3-pip \
           python3-setuptools \
+          # Allow for python3 -m venv "env_name"
+          python3-venv \
           # For dealing with builddeps problems
           #          https://ww          w.guyruten          berg.com/2          017/09/23/use-mk-build-deps-instead-of-apt-get-build-dep/
           devscripts \
@@ -194,6 +196,7 @@ base() {
           scdaemon \
           pcscd \
           libusb-1.0-0-dev \
+          pass \
           # pidgin \
           # pidgin-otr \
           ####################################
@@ -213,13 +216,203 @@ base() {
           ####################################
           jq \
           bc \
-          python-q-text-as-data \
+          # python-q-text-as-data \
           ####################################
           # Media
           ####################################
           # libav-tools \
           ffmpeg \
-          youtube-dl \
+          # youtube-dl \
+          # Texlive is needed for pdf manipulation (pdfnup & pdfjam). See functions/helpers
+          texlive-extra-utils \
+          imagemagick \
+          # v4l-utils & qv4l2 - modify camera settings
+          v4l-utils \
+          qv4l2 \
+          vlc \
+          ####################################
+          # Getting Debian to be a functional OS
+          ####################################
+          sudo \
+          # terminator \ #Using xterm now
+          unzip \
+          tlp \
+          tlp-rdw \
+          ack \
+          xclip \
+          bash-completion \
+          # libcanberra-gtk-module \
+          # libgmime-2.6-dev \
+          # libncurses5-dev \
+          # libtalloc-dev \
+          # libxapian-dev \
+          ####################################
+          # File Viewing
+          ####################################
+          urlview \
+          unzip \
+          zip \
+          libxml2-utils \
+          # binwalk \
+          # Checking on status of file transfers
+          progress \
+          ####################################
+          # System Exploration
+          ####################################
+          lsof \
+          silversearcher-ag \
+          tree \
+          # fdupes: https://www.tecmint.com/fdupes-find-and-delete-duplicate-files-in-linux/
+          fdupes \
+          ####################################
+          # Productivity
+          ####################################
+          # taskwarrior \
+          # timewarrior \
+          ####################################
+          # Language
+          ####################################
+          ispell \
+          dictionaries-common \
+          iamerican \
+          ####################################
+          # News & Info
+          ####################################
+          # newsboat \
+          ####################################
+          # Communication
+          ####################################
+          isync \
+              )
+
+    # Swap out for Ubuntu specific packages if on ubuntu
+    if $(grep -qi ubuntu /proc/version); then
+        for i in "${!base_packages[@]}"; do
+            if [[ ${base_packages[$i]} == "stunnel" ]]; then
+                base_packages[$i]="stunnel4"
+            fi
+            if [[ ${base_packages[$i]} == "exiftool" ]]; then
+                base_packages[$i]="libimage-exiftool-perl"
+            fi
+            if [[ ${base_packages[$i]} == "ack" ]]; then
+                base_packages[$i]="ack-grep"
+            fi
+            if [[ ${base_packages[$i]} == "libav-tools" ]]; then
+                base_packages[$i]="ffmpeg"
+            fi
+        done
+    fi
+    sudo apt-get install -y "${base_packages[@]}" --no-install-recommends
+
+    # If using locally stored email and notmuch
+    # apt-get install -y offlineimap --no-install-recommends
+    # Else if using remote mail and mutt
+    # local remote_mail=$(echo "Just Mutt and imap")
+
+    setup_sudo
+    sudo apt-get autoremove
+    sudo apt-get autoclean
+    sudo apt-get clean
+}
+
+
+
+check_if_ubuntu_pkg_exists() {
+    fail_is_sudo
+    sudo apt-get update
+    sudo apt-get -y upgrade
+    local base_packages=( \
+          ####################################
+          # Networking
+          ####################################
+          network-manager-gnome \
+          curl \
+          dnsutils \
+          ####################################
+          # Networking Troubleshooting
+          ####################################
+          mtr \
+          tcpdump  \
+          # Need keyring for network manager
+          gnome-keyring \
+          ####################################
+          # App Security
+          ####################################
+          # apparmor \
+          ####################################
+          # Backups
+          ####################################
+          duplicity \
+          # python-boto \
+          # Unison for archive transfer.
+          # unison \
+          ####################################
+          # Investigation
+          ####################################
+          exiftool \
+          strace \
+          wget \
+          whois \
+          poppler-utils \
+          lynx \
+          ####################################
+          # Development
+          ####################################
+          git \
+          pylint \
+          # python-pip \
+          python3-dev \
+          python3-pip \
+          python3-setuptools \
+          # Allow for python3 -m venv "env_name"
+          python3-venv \
+          # For dealing with builddeps problems
+          #          https://ww          w.guyruten          berg.com/2          017/09/23/use-mk-build-deps-instead-of-apt-get-build-dep/
+          devscripts \
+          equivs \
+          libssl-dev \
+          ####################################
+          # Writing
+          ####################################
+          ispell \
+          uuid-runtime \
+          ####################################
+          # Comms Security
+          ####################################
+          gnupg-agent \
+          gnupg2 \
+          gnutls-bin \
+          pinentry-curses \
+          scdaemon \
+          pcscd \
+          libusb-1.0-0-dev \
+          pass \
+          # pidgin \
+          # pidgin-otr \
+          ####################################
+          # net sec
+          ####################################
+          macchanger \
+          openvpn \
+          stunnel \
+          tor \
+          torsocks \
+          ####################################
+          # General Sec
+          ####################################
+          # keepassxc \
+          ####################################
+          # Data Analysis
+          ####################################
+          jq \
+          bc \
+          # python-q-text-as-data \
+          ####################################
+          # Media
+          ####################################
+          # libav-tools \
+          ffmpeg \
+          # youtube-dl \
           # Texlive is needed for pdf manipulation (pdfnup & pdfjam). See functions/helpers
           texlive-extra-utils \
           imagemagick \
@@ -271,11 +464,19 @@ base() {
           ####################################
           # News & Info
           ####################################
-          newsboat )
+          newsboat \
+          ####################################
+          # Communication
+          ####################################
+          isync \
+              )
 
     # Swap out for Ubuntu specific packages if on ubuntu
     if $(grep -qi ubuntu /proc/version); then
         for i in "${!base_packages[@]}"; do
+
+            sudo apt show ${base_packages[$i]} > /dev/null 2>&1 && echo "${base_packages[$i]} FOUND" || echo "${base_packages[$i]} MISSING"
+
             if [[ ${base_packages[$i]} == "stunnel" ]]; then
                 base_packages[$i]="stunnel4"
             fi
@@ -290,23 +491,166 @@ base() {
             fi
         done
     fi
-    sudo apt-get install -y "${base_packages[@]}" --no-install-recommends
+
+
+    # sudo apt-get install -y "${base_packages[@]}" --no-install-recommends
 
     # If using locally stored email and notmuch
     # apt-get install -y offlineimap --no-install-recommends
     # Else if using remote mail and mutt
     # local remote_mail=$(echo "Just Mutt and imap")
 
-    setup_sudo
-    sudo apt-get autoremove
-    sudo apt-get autoclean
-    sudo apt-get clean
+    # setup_sudo
+    # sudo apt-get autoremove
+    # sudo apt-get autoclean
+    # sudo apt-get clean
+}
+
+
+install_info_archive_management_tools() {
+    # Recoll
+    local packages=(recoll)
+    sudo apt-get install -y "${packages[@]}" --no-install-recommends
+    # TMSU
+    local RELEASE_API="https://api.github.com/repos/oniony/TMSU/releases/latest"
+    local LATEST_RELEASE_INFO=$(curl -s -H "Accept: application/vnd.github.v3+json" \
+                                     "${RELEASE_API}")
+    local LATEST_RELEASE_TAR_URL=$(echo "${LATEST_RELEASE_INFO}" | \
+                                       jq -r '.assets[].browser_download_url')
+    local LATEST_RELEASE_NAME=$(echo "${LATEST_RELEASE_INFO}" | \
+                                    jq -r '.name')
+    local LATEST_RELEASE_DESCRIPTION=$(echo "${LATEST_RELEASE_INFO}" | \
+                                           jq -r '.body')
+    printf "Installing TMSU for tagging files\n"
+    printf "The latest available release is ${LATEST_RELEASE_NAME}\n"
+    printf "The release description is:\n${LATEST_RELEASE_DESCRIPTION}\n"
+    PS3='How do you want to proceed?'
+    options=("Install latest release" "I'll install it manually" "I don't want to install it")
+    select opt in "${options[@]}"; do
+        case $opt in
+            "Install latest release")
+                local tmpdir=$(mktemp -d)
+                local tmsu_packages=( sqlite3 fuse )
+                sudo apt-get install -y "${tmsu_packages[@]}" --no-install-recommends
+                cd "${tmpdir}"
+                wget -O latest.tar.gz "${LATEST_RELEASE_TAR_URL}"
+                mkdir TMSU
+                tar -zxvf latest.tar.gz -C TMSU --strip-components 1 # -C changes to the specified directory before unpacking (or packing). --strip-components removes the specified number of directories from the filenames stored in the archive.
+                sudo cp TMSU/bin/tmsu /usr/bin
+
+                # TODO: Setup configuration
+                # TODO: Setup traveling database of tags
+
+                break
+                ;;
+            "I'll install it manually")
+                break
+                ;;
+            "I don't want to install it")
+                break
+                ;;
+            *)
+                echo "Choose an option"
+                ;;
+        esac
+    done
+
+
+
+
+
+    "https://github.com/oniony/TMSU/releases/download/v0.7.5/tmsu-x86_64-0.7.5.tgz"
+
+}
+
+
+install_youtube-dl_tools() {
+    sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
+    sudo chmod a+rx /usr/local/bin/yt-dlp
+    # local RELEASE_API="https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest"
+    # local LATEST_RELEASE_INFO=$(curl -s -H "Accept: application/vnd.github.v3+json" \
+    #                                  "${RELEASE_API}")
+    # local LATEST_RELEASE_TAR_URL=$(echo "${LATEST_RELEASE_INFO}" | \
+    #                                    jq -r '.assets[].browser_download_url' | \
+    #                                    grep 'tar.gz' )
+    # local LATEST_RELEASE_NAME=$(echo "${LATEST_RELEASE_INFO}" | \
+    #                                 jq -r '.name')
+    # local LATEST_RELEASE_DESCRIPTION=$(echo "${LATEST_RELEASE_INFO}" | \
+    #                                        jq -r '.body')
+    # printf "Installing YT-DLP for tagging files\n"
+    # printf "The latest available release is ${LATEST_RELEASE_NAME}\n"
+    # printf "The release description is:\n${LATEST_RELEASE_DESCRIPTION}\n"
+    # PS3='How do you want to proceed?'
+    # options=("Install latest release" "I'll install it manually" "I don't want to install it")
+    # select opt in "${options[@]}"; do
+    #     case $opt in
+    #         "Install latest release")
+    #             local tmpdir=$(mktemp -d)
+    #             # local ytdlp_packages=( sqlite3 fuse )
+    #             # sudo apt-get install -y "${tmsu_packages[@]}" --no-install-recommends
+    #             cd "${tmpdir}"
+    #             wget -O latest.tar.gz "${LATEST_RELEASE_TAR_URL}"
+    #             mkdir yt-dlp
+    #             tar -zxvf latest.tar.gz -C yt-dlp --strip-components 1 # -C changes to the specified directory before unpacking (or packing). --strip-components removes the specified number of directories from the filenames stored in the archive.
+    #             # sudo cp yt-dlp/bin/tmsu /usr/bin
+    #             echo "FIND IT HERE: ${tmpdir}"
+
+
+    #             # TODO: Setup configuration
+    #             # TODO: Setup traveling database of tags
+
+    #             break
+    #             ;;
+    #         "I'll install it manually")
+    #             break
+    #             ;;
+    #         "I don't want to install it")
+    #             break
+    #             ;;
+    #         *)
+    #             echo "Choose an option"
+    #             ;;
+    #     esac
+    # done
+}
+
+
+
+install_notmuch() {
+    sudo apt install notmuch
+    sudo -H pip3 install notmuch #notmuch2
+}
+
+install_afew () {
+    install_notmuch
+    local VENV_DIR="afew"
+    make_venv "${VENV_DIR}"
+    activate_venv "${VENV_DIR}"
+    pip3 install afew
+    ln -sf "${HOME}/.venvs/${VENV_DIR}/bin/afew" /usr/local/bin/afew
+    deactivate_venv
+}
+
+make_venv() {
+    local VENV_DIR="${1}"
+    mkdir -p "${HOME}/.venvs/"
+    cd "${HOME}/.venvs/"
+    python3 -m venv --system-site-packages "${VENV_DIR}"
+}
+
+activate_venv() {
+    local VENV_DIR="${1}"
+    source "${HOME}/.venvs/${VENV_DIR}/bin/activate"
+}
+
+deactivate_venv() {
+    deactivate
 }
 
 install_chrome() {
     fail_is_sudo
 
-    echo "deb [arch=amd64] https://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google.list
+    echo "deb [arch=amd64] https://dl.google.com/linux/chrome/deb/ stable main" | sudo tee -a /etc/apt/sources.list.d/google.list
 
     curl -sSL https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
 
@@ -328,8 +672,8 @@ install_signal() {
 install_docker() {
     fail_is_sudo
 
-    # add docker gpg key
-    sudo apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
+    # # add docker gpg key
+    # sudo apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
 
     # create docker group
     sudo groupadd docker || true
@@ -339,50 +683,69 @@ install_docker() {
     mkdir -p /etc/bash_completion.d
     sudo curl -sSL -o /etc/bash_completion.d/docker https://raw.githubusercontent.com/docker/docker-ce/master/components/cli/contrib/completion/bash/docker
 
-    # get the binary
-    local tmp_tar=/tmp/docker.tgz
-    local binary_uri="https://download.docker.com/linux/static/edge/x86_64"
-    local docker_version
-    docker_version=$(curl -sSL "https://api.github.com/repos/docker/docker-ce/releases/latest" | jq --raw-output .tag_name)
-    docker_version=${docker_version#v}
-    # local docker_sha256
-    # docker_sha256=$(curl -sSL "${binary_uri}/docker-${docker_version}.tgz.sha256" | awk '{print $1}')
-    (
-        set -x
-        curl -fSL "${binary_uri}/docker-${docker_version}.tgz" -o "${tmp_tar}"
-        # echo "${docker_sha256} ${tmp_tar}" | sha256sum -c -
-        sudo tar -C /usr/local/bin --strip-components 1 -xzvf "${tmp_tar}"
-        rm "${tmp_tar}"
-        docker -v
-    )
-    sudo chmod +x /usr/local/bin/docker*
 
-    sudo curl -sSL -o /etc/systemd/system/docker.service https://raw.githubusercontent.com/jessfraz/dotfiles/master/etc/systemd/system/docker.service
-    sudo curl -sSL -o /etc/systemd/system/docker.socket https://raw.githubusercontent.com/jessfraz/dotfiles/master/etc/systemd/system/docker.socket
+    sudo apt-get install \
+         apt-transport-https \
+         ca-certificates \
+         curl \
+         gnupg-agent \
+         software-properties-common
+    curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
 
-    sudo systemctl daemon-reload
-    sudo systemctl enable docker
+    # TODO: Check fingerprint
+    # sudo apt-key fingerprint 0EBFCD88
 
-    # update grub with docker configs and power-saving items
-    sudo sed -i.bak 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="cgroup_enable=memory swapaccount=1 pcie_aspm=force apparmor=1 security=apparmor"/g' /etc/default/grub
-    echo "Docker has been installed. If you want memory management & swap you have to run update-grub & reboot."
-    PS3='Would you like to do that now? '
-    options=("Yes" "No")
-    select opt in "${options[@]}"; do
-        case $opt in
-            "Yes")
-                echo "Updating and Restarting"
-                sudo update-grub
-                sudo shutdown -r 0
-                break
-                ;;
-            "No")
-                echo "Continuing without restarting"
-                break
-                ;;
-            *) echo "Invalid option. Please choose again.";;
-        esac
-    done
+    sudo add-apt-repository \
+         "deb [arch=amd64] https://download.docker.com/linux/debian \
+         "buster" \
+         stable"
+    sudo apt-get update
+    sudo apt-get install docker-ce docker-ce-cli containerd.io
+
+    # # get the binary
+    # local tmp_tar=/tmp/docker.tgz
+    # local binary_uri="https://download.docker.com/linux/static/edge/x86_64"
+    # local docker_version
+    # docker_version=$(curl -sSL "https://api.github.com/repos/docker/docker-ce/releases/latest" | jq --raw-output .tag_name)
+    # docker_version=${docker_version#v}
+    # # local docker_sha256
+    # # docker_sha256=$(curl -sSL "${binary_uri}/docker-${docker_version}.tgz.sha256" | awk '{print $1}')
+    # (
+    #     set -x
+    #     curl -fSL "${binary_uri}/docker-${docker_version}.tgz" -o "${tmp_tar}"
+    #     # echo "${docker_sha256} ${tmp_tar}" | sha256sum -c -
+    #     sudo tar -C /usr/local/bin --strip-components 1 -xzvf "${tmp_tar}"
+    #     rm "${tmp_tar}"
+    #     docker -v
+    # )
+    # sudo chmod +x /usr/local/bin/docker*
+
+    # sudo curl -sSL -o /etc/systemd/system/docker.service https://raw.githubusercontent.com/jessfraz/dotfiles/master/etc/systemd/system/docker.service
+    # sudo curl -sSL -o /etc/systemd/system/docker.socket https://raw.githubusercontent.com/jessfraz/dotfiles/master/etc/systemd/system/docker.socket
+
+    # sudo systemctl daemon-reload
+    # sudo systemctl enable docker
+
+    # # update grub with docker configs and power-saving items
+    # sudo sed -i.bak 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="cgroup_enable=memory swapaccount=1 pcie_aspm=force apparmor=1 security=apparmor"/g' /etc/default/grub
+    # echo "Docker has been installed. If you want memory management & swap you have to run update-grub & reboot."
+    # PS3='Would you like to do that now? '
+    # options=("Yes" "No")
+    # select opt in "${options[@]}"; do
+    #     case $opt in
+    #         "Yes")
+    #             echo "Updating and Restarting"
+    #             sudo update-grub
+    #             sudo shutdown -r 0
+    #             break
+    #             ;;
+    #         "No")
+    #             echo "Continuing without restarting"
+    #             break
+    #             ;;
+    #         *) echo "Invalid option. Please choose again.";;
+    #     esac
+    # done
 
     # Ensure user has access to docker dir
     sudo mkdir -p /etc/docker
@@ -1062,6 +1425,7 @@ install_wifi() {
 }
 
 install_wmapps() {
+    fail_is_sudo
     echo "installing i3 extras"
     # Install apt based packages
     local aptpkgs=( \
@@ -1104,19 +1468,21 @@ install_wmapps() {
         # Screenshots with scrot
         ####################################
         scrot )
-    apt-get install -y "${aptpkgs[@]}" --no-install-recommends
+    sudo apt-get install -y "${aptpkgs[@]}" --no-install-recommends
 
     # Install pip i3 packages
     # You need to install them one at a time
-    sudo -H pip install -U wheel
-    sudo -H pip install -U i3-py
-    sudo -H pip install -U quickswitch-i3
+    sudo -H pip3 install -U wheel setuptools
+    echo "Install i3-py from personal repo"
+    # sudo -H pip3 install -U i3-py
+    sudo -H pip3 install -U python3-tk
+    # sudo -H pip3 install -U quickswitch-i3
     sudo -H pip install -U py3status
     # i3Bar VPN script
     sudo -H pip install -U pydbus
     sudo -H pip install -U pytz
     sudo -H pip install -U tzlocal
-    sudo -H pip install -U PyOrgMode
+    # sudo -H pip install -U PyOrgMode
 }
 
 
@@ -1332,8 +1698,11 @@ main() {
         check_is_sudo
         graphics_selector
     elif [[ $cmd == "wm" ]]; then
-        check_is_sudo
+        fail_is_sudo
         install_wmapps
+    elif [[ $cmd == "afew" ]]; then
+        fail_is_sudo
+        install_afew
     elif [[ $cmd == "dotfiles" ]]; then
         get_user
         get_dotfiles
@@ -1380,7 +1749,7 @@ main() {
     elif [[ $cmd == "harpoon" ]]; then
         install_harpoon_docker
     elif [[ $cmd == "browser" ]]; then
-        check_is_sudo
+        fail_is_sudo
         install_chrome
     elif [[ $cmd == "thug" ]]; then
         install_thug_docker
@@ -1402,6 +1771,10 @@ main() {
         setup_vim
     elif [[ $cmd == "todo" ]]; then
         get_TODO
+    elif [[ $cmd == "check_ubuntu" ]]; then
+        check_if_ubuntu_pkg_exists
+    elif [[ $cmd == "youtube-dl" ]]; then
+        install_youtube-dl_tools
     else
         usage
     fi

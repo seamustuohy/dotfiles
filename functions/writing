@@ -5,5 +5,4 @@
 writing_check_prose() {
     local text_file="$1"
     proselint "${text_file}"
-} 
-
+}

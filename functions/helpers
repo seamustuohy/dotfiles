@@ -29,3 +29,27 @@ crontab_delete() {
         |  sort | uniq \
         | crontab -
 }
+
+############################################
+## replace text
+############################################
+
+replace_non_text_from_string() {
+    sed $'s/[^[:alnum:]\t]\+/_/g' "${1}"
+}
+replace_non_text_from_string_PIPE() {
+    sed $'s/[^[:alnum:]\t]\+/_/g'
+}
+
+alias make_text_to_filename_PIPE=replace_non_text_from_string_PIPE
+alias make_text_to_filename=replace_non_text_from_string
+
+
+
+############################################
+## make a sound at the end of a command
+############################################
+
+attention_chime(){
+    paplay /usr/share/sounds/freedesktop/stereo/window-attention.oga
+}

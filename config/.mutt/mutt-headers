@@ -21,11 +21,15 @@ unignore X-OS:
 unignore X-Operating-System:
 unignore X-Knaller:
 unignore X-Virus:
+unignore Tags:
+unignore Reply-To: In-reply-to:
+
 
 
 ## This identifies mailing lists
 ## see also: 'followup_to' and 'honor_followup_to'
 unignore mail-followup-to:
+unignore X-Mailer: X-Newsreader:
 
 ## Recognize resent messages (usually lacking proper headers):
 ## Example header lines:
@@ -33,6 +37,7 @@ unignore mail-followup-to:
 ##   X-Resent-For: guckes@gmx.de
 ##   X-Resent-To: guckes@math.fu-berlin.de
 unignore resent- x-resent
+X-Resent Followup-To: Mail-Followup-To:
 
 ## Display the delivery address:
 unignore delivered-to
@@ -46,4 +51,4 @@ unhdr_order *                               # forget the previous settings
 
 hdr_order Sender: From From: Subject: Date: Message-Id: User-Agent: \
           X-Editor: X-Mailer: X-Newsreader: X-Agent: To: Cc: Newsgroups: \
-          X-Resent Followup-To: Mail-Followup-To: Reply-To:
+          X-Resent Followup-To: Mail-Followup-To: Reply-To: Tags:

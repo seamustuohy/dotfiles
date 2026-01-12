@@ -1,6 +1,6 @@
-.PHONY: bin dotfiles src rss fonts
+.PHONY: bin dotfiles src etc
 
-all: bin dotfiles src
+all: bin dotfiles src afew etc
 
 bin:
 	# Move Binary Files to /usr/local/bin
@@ -19,7 +19,7 @@ src:
 		sudo ln -sf $$file /usr/local/src/$$f; \
 	done
 
-dotfiles: rss fonts
+dotfiles: # rss fonts afew
 	# add aliases for dotfiles
 	for file in $(shell find $(CURDIR)/config/  -maxdepth 1 \
 						    -name ".*" \
@@ -32,6 +32,14 @@ dotfiles: rss fonts
 	# GPG
 	ln -sfn $(CURDIR)/config/.gnupg/gpg.conf $(HOME)/.gnupg/gpg.conf;
 	ln -sfn $(CURDIR)/config/.gnupg/gpg-agent.conf $(HOME)/.gnupg/gpg-agent.conf;
+
+afew:
+	# compose afew
+	mkdir -p $(HOME)/.config/afew
+	ln -sfn $(HOME)/dotfiles/private/email/afew/config \
+		$(HOME)/.config/afew/config
+
+
 rss:
 	# RSS
 	mkdir -p $(HOME)/.newsboat
@@ -39,13 +47,18 @@ rss:
 
 fonts:
 	# FONTS
-	mkdir -p $(XDG_CONFIG_HOME)/fonts/truetype/
+	mkdir -p $(HOME)/.config/fonts/truetype/
 	mkdir -p $(HOME)/.local/share/fonts/truetype/
-	mkdir -p $(XDG_CONFIG_HOME)/fontconfig
+	mkdir -p $(HOME)/.config/fontconfig
 	for font in $(shell find $(CURDIR)/config/fonts/ -maxdepth 1 ! -path $(CURDIR)/config/fonts/ -type d -name "*" ); do \
 		f=$$(basename $$font); \
-		ln -sfn $$font $(XDG_CONFIG_HOME)/fonts/truetype/$$f; \
+		ln -sfn $$font $(HOME)/.config/fonts/truetype/$$f; \
 	ln -sfn $$font $(HOME)/.local/share/fonts/truetype/$$f; \
 	done;
-	ln -sfn $(CURDIR)/config/fonts/fonts.conf $(XDG_CONFIG_HOME)/fontconfig/fonts.conf
+	ln -sfn $(CURDIR)/config/fonts/fonts.conf $(HOME)/.config/fontconfig/fonts.conf
 	fc-cache
+
+etc:
+	mkdir -p $(HOME)/.emacs.d/snippets
+	rmdir $(HOME)/.emacs.d/snippets
+	ln -sf $(CURDIR)/etc/snippets $(HOME)/.emacs.d/

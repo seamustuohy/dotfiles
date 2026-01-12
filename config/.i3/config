@@ -35,8 +35,9 @@ font pango:DejaVu Sans Mono 8
 floating_modifier $mod
 
 # start a terminal
-# bindsym $mod+Return exec i3-sensible-terminal
-bindsym $mod+Return exec xterm
+bindsym $mod+Return exec i3-sensible-terminal
+# pbindsym $mod+Return exec xterm
+
 
 # kill focused window
 bindsym $mod+Shift+q kill
@@ -165,7 +166,7 @@ bindsym $mod+r mode "resize";
 # finds out, if available)
 # bar {
 #     position top
-#     status_command i3status --config ~/.i3/status.conf
+#     statusc_ommand i3status --config ~/.i3/status.conf
 #     tray_output primary
 #     colors{
 #         background #232323
@@ -242,7 +243,6 @@ bindsym XF86Display exec "set_monitors.sh"
 # Moves a workspace to another window
 bindsym $mod+m move workspace to output left
 
-
 # Workspaces
 # Use xprop to get WM_CLASS(STRING)
 assign [class="VirtualBox"] VMS
@@ -260,7 +260,7 @@ assign [class="pavucontrol"] sound
 ## Terminal transparency
 exec --no-startup-id xcompmgr -c -n
 ## start items
-exec --no-startup-id i3-msg 'workspace email; exec emacs24'
+# exec --no-startup-id i3-msg 'workspace email; exec emacs24'
 # exec --no-startup-id i3-msg 'workspace email; exec slack'
 # exec --no-startup-id i3-msg 'workspace chat; exec slack'
 # exec --no-startup-id i3-msg 'workspace chat; exec pidgin'
@@ -271,6 +271,7 @@ exec --no-startup-id i3-msg 'workspace sound; exec pavucontrol'
 exec --no-startup-id i3-msg 'workspace sound; exec blueman-manager'
 
 # BLUETOOTH FIX;
+exec --no-startup-id blueman-applet
 # If bluetooth is not working with sound run the following to fix
 # sudo systemctl restart bluetooth
 exec --no-startup-id i3-msg 'workspace music; exec rhythmbox'
@@ -343,7 +344,7 @@ mode "screenshot_mode" {
 #Window
         bindsym w  exec "scrot -q 100 -u ${HOME}'/Pictures/Screenshots/%Y-%m-%d-%H-%M-%S_$wx$h.png'"; mode "default"; nop #LABEL Screenshot Window
 #Selection
-        bindsym s  exec "sleep 0.4; scrot -q 100 -s ${HOME}'/Pictures/Screenshots/%Y-%m-%d-%H-%M-%S_$wx$h.png'"; mode "default" #LABEL Screenshot Selection
+        bindsym s  exec "sleep 0.4; scrot -q 100 -s ${HOME}'/Pictures/Screenshots/%Y-%m-%d-%H-%M-%S_$wx$h.png'"; mode "default"; nop #LABEL Screenshot Selection
         bindsym Escape mode "default"
         bindsym Return mode "default"
         bindsym Control+g mode "go_back"
@@ -373,6 +374,7 @@ mode "fix_it_mode" {
         bindsym c  exec "capslock_off.sh"; mode "default"; nop #LABEL Fix Capslock
         bindsym r  reload; mode "default"; nop #LABEL i3 Reload
         bindsym Shift+r  restart; mode "default"; nop #LABEL i3 Restart
+        bindsym w  exec "fix_webcam_color.sh"; mode "default"; nop #LABEL Fix webcam color
         bindsym Escape mode "default"
         bindsym Return mode "default"
 }
@@ -418,11 +420,20 @@ mode "time_clocking_mode" {
         bindsym Return mode "default"
 }
 
+mode "cheatsheet_mode" {
+        bindsym t exec "xdg-open /home/s2e/library/resources/cheat_sheets/taskwarrior-2.3.0.ref.pdf"; mode "default"; nop #LABEL Taskwarrior
+        bindsym Shift+t exec "xdg-open /home/s2e/library/resources/cheat_sheets/timewarrior-cheatsheet.pdf"; mode "default"; nop #LABEL Timewarrior
+        bindsym Escape mode "default"
+        bindsym Return mode "default"
+}
+
+
 
 # master_mode
 mode "master_mode" {
         bindsym a  mode "audio_mode"; nop #LABEL ♪ Mode
         bindsym s  mode "security_mode"; nop #LABEL ⚿ Mode
+        bindsym c  mode "cheatsheet_mode"; nop #LABEL CheatSheet Mode
         bindsym d  mode "display_mode"; nop #LABEL Display Mode
         bindsym n  mode "networking_mode"; nop #LABEL Net Mode
         bindsym f  mode "fix_it_mode"; nop #LABEL ⚠ Mode
