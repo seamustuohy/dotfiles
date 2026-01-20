@@ -18,22 +18,9 @@ if [ -f ~/.bash_alias ]; then
     source ~/.bash_alias
 fi
 
-# Docker Functions
-#if [ -f ~/.dockerfunc ]; then
-#    source ~/.dockerfunc
-#fi
-
 #####################################
 # Variables
 #####################################
-
-# Mobile Home
-# I sometimes keep some files in a mobile home directory mobile so that I can easily switch between different computers. This helps script to that.
-export MOBILE_HOME=/media/veracrypt11/
-
-
-# Org Files
-export ORG_TIMEW_FILE="${HOME}/.org/projects.org"
 
 # Editor : set default editor to emacs
 export EDITOR=emacs
@@ -98,7 +85,7 @@ function history_cleanup {
    fi
 }
 
-# #run histroy cleanup on bash startup
+# run histroy cleanup on bash startup
 
 history_cleanup
 
@@ -117,22 +104,17 @@ alias egrep='egrep --color=auto'
 # Prompt
 
 PS1="\[\e[32m\]\$(parse_git_branch)\[\e[34m\]\h:\W \$ \[\e[m\]"
-
 # ..fix tangle errors..
-
 PROMPT_COMMAND=prompt_commands
 
 # Add additional prompt commands to the function below
 #   - update histfile after every command
-
 prompt_commands() {
         history -a
 }
 
 # Display
-
 # Check the window size after each command and, if necessary, update the values of LINES and COLUMNS.
-
 shopt -s checkwinsize
 
 # Completion
@@ -142,7 +124,6 @@ shopt -s checkwinsize
 shopt -s globstar
 
 # Enable programmable completion features (you don't need to enable this, if it's already enabled in /etc/bash.bashrc and /etc/profile sources /etc/bash.bashrc).
-
 if ! shopt -oq posix; then
   if [ -f /usr/share/bash-completion/bash_completion ]; then
     . /usr/share/bash-completion/bash_completion
@@ -152,42 +133,10 @@ if ! shopt -oq posix; then
 fi
 
 # Perform file completion in a case insensitive fashion
-
 bind "set completion-ignore-case on"
 
 # Treat hyphens and underscores as equivalent
-
 bind "set completion-map-case on"
 
 # Display matches for ambiguous patterns at first tab press
-
 bind "set show-all-if-ambiguous on"
-
-# PATH
-# Add CASK to the path for emacs if using cask
-# export PATH="$PATH:$HOME/.cask/bin"
-
-# SSH Agent & GPG
-# Set SSH_AUTH_SOCK
-unset SSH_AGENT_PID
-if [ "${gnupg_SSH_AUTH_SOCK_by:-0}" -ne $$ ]; then
-  export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
-fi
-
-# Configure pinentry to use the correct TTY
-# Also set the GPG_TTY and refresh the TTY in case user has switched into an X session as stated in gpg-agent(1). For example:
-
-export GPG_TTY=$(tty)
-# gpg-connect-agent updatestartuptty /bye >/dev/null
-
-
-
-# Add go to path
-export PATH=$PATH:/usr/local/go/bin
-# Install Ruby Gems to ~/gems
-export GEM_HOME="$HOME/gems"
-export PATH="$HOME/gems/bin:$PATH"
-
-
-# TMSU Database
-export TMSU_DB=/home/s2e/.tmsu/db

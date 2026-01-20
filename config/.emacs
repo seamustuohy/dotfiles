@@ -90,10 +90,10 @@
 
 ;; GPG key to use for encryption
 ;; Either the Key ID or set to nil to use symmetric encryption.
-(setq org-crypt-key "3CF07AA7")
+;; (setq org-crypt-key "3CF07AA7")
 
 ;; Get Private Vars
-(load (file-truename "~/dotfiles/private/emacs_locations.el"))
+;; (load (file-truename "~/dotfiles/private/emacs_locations.el"))
 
 ;; Overwrite Highlighted Text
 ;; Also does the same as delete selection mode

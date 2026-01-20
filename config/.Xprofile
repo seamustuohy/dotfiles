@@ -1,6 +1,0 @@
-#!/bin/sh
-
-# Load Xresources since login manager won't on Gnome.
-# [ -f ~/.Xresources ] && xrdb -merge -I$HOME ~/.Xresources
-
-xcompmgr -c &

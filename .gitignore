@@ -5,6 +5,9 @@ config/.mutt/*
 # Only show configs
 !config/.mutt/mutt*
 
+
+ARCHIVE/
+
 # Don't show logfile
 config/.i3/logfile
 
