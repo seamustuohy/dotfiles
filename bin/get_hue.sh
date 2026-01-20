@@ -21,7 +21,7 @@ set -e
 set -u
 
 # TODO remove DEBUGGING
-#set -x
+# set -x
 
 # Read Only variables
 
