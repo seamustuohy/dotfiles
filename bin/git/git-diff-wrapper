@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# The arguments passed by Git are:
+# $1: path
+# $2: old-file
+# $3: old-hex
+# $4: old-mode
+# $5: new-file
+# $6: new-hex
+# $7: new-mode
+
+# export only the file paths for use by an external tool
+echo "${2}" "${5}"

@@ -251,8 +251,24 @@ msg2eml() {
     # Convert a .msg email to a .eml email
     # sudo apt-get install libemail-outlook-message-perl libemail-localdelivery-perl
     local MSG_FILE="${1}"
-    local EML_FILE="${2}"
-    ~/tools/msg2eml/msgconvert.pl --verbose --mbox "${EML_FILE}" "${MSG_FILE}"
+    if command -v msgconvert &> /dev/null; then
+        echo "Command found"
+        msgconvert "${MSG_FILE}"
+    else
+        echo "msgconvert command not found. Install using the following command."
+        echo "sudo apt-get install libemail-outlook-message-perl libemail-localdelivery-perl"
+    fi
+}
+
+eml_view() {
+    local EML_FILE="${1}"
+    if command -v mu &> /dev/null; then
+        echo "Command found"
+        mu view "${EML_FILE}"
+    else
+        echo "Mu command not found. Install using the following command."
+        echo "sudo apt install maildir-utils"
+    fi
 }
 
 read_email() {

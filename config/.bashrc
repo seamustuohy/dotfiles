@@ -25,30 +25,25 @@ fi
 # Editor : set default editor to emacs
 export EDITOR=emacs
 
-
 #####################################
 #        HISTORY CONTROLS
 #####################################
 
 # Huge history. Doesn't appear to slow things down, so why not?
 # for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
-
 HISTSIZE=500000
 HISTFILESIZE=100000
 
 # Don't put duplicate lines or lines starting with space in the history.
 # See bash(1) for more options
-
 HISTCONTROL=ignoreboth
 
 # Append to the history file, don't overwrite it
-
 shopt -s histappend
 
 # ALSO See: PROMPT_COMMAND below
 
 # Don't record some commands
-
 export HISTIGNORE="&:[ ]*:exit:ls:bg:fg:history:clear:pwd"
 
 # remove duplicates while preserving input order
@@ -58,7 +53,6 @@ function dedup {
 }
 
 # removes $HISTIGNORE commands from input
-
 function remove_histignore {
    if [ -n "$HISTIGNORE" ]; then
       # replace : with |, then * with .*
@@ -71,7 +65,6 @@ function remove_histignore {
 }
 
 # clean up the history file by remove duplicates and commands matching $HISTIGNORE entries
-
 function history_cleanup {
    local HISTFILE_SRC=~/.bash_history
    local HISTFILE_DST=/tmp/.$USER.bash_history.clean
@@ -86,7 +79,6 @@ function history_cleanup {
 }
 
 # run histroy cleanup on bash startup
-
 history_cleanup
 
 # Colors
@@ -120,7 +112,6 @@ shopt -s checkwinsize
 # Completion
 
 # If set, the pattern "**" used in a pathname expansion context will match all files and zero or more directories and subdirectories.
-
 shopt -s globstar
 
 # Enable programmable completion features (you don't need to enable this, if it's already enabled in /etc/bash.bashrc and /etc/profile sources /etc/bash.bashrc).

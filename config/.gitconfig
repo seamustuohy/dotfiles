@@ -44,7 +44,6 @@
         ps = "!git push origin $(git rev-parse --abbrev-ref HEAD)"
         b = "!git checkout -b"
         # pr = "!f() { git fetch -fu ${2:-origin} refs/pull/$1/head:pr/$1 && git checkout pr/$1; }; f"
-
         amend = !git add -A && git commit --amend --no-edit
         # Show the staged changes.
         dc = diff --cached
@@ -55,6 +54,7 @@
         churn = !sh -c 'git-churn'
         # Create a new branch from a specific pull request made against a git repository by giving it the PR number on github. (PR doesn't have to be from that same repository.)
         pro = "!f() { git fetch -fu ${2:-origin} refs/pull/$1/head:pr/$1 && git checkout pr/$1; }; f"
+        diffn = diff --name-only
 
 [color]
         ui = auto
@@ -82,3 +82,13 @@
         process = git-lfs filter-process
         required = true
         clean = git-lfs clean -- %f
+
+# Add a .gitattributes file to repo
+# *.csv diff=csv_diff
+[diff "csv_diff"]
+        command = "/usr/local/bin/git-csv-diff"
+
+# Add a .gitattributes file to repo
+# *.csv diff=usg_csv_diff
+[diff "usg_csv_diff"]
+        command = "/usr/local/bin/git_USG_DNS_diff"

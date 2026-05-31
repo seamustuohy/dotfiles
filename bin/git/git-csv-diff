@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# The arguments passed by Git are:
+# $1: path
+# $2: old-file
+# $3: old-hex
+# $4: old-mode
+# $5: new-file
+# $6: new-hex
+# $7: new-mode
+
+# set -x
+# echo "${2}" "${5}"
+cp "${2}" /tmp/1.csv
+cp "${5}" /tmp/2.csv
+csvdiff --style=compact 'Domain name' "${2}" "${5}" | jq

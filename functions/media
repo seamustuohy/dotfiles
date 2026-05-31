@@ -264,6 +264,18 @@ pdf_extract_images() {
 }
 
 
+pdf_reduce_size() {
+    # LEVEL_TO_REDUCE options:
+    # /screen: Lowest quality, smallest size (72 dpi).
+    # /ebook: Good balance, medium size (150 dpi).
+    # /printer: High quality, larger size (300 dpi).
+    # /prepress: Highest quality, largest size (300 dpi, high color).
+    LEVEL_TO_REDUCE="${1:/ebook}"
+    INPUT="${2}"
+    OUTPUT="${3}"
+    gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS="${LEVEL_TO_REDUCE}" -dNOPAUSE -dQUIET -dBATCH -sOutputFile="${OUTPUT}" "${INPUT}"
+}
+
 
 function mov2gif() {
     # Note this arbitrary scale, etc. becuase it was what I needed for this one time.

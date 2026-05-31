@@ -68,6 +68,7 @@
                      web-mode
                      wrap-region
                      writegood-mode
+                     flycheck-vale
                      vimrc-mode
                      yaml-mode))
 ;; persp-projectile
@@ -76,7 +77,17 @@
   (unless (package-installed-p package)
     (package-install package)))
 
+
 (require 'use-package)
+
+
+;; Speech-to-Text
+;; https://github.com/natrys/whisper.el
+(use-package whisper
+  :vc (:url "https://github.com/natrys/whisper.el" :branch "master"))
+
+
+(flycheck-vale-setup)
 
 ;; org mode first
 (require 'org)
@@ -1717,6 +1728,14 @@ When called interactively, work on current line or text selection."
   (kill-new (shell-command-to-string cmd))
   (yank))
 
+(defun html-from-clipboard ()
+  "Convert clipboard contents from HTML to Org and then paste (yank)."
+  (interactive)
+  (setq cmd "xclip -o -selection clipboard -t text/html")
+  (kill-new (shell-command-to-string cmd))
+  (yank))
+
+
 (defun slugify-region (beg end)
   "Slugify the text in the active region and replace it in the buffer.
 
@@ -1748,11 +1767,9 @@ hyphens are replaced by a single one."
  '(ignored-local-variable-values
    '((org-odt-content-template-file
       . /media/truecrypt1/code/.dotfiles/templates/emacs/OrgOdtContentTemplate/xml)))
- '(package-selected-packages
-   '(ag drag-stuff guide-key guru-mode helm-ag helm-dash helm-flycheck
-        helm-projectile helm-swoop highlight-indentation js2-mode js3-mode
-        json-mode logview markdown-mode nlinum persp-mode persp-projectile
-        powershell rainbow-delimiters rainbow-mode smartscan solarized-theme
-        switch-window undo-tree use-package vimrc-mode web-beautify web-mode
-        wrap-region writegood-mode yaml-mode yasnippet))
+ '(package-selected-packages '(vc-use-package whisper))
+ '(package-vc-selected-packages
+   '((whisper :url "https://github.com/natrys/whisper.el" :branch "master")
+     (vc-use-package :vc-backend Git :url
+                     "https://github.com/slotThe/vc-use-package")))
  '(warning-suppress-types '((comp) (yasnippet backquote-change))))

@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# The arguments passed by Git are:
+# $1: path
+# $2: old-file
+# $3: old-hex
+# $4: old-mode
+# $5: new-file
+# $6: new-hex
+# $7: new-mode
+# set -x
+# echo "${2}" "${5}"
+cp "${2}" /tmp/1.csv
+cp "${5}" /tmp/2.csv
+# csvdiff --style=compact 'Domain name' "${2}" "${5}" | jq '{added}'
+ADDED=$(csvdiff --style=compact 'Domain name' "${2}" "${5}" | jq -r '(.added[] | [.["Domain name"], .["Organization name"], .["Suborganization name"], .["Security contact email"]]) | @csv' | xargs -I % echo -e "\e[32m+%\e[0m")
+REMOVED=$(csvdiff --style=compact 'Domain name' /tmp/1.csv /tmp/2.csv | jq -r '(.removed[] | [.["Domain name"], .["Organization name"], .["Suborganization name"], .["Security contact email"]]) | @csv' | xargs -I % echo -e "\e[31m-%\e[0m")
+echo -e "Domain name","Organization name","Suborganization name","Security contact email"
+echo -e "==============================================================================="
+echo -e "${ADDED}"
+echo -e "${REMOVED}"
+
+
+
+# csvdiff --style=compact 'Domain name' /tmp/1.csv /tmp/2.csv | jq '(["Domain_name","Organization_name","Suborganization_name","Security_contact_email"]), (.added[] | [.["Domain name"], .["Organization name"], .["Suborganization name"], .["Security contact email"]]) | @csv' | cat
+# "City": "Washington",
+# "Domain name": "techprosperitycorps.gov",
+# "Domain type": "Federal - Executive",
+# "Organization name": "Peace Corps",
+# "Security contact email": "(blank)",
+# "State": "DC",
+# "Suborganization name": ""
