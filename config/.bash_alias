@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-DOTLOC="/home/etc/dotfiles/"
+DOTLOC="/etc/dotfiles/"
 source "${DOTLOC}functions/debug"
 source "${DOTLOC}functions/file_management"
 source "${DOTLOC}functions/hardware"
