@@ -80,6 +80,9 @@
 
 (require 'use-package)
 
+;; Move your custom-set-variables and custom-set-faces to a separate file so I can have my .emacs read-only. The custom-file variable  tells Emacs to write all future customizations to a different file while keeping my main config untouched.
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+(load custom-file 'noerror 'nomessage)
 
 ;; Speech-to-Text
 ;; https://github.com/natrys/whisper.el
@@ -1156,22 +1159,6 @@ If point was already at that position, move point to beginning of line."
        "----------------"
        (600 800 1000 1200 1400 1600 1800 2000)))
 
-;; Custom clock faces
-
-;; The following custom-set-faces create the highlights
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(mode-line-buffer-id ((t (:foreground "black" :bold t))))
- '(org-block ((t (:background "#000000"))))
- '(org-block-background ((t (:background "#000000"))))
- '(org-block-begin-line ((t (:foreground "#008ED1" :background "#002E41"))))
- '(org-block-end-line ((t (:foreground "#008ED1" :background "#002E41"))))
- '(org-mode-line-clock ((t (:background "grey75" :foreground "red" :box (:line-width -1 :style released-button)))))
- '(which-func ((t (:foreground "green")))))
-
 ;; . [[http://orgmode.org/worg/agenda-optimization.html][Speed up agenda mode]]
 
 ;; Inhibit agenda files startup options (Org > 8.0)
@@ -1757,19 +1744,3 @@ hyphens are replaced by a single one."
     (delete-region beg end)
     (insert slug)
     (message "Region slugified: %s" slug)))
-
-
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(ignored-local-variable-values
-   '((org-odt-content-template-file
-      . /media/truecrypt1/code/.dotfiles/templates/emacs/OrgOdtContentTemplate/xml)))
- '(package-selected-packages '(vc-use-package whisper))
- '(package-vc-selected-packages
-   '((whisper :url "https://github.com/natrys/whisper.el" :branch "master")
-     (vc-use-package :vc-backend Git :url
-                     "https://github.com/slotThe/vc-use-package")))
- '(warning-suppress-types '((comp) (yasnippet backquote-change))))
