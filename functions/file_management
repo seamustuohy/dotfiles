@@ -311,8 +311,7 @@ backup_local_with_continue() {
     # --partial                   keep partially transferred files
     # --append                    append data onto shorter files
     # --append-verify             --append w/old data in file checksum
-    nice -n 19 rsync -acvqs --partial --append-verify --log-file="/tmp/rsync-${today}.log" "${from_path}" "${to_path}"  2>"/tmp
-/rsync-${today}.err"
+    nice -n 19 rsync -acvqs --partial --append-verify --log-file="/tmp/rsync-${today}.log" "${from_path}" "${to_path}"  2>"/tmp/rsync-${today}.err"
 }
 
 

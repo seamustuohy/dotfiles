@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: Header Graphic
+# key: header_graphic
+# --
+\begin{figure}
+  \centering
+   \includegraphics[width=200px]{/home/user/images/logos/XXX.pdf}
+\end{figure}

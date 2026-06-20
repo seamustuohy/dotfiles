@@ -1,0 +1,16 @@
+# -*- mode: snippet -*-
+# name: Horizontal Text
+# key: horizontal_text
+# --
+%% Add the below package to document at top
+%% \usepackage{rotating}
+
+\clearpage
+%% Turn this page horizontal
+\begin{sidewaystable}[p]
+
+%% ADD CONTENT HERE
+$0
+
+\end{sidewaystable}
+\clearpage

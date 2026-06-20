@@ -1690,28 +1690,28 @@ When called interactively, work on current line or text selection."
 (defun html2org-clipboard ()
   "Convert clipboard contents from HTML to Org and then paste (yank)."
   (interactive)
-  (setq cmd "xclip -o -selection clipboard -t text/html | pandoc -f html -t json | pandoc -f json -t org --lua-filter ~/dotfiles/etc/pandoc/remove_attr.lua")
+  (setq cmd "xclip -o -selection clipboard -t text/html | pandoc -f html -t json --quiet | pandoc -f json -t org --quiet --wrap=none  --lua-filter ~/dotfiles/etc/pandoc/remove_attr.lua --lua-filter ~/dotfiles/etc/pandoc/remove_svg.lua")
   (kill-new (shell-command-to-string cmd))
   (yank))
 
 (defun html2md-clipboard ()
   "Convert clipboard contents from HTML to Org and then paste (yank)."
   (interactive)
-  (setq cmd "xclip -o -selection clipboard -t text/html | pandoc -f html -t json | pandoc -f json -t markdown-smart --lua-filter ~/dotfiles/etc/pandoc/remove_attr.lua")
+  (setq cmd "xclip -o -selection clipboard -t text/html | pandoc -f html -t json --quiet | pandoc -f json -t  markdown-raw_html-native_divs-native_spans --wrap=none --lua-filter ~/dotfiles/etc/pandoc/remove_svg.lua --lua-filter ~/dotfiles/etc/pandoc/remove_attr.lua --quiet")
   (kill-new (shell-command-to-string cmd))
   (yank))
 
 (defun html2json-clipboard ()
   "Convert clipboard contents from HTML to Org and then paste (yank)."
   (interactive)
-  (setq cmd "xclip -o -selection clipboard -t text/html | pandoc -f html -t json --lua-filter ~/dotfiles/etc/pandoc/remove_attr.lua")
+  (setq cmd "xclip -o -selection clipboard -t text/html | pandoc -f html -t json --quiet --lua-filter ~/dotfiles/etc/pandoc/remove_attr.lua")
   (kill-new (shell-command-to-string cmd))
   (yank))
 
 (defun html2rawhtml-clipboard ()
   "Convert clipboard contents from HTML to Org and then paste (yank)."
   (interactive)
-  (setq cmd "xclip -o -selection clipboard -t text/html | pandoc -f html -t gfm-raw_html --lua-filter ~/dotfiles/etc/pandoc/remove_attr.lua")
+  (setq cmd "xclip -o -selection clipboard -t text/html | pandoc -f html --quiet -t gfm-raw_html --lua-filter ~/dotfiles/etc/pandoc/remove_attr.lua")
   (kill-new (shell-command-to-string cmd))
   (yank))
 
