@@ -86,9 +86,22 @@
 
 ;; Speech-to-Text
 ;; https://github.com/natrys/whisper.el
+;; Required to build (ONE TIME ONLY!)
+;; > sudo apt update && sudo apt install cmake build-essential -y
+;; Required to run every time.
+;; > sudo apt update && sudo apt install ffmpeg -y
+;; TODO: Note: I could not get ;; whisper-quantize to work. worth looking into later.
 (use-package whisper
-  :vc (:url "https://github.com/natrys/whisper.el" :branch "master"))
-
+  :vc (:url "https://github.com/natrys/whisper.el" :branch "master")
+  :bind ("<f9>" . whisper-run)
+  :config
+  (setopt whisper-install-directory "~/.emacs.d/.cache"
+          whisper-model "small.en"
+          whisper-language "en"
+          whisper-translate nil
+          whisper-cursor-return 'end
+          whisper-use-threads (/ (num-processors) 2))
+  )
 
 (flycheck-vale-setup)
 
@@ -650,7 +663,7 @@ by using nxml's indentation rules."
 (require 'projectile)
 
 ;; ;; Projectile
-(projectile-global-mode)
+;;(projectile-global-mode)
 (projectile-mode)
 (setq projectile-completion-system 'helm)
 (helm-projectile-on)
@@ -1690,28 +1703,28 @@ When called interactively, work on current line or text selection."
 (defun html2org-clipboard ()
   "Convert clipboard contents from HTML to Org and then paste (yank)."
   (interactive)
-  (setq cmd "xclip -o -selection clipboard -t text/html | pandoc -f html -t json --quiet | pandoc -f json -t org --quiet --wrap=none  --lua-filter ~/dotfiles/etc/pandoc/remove_attr.lua --lua-filter ~/dotfiles/etc/pandoc/remove_svg.lua")
+  (setq cmd "xclip -o -selection clipboard -t text/html | pandoc -f html -t json --quiet | pandoc -f json -t org --quiet --wrap=none  --lua-filter /etc/dotfiles/etc/pandoc/remove_attr.lua --lua-filter /etc/dotfiles/etc/pandoc/remove_svg.lua")
   (kill-new (shell-command-to-string cmd))
   (yank))
 
 (defun html2md-clipboard ()
   "Convert clipboard contents from HTML to Org and then paste (yank)."
   (interactive)
-  (setq cmd "xclip -o -selection clipboard -t text/html | pandoc -f html -t json --quiet | pandoc -f json -t  markdown-raw_html-native_divs-native_spans --wrap=none --lua-filter ~/dotfiles/etc/pandoc/remove_svg.lua --lua-filter ~/dotfiles/etc/pandoc/remove_attr.lua --quiet")
+  (setq cmd "xclip -o -selection clipboard -t text/html | pandoc -f html -t json --quiet | pandoc -f json -t  markdown-raw_html-native_divs-native_spans --wrap=none --lua-filter /etc/dotfiles/etc/pandoc/remove_svg.lua --lua-filter /etc/dotfiles/etc/pandoc/remove_attr.lua --quiet")
   (kill-new (shell-command-to-string cmd))
   (yank))
 
 (defun html2json-clipboard ()
   "Convert clipboard contents from HTML to Org and then paste (yank)."
   (interactive)
-  (setq cmd "xclip -o -selection clipboard -t text/html | pandoc -f html -t json --quiet --lua-filter ~/dotfiles/etc/pandoc/remove_attr.lua")
+  (setq cmd "xclip -o -selection clipboard -t text/html | pandoc -f html -t json --quiet --lua-filter /etc/dotfiles/etc/pandoc/remove_attr.lua")
   (kill-new (shell-command-to-string cmd))
   (yank))
 
 (defun html2rawhtml-clipboard ()
   "Convert clipboard contents from HTML to Org and then paste (yank)."
   (interactive)
-  (setq cmd "xclip -o -selection clipboard -t text/html | pandoc -f html --quiet -t gfm-raw_html --lua-filter ~/dotfiles/etc/pandoc/remove_attr.lua")
+  (setq cmd "xclip -o -selection clipboard -t text/html | pandoc -f html --quiet -t gfm-raw_html --lua-filter /etc/dotfiles/etc/pandoc/remove_attr.lua")
   (kill-new (shell-command-to-string cmd))
   (yank))
 
