@@ -11,3 +11,8 @@ if [ -n "$BASH_VERSION" ]; then
         . "$HOME/.bashrc"
     fi
 fi
+
+# include .bash_qube if it exists
+if [ -f "$HOME/.bash_qube" ]; then
+    . "$HOME/.bash_qube"
+fi
