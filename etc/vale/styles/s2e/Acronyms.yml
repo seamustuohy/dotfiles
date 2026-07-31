@@ -1,0 +1,50 @@
+extends: conditional
+message: "'%s' must be defined in the first instance"
+level: error
+scope: text
+ignorecase: false
+first: '(?<!/)\b([A-Z]{3,5})\b(?!/\b)(?!-\d)'
+second: '(?:\b[A-Za-z-]+ )+\(([A-Z]{3,5})\)'
+exceptions:
+# Networking
+- DNS
+- VPN
+- SSH
+- TLS
+
+# Internet
+- API
+- REST
+- URL
+- URI
+- HTTP
+- HTTPS
+- HTML
+- CSS
+- SCSS
+- UUID
+- SDK
+- GET
+- POST
+
+# Configuration
+- YAML
+- JSON
+- YYYY
+- UNIX
+
+# Filetypes
+- JPG
+- PDF
+- PNG
+- JFIF
+- EXIF
+- JPEG
+- GIF
+- TIFF
+
+# Qualifications
+- GCSE
+- PHD
+
+# Reference: https://github.com/alphagov/tech-docs-linter/blob/main/styles/tech-writing-style-guide/acronyms.yml

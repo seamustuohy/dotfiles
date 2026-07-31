@@ -21,6 +21,11 @@ fi
 #####################################
 # Variables
 #####################################
+export TZ='America/New_York'
+export ORG_TIMEW_FILE="$HOME/.org/taskw.org"
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_CACHE_HOME="$HOME/.cache"
+export XDG_DATA_HOME="$HOME/.local/share"
 
 # Editor : set default editor to emacs
 export EDITOR=emacs
@@ -131,3 +136,8 @@ bind "set completion-map-case on"
 
 # Display matches for ambiguous patterns at first tab press
 bind "set show-all-if-ambiguous on"
+
+# include .bash_qube if it exists
+if [ -f "$HOME/.bash_qube" ]; then
+    . "$HOME/.bash_qube"
+fi

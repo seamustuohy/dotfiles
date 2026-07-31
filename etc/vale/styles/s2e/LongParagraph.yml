@@ -1,0 +1,7 @@
+extends: occurrence
+message: "Check paragraphs with more than 8 sentences to see if they can be split for clarity"
+scope: paragraph
+level: warning
+max: 8
+
+token: '(?m)(?:^|[.!?]\s+)[A-Z][a-z]+'

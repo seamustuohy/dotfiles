@@ -1,0 +1,6 @@
+extends: existence
+message: "Avoid long strings of nouns. Rewrite '%s' with prepositions, verbs, or shorter phrases."
+level: suggestion
+ignorecase: false
+tokens:
+  - '\b(?:[A-Za-z]+(?:tion|ment|ness|ity|ship|ance|ence|ing|er|or)\s+){3,}[A-Za-z]+(?:tion|ment|ness|ity|ship|ance|ence|ing|er|or)\b'

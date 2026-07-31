@@ -68,7 +68,6 @@
                      web-mode
                      wrap-region
                      writegood-mode
-                     flycheck-vale
                      vimrc-mode
                      yaml-mode))
 ;; persp-projectile
@@ -102,9 +101,6 @@
           whisper-cursor-return 'end
           whisper-use-threads (/ (num-processors) 2))
   )
-
-(flycheck-vale-setup)
-
 ;; org mode first
 (require 'org)
 
@@ -273,6 +269,19 @@
 (global-set-key [(f5)] 'flycheck-previous-error)
 (global-set-key [(f6)] 'flycheck-next-error)
 
+
+(flycheck-define-checker vale
+  "A checker for prose"
+  :command ("vale" "--output" "sevline.tpl"
+            source)
+  :standard-input nil
+  :error-patterns
+  ((error line-start (file-name) ":" line ":" column ":" "error" ":" (id (one-or-more (not (any ":")))) ":" (message) line-end)
+   (warning line-start (file-name) ":" line ":" column ":" "warning" ":" (id (one-or-more (not (any ":")))) ":" (message) line-end)
+   (info line-start (file-name) ":" line ":" column ":" "suggestion" ":" (id (one-or-more (not (any ":")))) ":" (message) line-end)
+   )
+  :modes (markdown-mode org-mode text-mode)
+  )
 ;; ;; proselint
 ;; ;; TODO: Could never get this to work
 
