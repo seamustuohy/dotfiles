@@ -282,19 +282,7 @@
    )
   :modes (markdown-mode org-mode text-mode)
   )
-;; ;; proselint
-;; ;; TODO: Could never get this to work
-
-;; (flycheck-define-checker proselint
-;;   "A linter for prose."
-;;   :command ("proselint" source-inplace)
-;;   :error-patterns
-;;   ((warning line-start (file-name) ":" line ":" column ": "
-;;          (id (one-or-more (not (any " "))))
-;;          (message) line-end))
-;;   :modes (text-mode markdown-mode gfm-mode org-mode))
-
-;; (add-to-list 'flycheck-checkers 'proselint)
+(add-to-list 'flycheck-checkers 'vale)
 
 
 ;; Read and activate on vimrc strings in qubes files
@@ -582,8 +570,6 @@ by using nxml's indentation rules."
 (add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-mode))
 (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
 
-;; flyspell mode for spell checking in markdown
-(add-hook 'markdown-mode-hook 'turn-on-flyspell 'append)
 
 ;; LogFiles
 
@@ -796,6 +782,13 @@ Including indent-buffer, which should not be called automatically on save."
 (add-hook 'org-mode-hook 'turn-on-flyspell 'append)
 (add-hook 'message-mode-hook 'turn-on-flyspell 'append)
 (add-hook 'tex-mode-hook 'turn-on-flyspell 'append)
+(add-hook 'markdown-mode-hook 'turn-on-flyspell 'append)
+
+;; I use flycheck-mode to enable vale
+(add-hook 'org-mode-hook #'flycheck-mode)
+(add-hook 'message-mode-hook #'flycheck-mode)
+(add-hook 'tex-mode-hook #'flycheck-mode)
+(add-hook 'markdown-mode-hook #'flycheck-mode)
 
 ;; Define path for synonyms code and thesaurus
 ;(setq synonyms-file        "~/.emacs.d/resources/thesaurus/mthesaur.txt")
