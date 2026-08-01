@@ -12,6 +12,12 @@ exceptions:
 - SSH
 - TLS
 
+# Org-mode files
+- TODO
+- DONE
+- WAIT
+- NEXT
+
 # Internet
 - API
 - REST
