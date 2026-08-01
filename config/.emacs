@@ -929,7 +929,7 @@ If point was already at that position, move point to beginning of line."
 ; (require 'helm-projectile)
 (use-package helm-projectile
   :config
-  (projectile-global-mode)
+  (projectile-mode)
   (setq projectile-completion-system 'helm)
   (helm-projectile-on))
 
