@@ -271,19 +271,67 @@
 
 
 (flycheck-define-checker vale
-  "A checker for prose"
-  :command ("vale" "--output" "sevline.tpl"
-            source)
+  "A checker for prose using Vale."
+  :command ("vale" "--output" "sevline.tpl" source)
   :standard-input nil
   :error-patterns
-  ((error line-start (file-name) ":" line ":" column ":" "error" ":" (id (one-or-more (not (any ":")))) ":" (message) line-end)
-   (warning line-start (file-name) ":" line ":" column ":" "warning" ":" (id (one-or-more (not (any ":")))) ":" (message) line-end)
-   (info line-start (file-name) ":" line ":" column ":" "suggestion" ":" (id (one-or-more (not (any ":")))) ":" (message) line-end)
-   )
-  :modes (markdown-mode org-mode text-mode)
-  )
+  ((error line-start (file-name) ":" line ":" column ":error:[" (id (one-or-more (not (any "]")))) "] " (message) line-end)
+   (warning line-start (file-name) ":" line ":" column ":warning:[" (id (one-or-more (not (any "]")))) "] " (message) line-end)
+   (info line-start (file-name) ":" line ":" column ":suggestion:[" (id (one-or-more (not (any "]")))) "] " (message) line-end))
+  :modes (markdown-mode org-mode text-mode))
+
 (add-to-list 'flycheck-checkers 'vale)
 
+;; https://www.masteringemacs.org/article/seamlessly-merge-multiple-documentation-sources-eldoc
+(defun mp-flycheck-eldoc (callback &rest _ignored)
+   "Print flycheck messages at point by calling CALLBACK."
+   (when-let ((flycheck-errors (and flycheck-mode (flycheck-overlay-errors-at (point)))))
+     (mapc
+      (lambda (err)
+        (funcall callback
+           (format "%s: %s"
+                   (let ((level (flycheck-error-level err)))
+                     (pcase level
+                       ('info (propertize "I" 'face 'flycheck-error-list-info))
+                       ('error (propertize "E" 'face 'flycheck-error-list-error))
+                       ('warning (propertize "W" 'face 'flycheck-error-list-warning))
+                       (_ level)))
+                   (flycheck-error-message err))
+           :thing (or (flycheck-error-id err)
+                      (flycheck-error-group err))
+           :face 'font-lock-doc-face))
+      flycheck-errors)))
+
+
+(use-package flycheck
+  :preface
+
+  (defun mp-flycheck-eldoc (callback &rest _ignored)
+    "Print flycheck messages at point by calling CALLBACK."
+    (when-let ((flycheck-errors (and flycheck-mode (flycheck-overlay-errors-at (point)))))
+      (mapc
+       (lambda (err)
+         (funcall callback
+           (format "%s: %s"
+                   (let ((level (flycheck-error-level err)))
+                     (pcase level
+                       ('info (propertize "I" 'face 'flycheck-error-list-info))
+                       ('error (propertize "E" 'face 'flycheck-error-list-error))
+                       ('warning (propertize "W" 'face 'flycheck-error-list-warning))
+                       (_ level)))
+                   (flycheck-error-message err))
+           :thing (or (flycheck-error-id err)
+                      (flycheck-error-group err))
+           :face 'font-lock-doc-face))
+       flycheck-errors)))
+
+  (defun mp-flycheck-prefer-eldoc ()
+    (add-hook 'eldoc-documentation-functions #'mp-flycheck-eldoc nil t)
+    (setq eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
+    (setq flycheck-display-errors-function nil)
+    (setq flycheck-help-echo-function nil))
+
+  :hook ((flycheck-mode . mp-flycheck-prefer-eldoc)))
 
 ;; Read and activate on vimrc strings in qubes files
 (require 'vimrc-mode)
