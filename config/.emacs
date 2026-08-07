@@ -278,7 +278,7 @@
   ((error line-start (file-name) ":" line ":" column ":error:[" (id (one-or-more (not (any "]")))) "] " (message) line-end)
    (warning line-start (file-name) ":" line ":" column ":warning:[" (id (one-or-more (not (any "]")))) "] " (message) line-end)
    (info line-start (file-name) ":" line ":" column ":suggestion:[" (id (one-or-more (not (any "]")))) "] " (message) line-end))
-  :modes (markdown-mode org-mode text-mode))
+  :modes (markdown-mode org-mode text-mode message-mode))
 
 (add-to-list 'flycheck-checkers 'vale)
 
