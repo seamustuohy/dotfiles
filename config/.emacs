@@ -837,6 +837,7 @@ Including indent-buffer, which should not be called automatically on save."
 (add-hook 'message-mode-hook #'flycheck-mode)
 (add-hook 'tex-mode-hook #'flycheck-mode)
 (add-hook 'markdown-mode-hook #'flycheck-mode)
+(add-hook 'message-mode-hook #'flycheck-mode)
 
 ;; Define path for synonyms code and thesaurus
 ;(setq synonyms-file        "~/.emacs.d/resources/thesaurus/mthesaur.txt")
