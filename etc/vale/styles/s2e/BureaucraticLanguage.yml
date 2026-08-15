@@ -1,0 +1,15 @@
+---
+extends: substitution
+message: "Use '%s' instead of '%s'."
+level: warning
+ignorecase: false
+action:
+  name: replace
+swap:
+  '\bdonor\b': funder|grantmaker
+  '\binclusive\b': non-filler words
+  '\bcapacity building\b': words that say what you're actually doing
+  '\baccelerate\b': words that say 'what' or 'how'
+  '\breimagine\b': words that say 'what' or 'how'
+  '\bstakeholder engagement\b': non-filler words
+  '\btransformative\b': non-filler words

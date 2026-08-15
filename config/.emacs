@@ -4,7 +4,7 @@
 ;; Set debug at point
 ;;(debug)
 
-
+;; ====== BUG FIXING START ==========
 ;; === WINDOWS <- The worst ===
 ;; Make windows not slow down when it encounters multiple character sets
 ;; https://github.com/purcell/emacs.d/issues/273
@@ -20,8 +20,8 @@
 (setq default-buffer-file-coding-system 'utf-8)
 (setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
 
+;; ========= BUG FIXING END ===========
 
-;; 00000000000000000000
 ;; === Packages ===
 
 (require 'package)
@@ -269,6 +269,13 @@
 (global-set-key [(f5)] 'flycheck-previous-error)
 (global-set-key [(f6)] 'flycheck-next-error)
 
+;; set `tex-lacheck` as default flycheck checker
+;; (I add a random number to the hook, so that even if I add one more hook to the same spot, the different hooks don't end up overriding each other. The random numbers are intentional)
+(add-hook 'LaTeX-mode-hook
+      (defun my-LaTeX-mode-hook-100 ()
+        (flycheck-mode 1)
+        (flycheck-select-checker 'tex-lacheck)))
+
 
 (flycheck-define-checker vale
   "A checker for prose using Vale."
@@ -278,7 +285,7 @@
   ((error line-start (file-name) ":" line ":" column ":error:[" (id (one-or-more (not (any "]")))) "] " (message) line-end)
    (warning line-start (file-name) ":" line ":" column ":warning:[" (id (one-or-more (not (any "]")))) "] " (message) line-end)
    (info line-start (file-name) ":" line ":" column ":suggestion:[" (id (one-or-more (not (any "]")))) "] " (message) line-end))
-  :modes (markdown-mode org-mode text-mode message-mode))
+  :modes (markdown-mode org-mode text-mode message-mode LaTeX-mode))
 
 (add-to-list 'flycheck-checkers 'vale)
 
@@ -829,13 +836,15 @@ Including indent-buffer, which should not be called automatically on save."
 ;; I use flyspell mode for spell checking for any text files.
 (add-hook 'org-mode-hook 'turn-on-flyspell 'append)
 (add-hook 'message-mode-hook 'turn-on-flyspell 'append)
-(add-hook 'tex-mode-hook 'turn-on-flyspell 'append)
+;;(add-hook 'tex-mode-hook 'turn-on-flyspell 'append)
 (add-hook 'markdown-mode-hook 'turn-on-flyspell 'append)
+
+
 
 ;; I use flycheck-mode to enable vale
 (add-hook 'org-mode-hook #'flycheck-mode)
 (add-hook 'message-mode-hook #'flycheck-mode)
-(add-hook 'tex-mode-hook #'flycheck-mode)
+;;(add-hook 'tex-mode-hook #'flycheck-mode)
 (add-hook 'markdown-mode-hook #'flycheck-mode)
 (add-hook 'message-mode-hook #'flycheck-mode)
 
@@ -1040,6 +1049,29 @@ If point was already at that position, move point to beginning of line."
 (global-set-key [(meta shift up)]  'move-line-up)
 (global-set-key [(meta shift down)]  'move-line-down)
 
+
+
+;; Latex Mode
+(use-package auctex
+  :ensure t
+  :defer t
+  :config
+  ;; Parse the document to enable advanced macro support
+  (setq TeX-auto-save t)
+  (setq TeX-parse-self t)
+
+  ;; Default to PDF generation instead of DVI
+  (setq-default TeX-PDF-mode t)
+
+  ;; Enable Flyspell mode for spellchecking
+  (add-hook 'TeX-mode-hook 'flyspell-mode)
+  (add-hook 'TeX-mode-hook #'flycheck-mode)
+
+  ;; Enable RefTeX for bib citations and cross-references
+  (add-hook 'TeX-mode-hook 'turn-on-reftex)
+  (setq reftex-plug-into-AUCTeX t))
+
+
 ;; Org-Mode
 (message "Initializing org mode")
 
@@ -1066,15 +1098,12 @@ If point was already at that position, move point to beginning of line."
                             sort-fields
                             unify-case))
 
-
-
 ;; Files to activate org for
 ;; Open org-mode for .org files and for .org.gpg files.
 ;; Read [[http://ergoemacs.org/emacs/emacs_auto-activate_a_major-mode.html][this]] for how to format these strings. Then go and buy his book. It is the same content, but it is really good content and should be supported.
 ;; Ends with ".org"
 (add-to-list 'auto-mode-alist
              '("\\.org\\'" . org-mode))
-
 ;; Auto Save
 ;;  Set auto-save for org mode files every hour, on the hour.
 (run-at-time "00:59" 3600 'org-save-all-org-buffers)
@@ -1112,7 +1141,6 @@ If point was already at that position, move point to beginning of line."
 ;; Bullets Mode
 ;; (require 'org-bullets)
 ;; (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
-
 
 ;; Tasks & Events
 ;; TODO
@@ -1213,6 +1241,9 @@ If point was already at that position, move point to beginning of line."
           'append)
 
 ;; Time Grid
+
+;; The prompt to resolve running clocks before emacs closes causes more problems than it solves.
+(setq org-clock-ask-before-exiting nil)
 
 ;;Set time grid ON for day
 (setq org-agenda-use-time-grid t)

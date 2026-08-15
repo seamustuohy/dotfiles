@@ -161,6 +161,13 @@ inkscape2latex() {
 }
 
 
+tex2pdf_loop() {
+    filename="${1%.tex}"
+    SLEEP=${2:-2}
+    evince "${filename}.pdf" & while true; do lualatex -halt-on-error -interaction=nonstopmode "${filename}.tex"; sleep ${SLEEP}; done
+}
+
+
 # Whiteboard Cleaning
 white-board-cleaner () {
     convert "$1" -morphology Convolve DoG:15,100,0 -negate -normalize -blur 0x1 -channel RBG -level 60%,91%,0.1 "$2" ;
