@@ -215,8 +215,26 @@
   (let ((fill-column (point-max)))
     (fill-paragraph nil)))
 
+(defun unfill-paragraph-remove-hyphens ()
+  "Unfill the current paragraph and remove hard hyphens at line breaks."
+  (interactive)
+  (save-excursion
+    (mark-paragraph)
+    (let ((beg (region-beginning))
+          (end (region-end)))
+      (save-restriction
+        (narrow-to-region beg end)
+        (goto-char (point-min))
+        ;; Replace hyphen followed by a newline with nothing
+        (while (search-forward-regexp "-\\(\n\\|\\r\\-?\n\\)" nil t)
+          (replace-match "")))
+      ;; Unfill the paragraph by setting a huge fill-column temporarily
+      (let ((fill-column most-positive-fixnum))
+        (fill-paragraph nil)))))
+
  ;; Handy key definition
- (define-key global-map "\M-Q" 'unfill-paragraph)
+(define-key global-map "\M-Q" 'unfill-paragraph)
+(define-key global-map "\M-q" 'unfill-paragraph-remove-hyphens)
 
 ;; Security
 (message "Initializing security")
