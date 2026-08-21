@@ -287,13 +287,19 @@
 (global-set-key [(f5)] 'flycheck-previous-error)
 (global-set-key [(f6)] 'flycheck-next-error)
 
+;; Disable Org-lint since it is currently broken: (2026-08-21).
+;; TODO: Test to see if this is fixed in the future.
+(use-package flycheck
+  :init (global-flycheck-mode 1)
+  :custom
+  (flycheck-disabled-checkers '(org-lint)))
+
 ;; set `tex-lacheck` as default flycheck checker
 ;; (I add a random number to the hook, so that even if I add one more hook to the same spot, the different hooks don't end up overriding each other. The random numbers are intentional)
 (add-hook 'LaTeX-mode-hook
       (defun my-LaTeX-mode-hook-100 ()
         (flycheck-mode 1)
         (flycheck-select-checker 'tex-lacheck)))
-
 
 (flycheck-define-checker vale
   "A checker for prose using Vale."
