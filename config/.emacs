@@ -289,10 +289,7 @@
 
 ;; Disable Org-lint since it is currently broken: (2026-08-21).
 ;; TODO: Test to see if this is fixed in the future.
-(use-package flycheck
-  :init (global-flycheck-mode 1)
-  :custom
-  (flycheck-disabled-checkers '(org-lint)))
+(setq flycheck-disabled-checkers (append flycheck-disabled-checkers '(org-lint)))
 
 ;; set `tex-lacheck` as default flycheck checker
 ;; (I add a random number to the hook, so that even if I add one more hook to the same spot, the different hooks don't end up overriding each other. The random numbers are intentional)
