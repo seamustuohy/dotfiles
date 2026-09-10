@@ -44,7 +44,6 @@
                      smartscan
                      drag-stuff
                      guide-key
-                     guru-mode
                      ag
                      helm
                      helm-dash
@@ -892,17 +891,6 @@ Including indent-buffer, which should not be called automatically on save."
 (guide-key-mode 1)
 (setq guide-key/idle-delay .5)
 (setq guide-key/popup-window-position 'bottom)
-
-;; Emacs Guru Mode
-;  [[https://github.com/bbatsov/guru-mode][Guru mode]] disables some common keybindings and suggests the use of the established Emacs alternatives instead.
-(require 'guru-mode)
-
-
-;; Currently running this globally.
-(guru-global-mode +1)
-
-;; I only want to get warnings when I use the arrow keys.
-(setq guru-warn-only t)
 
 ;; Undo Help
 ;; Undo tree makes complex undo actions easy
