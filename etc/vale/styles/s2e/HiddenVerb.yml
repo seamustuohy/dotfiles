@@ -1,0 +1,49 @@
+---
+extends: substitution
+message: "Possible hidden verb in '%[2]s'. Consider replacing the verb-plus-noun construction with the direct verb %[1]s."
+level: suggestion
+scope: sentence
+description: |
+  Avoid Nominalizations (Hidden Verbs)
+
+  What it is: Turning an action verb into a noun (e.g., changing "decide" to "make a decision").
+
+  Why it hurts clarity: It adds extra, weak helper verbs and makes sentences longer and more abstract.
+
+  How to fix it: Change the noun back into a strong action verb (e.g., "We made a decision" becomes "We decided").
+ignorecase: true
+action:
+  name: replace
+swap:
+  # 1. Nouns ending in -ment or -ance/-ence (e.g., "provide assistance" -> "assist")
+  '\b(?:make|conduct|carry|perform|provid|provide|reach)(?:s|d|ed|ing)?\s+(?:(?:a|an|the|this|that|our|their|your)\s+)?(\w+?)(?:ment|ance|ence)s?\b': '$1'
+
+  # 2. Nouns ending in -al (e.g., "give approval" -> "approve")
+  '\b(?:make|conduct|carry|perform|provid|provide|reach)(?:s|d|ed|ing)?\s+(?:(?:a|an|the|this|that|our|their|your)\s+)?(\w+?)als?\b': '$1e'
+
+  # 4. Nouns ending in -ure (e.g., "perform a failure" -> "fail")
+  # Strips '-ure' to return to the active verb form.
+  '\b(?:make|conduct|carry|perform|provide|reach)(?:s|d|ed|ing)?\s+(?:(?:a|an|the|this|that|our|their|your)\s+)?(\w+?)ures?\b': '$1'
+
+  # 5. Nouns ending in -ness (e.g., "demonstrate effectiveness" -> "effective")
+  # Strips '-ness' cleanly to pull back to the root action qualifier.
+  '\b(?:make|conduct|carry|perform|provid|provide|reach)(?:s|d|ed|ing)?\s+(?:(?:a|an|the|this|that|our|their|your)\s+)?(\w+?)ness\b': '$1'
+
+# 5. Nouns explicitly ending in -ativity (e.g., "show creativity" -> "create")
+  '\b(?:make|conduct|carry|perform|provid|provide|reach)(?:s|d|ed|ing)?\s+(?:(?:a|an|the|this|that|our|their|your)\s+)(\w+?)ativitys?\b': '$1ate'
+
+
+  # 5a. Grammatical Suffix Rule: -arity turns back into -arify (e.g., "provide clarity" -> "clarify")
+  # Matches the specific phonetic mutation to eliminate manual human validation.
+  '\b(?:make|conduct|carry|perform|provid|provide|reach)(?:s|d|ed|ing)?\s+(?:(?:a|an|the|this|that|our|their|your)\s+)?(\w+?)aritys?\b': '$1arify'
+
+  # 6. Nouns ending in -ity but NOT -ativity (e.g., "providing clarity" -> "clarity")
+  '\b(?:make|conduct|carry|perform|provid|provide|reach)(?:s|d|ed|ing)?\s+(?:(?:a|an|the|this|that|our|their|your)\s+)?(\w+?)itys?\b': '$1'
+
+  # 7. Nouns explicitly ending in -ation (e.g., "conduct evaluation" -> "evaluate")
+  '\b(?:make|conduct|carry|perform|provid|provide|reach)(?:s|d|ed|ing)?\s+(?:(?:a|an|the|this|that|our|their|your)\s+)?(\w+?)ations?\b': '$1ate'
+
+  # 3. Nouns ending in general -ation and -tion/-sion handler (e.g., "make a correction" -> "correct")
+  # This forces Vale to look for the full 'ation' block first. If found, it captures the root
+  # and appends 'ate'. If it only finds 'tion/sion', it strips it cleanly.
+  '\b(?:make|conduct|carry|perform|provid|provide|reach)(?:s|d|ed|ing)?\s+(?:(?:a|an|the|this|that|our|their|your)\s+)?(?:(\w+?)ations?|(\w+?)(?:tion|sion)s?)\b': '$1ate$2'

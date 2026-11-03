@@ -1,0 +1,44 @@
+---
+extends: substitution
+message: "In InfoSec context: Use '%s' instead of '%s'."
+level: warning
+ignorecase: true
+swap:
+  '\bpsycho-social\b': psychosocial
+
+  # Personal Preferences
+  '\bcyber[- ]*attack[s]*\b': hacking or digital attacks
+  '\bcyber[- ]*security\b': information security or digital attacks
+  '\b(oh|0|zero)[ -]*day\b': previously undisclosed vulnerability
+  '\bmilitary[- ]grade encryption\b': A less-stupid term
+
+  # Risk Management
+  '\bmitigat(?:s|ing|ed|ation)\b': protection, remedy, control, or fix
+
+  # More precise people terms
+  '\badversary\b': "attacker or malicious user"
+  '\bvictim\b': "target, survivor, user, patient, customer, consumer"
+  '\bAPT\b': Either a more specific identifier OR just attacker/hacker. (i.e. [GROUP NAME]|Nation-State|State-Sponsored|Cyber-Mercenary|Criminal)
+  '\bAdvanced Persistent Threat\b': Either a more specific identifier OR just attacker/hacker. (i.e. [GROUP/CAMPAIGN NAME]|Nation-State|State-Sponsored|Cyber-Mercenary|Criminal)
+
+  # Common misuse - https://assets.bishopfox.com/prod-1437/Documents/Guides/Bishop-Fox-Cybersecurity-Style-Guide-V2.pdf
+  '\bunsecure\b': "insecure, not secure, or unsecured"
+
+  # Offensive or triggering - https://assets.bishopfox.com/prod-1437/Documents/Guides/Bishop-Fox-Cybersecurity-Style-Guide-V2.pdf
+  '\babort\b': "force quit, interrupt, or reboot"
+
+  # Informal terms with better formal alternatives - https://assets.bishopfox.com/prod-1437/Documents/Guides/Bishop-Fox-Cybersecurity-Style-Guide-V2.pdf
+  '\binfosec\b': "information security or cybersecurity"
+  '\bon-prem\b': "on-premises"
+  '\bhigh-res\b': "high-resolution"
+  '\blow-res\b': "low-resolution"
+
+  # Informal shell idioms - https://assets.bishopfox.com/prod-1437/Documents/Guides/Bishop-Fox-Cybersecurity-Style-Guide-V2.pdf
+  '\b(get|gain|pop|spawn|drop) a shell\b': "obtain a shell or gain persistent remote access"
+
+  # Use a more precise verb - https://assets.bishopfox.com/prod-1437/Documents/Guides/Bishop-Fox-Cybersecurity-Style-Guide-V2.pdf
+  '\bhijack(?:ing|ed)?\b': "take over or take advantage of"
+
+  # # Too common in other contexts
+  # '\bexploit(?:s|ing|ed|ation)\b': "attack, take advantage of, or a context-specific verb."
+  # '\babuse(?:ing|ed)?\b': "alter, automate, compromise, deface, exhaust, force, impersonate, intentionally misuse, leverage, manipulate, reuse indefinitely, take advantage of, or a context-specific verb."
