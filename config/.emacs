@@ -297,6 +297,15 @@
         (flycheck-mode 1)
         (flycheck-select-checker 'tex-lacheck)))
 
+
+;; Currently AucTex fails at indentation because local begin/end regex's are not set.
+(add-hook 'LaTeX-mode-hook
+          (lambda ()
+            (setq-local LaTeX-indent-begin-regexp-local "begin\\b\\|\\["
+                        LaTeX-indent-end-regexp-local "end\\b\\|\\]"
+                        LaTeX-indent-begin-regexp-exceptions-local ""
+                        LaTeX-indent-end-regexp-exceptions-local "")))
+
 (flycheck-define-checker vale
   "A checker for prose using Vale."
   :command ("vale" "--output" "sevline.tpl" source)
@@ -961,9 +970,26 @@ If point was already at that position, move point to beginning of line."
 ;; - https://github.com/mickeynp/smart-scan
 ;; M-n and M-p move between symbols and type M-' to replace all symbols in the buffer matching the one under point, and C-u M-' to replace symbols in your current defun only (as used by narrow-to-defun.)
 (smartscan-mode 1)
+(global-set-key (kbd "C-n") 'next-line)
+(global-set-key (kbd "C-p") 'previous-line)
 (global-set-key (kbd "M-n") 'smartscan-symbol-go-forward)
 (global-set-key (kbd "M-p") 'smartscan-symbol-go-backward)
-(global-set-key (kbd "M-'") 'smartscan-symbol-go-forward)
+
+;; Mostly to make it easy to find the weirder movements with guide key
+(define-prefix-command 'weird-movement-prefix-map)
+(global-set-key (kbd "M-'") 'weird-movement-prefix-map)
+(define-key weird-movement-prefix-map (kbd "C-n")
+            #'next-logical-line)
+(define-key weird-movement-prefix-map (kbd "C-p")
+            #'previous-logical-line)
+(define-key weird-movement-prefix-map (kbd "M-n")
+            #'smartscan-symbol-go-forward)
+(define-key weird-movement-prefix-map (kbd "M-p")
+            #'smartscan-symbol-go-backward)
+(define-key weird-movement-prefix-map (kbd "C-M-n")
+            #'forward-list)
+(define-key weird-movement-prefix-map (kbd "C-M-p")
+            #'backward-list)
 
 ;; Helm
 ;; Use helm and turn the delay to nothing.
@@ -1816,6 +1842,17 @@ When called interactively, work on current line or text selection."
   "Convert clipboard contents from HTML to Org and then paste (yank)."
   (interactive)
   (setq cmd "xclip -o -selection clipboard -t text/html | pandoc -f html --quiet -t gfm-raw_html --lua-filter /etc/dotfiles/etc/pandoc/remove_attr.lua")
+  (kill-new (shell-command-to-string cmd))
+  (yank))
+
+
+(defun htmltable2csv-clipboard ()
+  "Convert clipboard contents from HTML to a csv and then paste (yank).
+
+  Needs pandas and lxml installed in your standard qubes wide pip venv.
+"
+  (interactive)
+  (setq cmd "xclip -o -selection clipboard -t text/html | /usr/local/bin/venv/bin/python3 -c 'import sys, io, pandas as pd; pd.concat(pd.read_html(io.StringIO(sys.stdin.read()))).to_csv(sys.stdout, index=False)'")
   (kill-new (shell-command-to-string cmd))
   (yank))
 
