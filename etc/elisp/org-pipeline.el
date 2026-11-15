@@ -443,4 +443,4 @@ Displays the description as an annotation, returning only the clean value."
     (completing-read "Pipeline state: " keywords nil t)))
 
 
-(provide 'org-pipeline)
+(provide 'my-org-pipeline)
