@@ -75,12 +75,14 @@
   (unless (package-installed-p package)
     (package-install package)))
 
-
 (require 'use-package)
 
 ;; Move your custom-set-variables and custom-set-faces to a separate file so I can have my .emacs read-only. The custom-file variable  tells Emacs to write all future customizations to a different file while keeping my main config untouched.
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (load custom-file 'noerror 'nomessage)
+
+;; Add my custom elisp directory to the load-path so I can split my config a bit more cleanly
+(add-to-list 'load-path "~/.emacs.d/elisp/")
 
 ;; Speech-to-Text
 ;; https://github.com/natrys/whisper.el
@@ -147,7 +149,6 @@
   )
 (defalias 'make-right-to-left-text-left-to-right 'reorder-rtl-text)
 (defalias 'display-text-left-to-right 'reorder-rtl-text)
-
 
 ;; === Emacs Environment ===
 (message "Initializing Emacs Environment")
@@ -910,21 +911,7 @@ Including indent-buffer, which should not be called automatically on save."
 (setq undo-tree-auto-save-history nil)
 (setq undo-tree-history-directory-alist '(("." . "/tmp/")))
 
-;; Keep region when undoing in region
-;; Make it so the region does not keep jumping about when I use it.
-;; Via" [[http://whattheemacsd.com/my-misc.el-02.html][what the emacs.d]]
-;; (defadvice undo-tree-undo (around keep-region activate)
-;;   (if (use-region-p)
-;;       (let ((m (set-marker (make-marker) (mark)))
-;;             (p (set-marker (make-marker) (point))))
-;;         ad-do-it
-;;         (goto-char p)
-;;         (set-mark m)
-;;         (set-marker p nil)
-;;         (set-marker m nil))
-;;     ad-do-it))
-
-;; The author of undo-tree (Dr. Toby Cubitt) admits that undo/redo-in-region has always been buggy and difficult to debug. He suggests disabling undo/redo in region until he has free time at some point in the future to work on this library again. To read about the most common bug with undo-in region, see the following two bug reports:
+;; The author of undo-tree (Dr. Toby Cubitt) admits that undo/redo-in-region has always been buggy and difficult to debug. He suggests disabling undo/redo in region until he has free time at some point in the future to work on this library again. To read about the most common bug with undo-in region
 (setq undo-tree-enable-undo-in-region nil)
 
 ;; Yasnippet
@@ -976,20 +963,16 @@ If point was already at that position, move point to beginning of line."
 (global-set-key (kbd "M-p") 'smartscan-symbol-go-backward)
 
 ;; Mostly to make it easy to find the weirder movements with guide key
-(define-prefix-command 'weird-movement-prefix-map)
+(defvar-keymap weird-movement-prefix-map
+  :doc "Prefix keymap for logical, symbol, and sexp list navigation."
+  "C-n"   '("Next logical line" . next-logical-line)
+  "C-p"   '("Previous logical line" . previous-logical-line)
+  "M-n"   '("Next symbol occurrence" . smartscan-symbol-go-forward)
+  "M-p"   '("Previous symbol occurrence" . smartscan-symbol-go-backward)
+  "C-M-n" '("Forward balanced expression" . forward-list)
+  "C-M-p" '("Backward balanced expression" . backward-list))
+
 (global-set-key (kbd "M-'") 'weird-movement-prefix-map)
-(define-key weird-movement-prefix-map (kbd "C-n")
-            #'next-logical-line)
-(define-key weird-movement-prefix-map (kbd "C-p")
-            #'previous-logical-line)
-(define-key weird-movement-prefix-map (kbd "M-n")
-            #'smartscan-symbol-go-forward)
-(define-key weird-movement-prefix-map (kbd "M-p")
-            #'smartscan-symbol-go-backward)
-(define-key weird-movement-prefix-map (kbd "C-M-n")
-            #'forward-list)
-(define-key weird-movement-prefix-map (kbd "C-M-p")
-            #'backward-list)
 
 ;; Helm
 ;; Use helm and turn the delay to nothing.
@@ -1177,10 +1160,13 @@ If point was already at that position, move point to beginning of line."
 ;; (require 'org-bullets)
 ;; (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
 
+;; Add my custom org-pipeline stuff here.
+(require 'my-org-pipeline)
+
 ;; Tasks & Events
 ;; TODO
   (add-to-list 'org-todo-keywords
-               '(sequence "TODO(t!)" "ACTIVE(a!)" "WAIT(w/!)" "|" "DONE(d!)" "SOMEDAY(s!)" "CANCELED(C!)" "FAILED(f!)"))
+               '(sequence "TODO(t!)" "ACTIVE(a!)" "WAIT(W/!)" "|" "DONE(d!)" "SOMEDAY(s!)" "CANCELED(C!)" "FAILED(f!)"))
 ;; Event
   (add-to-list 'org-todo-keywords
                '(sequence "EVENT(e!)" "MEETING(m!)" "|" "DONE(d!)" "SOMEDAY(s!)" "CANCELED(C!)" "FAILED(f!)"))
@@ -1508,6 +1494,9 @@ Usage example: To search for state changes that have moved from an non-done to d
 (setq org-log-into-drawer t)
 ;; Save clock data and state changes and notes in the LOGBOOK drawer
 (setq org-clock-into-drawer t)
+(setq org-log-done 'time)
+(setq org-log-redeadline 'time)
+(setq org-log-reschedule 'time)
 
 
 

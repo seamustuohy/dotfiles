@@ -1,0 +1,49 @@
+# -*- mode: snippet -*-
+# name: pipeline frontmatter
+# key: pipetop
+# --
+:frontmatter:
+#+STARTUP: overview
+#+TODO: LEAD(l) CONVERSATION(v) SHAPING(s) WORK(w!) CLOSING(c!) | CLOSED(d!) STEWARDING(t)
+#+PROPERTY: CIRCLE_ALL 1 2 3
+#+PROPERTY: QUALITY_ALL A B C D E F
+#+COLUMNS: %25ITEM %TODO %CIRCLE %QUALITY %PROGRESS %AMOUNT %WEIGHTED_AMOUNT %EXPECTED_CLOSE %HEALTH
+#+BIND: my-org-pipeline-target `(read-string "Enter your target pipeline amount (as int, no $): ")`
+:end:
+:key_bindings:
+# ============== ACTION KEY BINDINGS ==============
+#
+# (C-c c p) ADD ITEM
+# (C-c C-x p) UPDATE PROPERTY of current item
+# (C-c C-z) ADD NOTE to LOGBOOK
+# (C-c C-t) CHANGE item STATE (LEAD->SHAPING/etc.)
+# (C-c r) UPDATE all automated item calculations in buffer
+#
+# ============== REVIEW KEY BINDINGS ==============
+#
+# (C-c C-x C-C) Enter Column Mode (q to exit)
+# (C-c a p) Conduct Pipeline Review
+# (C-c C-a) Conduct Pipeline Audit
+# (C-c t) Create Pipeline Trendline
+#
+:end:
+:documentation:
+# ============== TERMS ===================
+#
+# PERSON NAME, ORGANIZATION, TITLE,  (boilerplate).
+# STATUS: Free text holding the next thing to do with that person. This is only the single current next action, continually replaced using (C-C C-x p).
+# HEALTH: (AUTOMATIC) date: when did I last enagage with them or work on this?
+# CIRCLE: the design principle that the pipeline is "everyone I'm talking to," not "my funding":
+#      - Circle 1 is board and staff,
+#      - Circle 2 is advisors and connectors,
+#      - Circle 3 is potential funders.
+# INTEREST: why this person is here at all.
+# CONNECTION: The node who can connect you.
+# QUALITY: a letter grade, A through F, measuring how likely this person is to be part of the work — the quality of the lead itself
+# PROGRESS %: (AUTOMATIC) the likelihood percentage; when in doubt, be pessimistic.
+# AMOUNT: A fixed dollar value the conversation is worth. Not a range. A pipeline cannot be managed without real numbers.
+# WEIGHTED_AMOUNT: (AUTOMATIC) Amount times probability.
+# EXPECTED_CLOSE: Date expected to close.
+# LOGBOOK: The log of short notes and changes to the state.
+:end:
+$0
