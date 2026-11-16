@@ -323,10 +323,6 @@ Displays the description as an annotation, returning only the clean value."
 %?
 ")
 
-;; (setq org-capture-templates (append org-capture-templates
-;;         `(("p" "Create PIPLINE entry" entry (file my-org-pipeline-agenda-file)
-;;             ,my-org-pipeline-template-lead))))
-
 (with-eval-after-load 'org-capture
   (add-to-list 'org-capture-templates
                `("p" "Create PIPLINE entry" entry
