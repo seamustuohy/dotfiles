@@ -58,8 +58,7 @@ Can be set in individual org-mode file frontmatter using the below:
 
 ;; ----------- AGENDA -------------------
 ;; Make sure org-agenda is loaded before modifying org-agenda-files
-(use-package org
-  :config
+(with-eval-after-load 'org
   (add-to-list 'org-agenda-files my-org-pipeline-agenda-file))
 
 ;; A comparator that implements the bottom-up rule. Worse grades sort first.
