@@ -288,9 +288,9 @@ Displays the description as an annotation, returning only the clean value."
          my-org-pipeline-lead-quality-choices)))
 
 (defvar my-org-pipeline-lead-circle-choices
-  '(("Circle 1" . "Board and staff — core internal team and governance")
-    ("Circle 2" . "Advisors and connectors — strategic guidance and network introductions")
-    ("Circle 3" . "Potential funders — prospective financial supporters and donors"))
+  '(("1" . "Board and staff — core internal team and governance")
+    ("2" . "Advisors and connectors — strategic guidance and network introductions")
+    ("3" . "Potential funders — prospective financial supporters and donors"))
   "Alist of pipeline Circle tiers and descriptions for Org-mode prompts.")
 
 ;; Register CIRCLE for property updates
