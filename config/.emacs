@@ -1160,9 +1160,6 @@ If point was already at that position, move point to beginning of line."
 ;; (require 'org-bullets)
 ;; (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
 
-;; Add my custom org-pipeline stuff here.
-(require 'my-org-pipeline)
-
 ;; Tasks & Events
 ;; TODO
   (add-to-list 'org-todo-keywords
@@ -1206,9 +1203,10 @@ If point was already at that position, move point to beginning of line."
   %^t"
   "Task Template for org-project")
 
-(setq org-capture-templates (append org-capture-templates
+(setq org-capture-templates
         `(("t" "Create TODO" entry (file "~/.org/tasks.org")
-            ,org-project-task-template-todo :clock-in t :clock-resume t))))
+           ,org-project-task-template-todo :clock-in t :clock-resume t)))
+
 (setq org-capture-templates (append org-capture-templates
         `(("e" "Create EVENT" entry (file "~/.org/tasks.org")
             ,org-project-task-template-event :clock-in t :clock-resume t))))
@@ -1373,6 +1371,12 @@ Usage example: To search for state changes that have moved from an non-done to d
 (defvar org-my-archive-expiry-days 30
           "The number of days after which a completed task should be auto-archived.
         This can be 0 for immediate, or a floating point value.")
+
+
+;; ==== ORG PIPELINE =====
+;; Add my custom org-pipeline stuff here.
+(require 'my-org-pipeline)
+
 
 (defun org-archive-subtree-by-state (state-regex)
   (interactive "P")
