@@ -57,9 +57,10 @@ Can be set in individual org-mode file frontmatter using the below:
 ;; ========== PIPELINE REVIEW ==============
 
 ;; ----------- AGENDA -------------------
+(add-to-list 'org-agenda-files my-org-pipeline-agenda-file)
 ;; Make sure org-agenda is loaded before modifying org-agenda-files
-(with-eval-after-load 'org
-  (add-to-list 'org-agenda-files my-org-pipeline-agenda-file))
+;; (with-eval-after-load 'org
+;;  (add-to-list 'org-agenda-files my-org-pipeline-agenda-file))
 
 ;; A comparator that implements the bottom-up rule. Worse grades sort first.
 (defun my-org-pipeline-cmp-quality (a b) "Bottom-up rule: C/D/F entries sort above A/B entries." (let* ((ma (or (get-text-property 0 'org-marker a) (get-text-property 0 'org-hd-marker a))) (mb (or (get-text-property 0 'org-marker b) (get-text-property 0 'org-hd-marker b))) (qa (or (org-entry-get ma "QUALITY") "F")) (qb (or (org-entry-get mb "QUALITY") "F"))) (cond ((string> qa qb) -1) ((string< qa qb) +1))))
@@ -323,9 +324,9 @@ Displays the description as an annotation, returning only the clean value."
 %?
 ")
 
-(setq org-capture-templates
-        `(("p" "Create PIPLINE entry" entry (file "~/professional/fundraising/pipeline.org")
-            ,my-org-pipeline-template-lead)))
+(setq org-capture-templates (append org-capture-templates
+        `(("p" "Create PIPLINE entry" entry (file my-org-pipeline-agenda-file)
+            ,my-org-pipeline-template-lead))))
 
 ;; WEIGHTED STATUS FOR PROGRESS
 (defvar my-org-pipeline-status-weights

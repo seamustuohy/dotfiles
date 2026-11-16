@@ -1206,9 +1206,9 @@ If point was already at that position, move point to beginning of line."
   %^t"
   "Task Template for org-project")
 
-(setq org-capture-templates
+(setq org-capture-templates (append org-capture-templates
         `(("t" "Create TODO" entry (file "~/.org/tasks.org")
-            ,org-project-task-template-todo :clock-in t :clock-resume t)))
+            ,org-project-task-template-todo :clock-in t :clock-resume t))))
 (setq org-capture-templates (append org-capture-templates
         `(("e" "Create EVENT" entry (file "~/.org/tasks.org")
             ,org-project-task-template-event :clock-in t :clock-resume t))))
