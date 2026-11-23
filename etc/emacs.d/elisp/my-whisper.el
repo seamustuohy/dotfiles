@@ -64,3 +64,5 @@ Skips execution if the final quantized model already exists."
                    " && ")))
         (make-directory cache-dir t)
         (compilation-start cmd 'compilation-mode (lambda (_) "*whisper.cpp-install*"))))))
+
+(provide 'my-whisper)
