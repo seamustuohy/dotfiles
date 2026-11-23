@@ -12,21 +12,21 @@
 (use-package whisper
   :vc (:url "https://github.com/natrys/whisper.el" :branch "master")
   :config
-  (setq whisper--mode-line-recording-indicator "⏺")
-  (setq whisper-install-whispercpp "manual")
-  (setq whisper-quantize "q4_0")
+  ;; Install
   (setq whisper-install-directory "~/.emacs.d/.cache")
-  (setq whisper--install-path (concat
-                               (expand-file-name (file-name-as-directory whisper-install-directory))
-                               "whisper.cpp/"))
-  (setq whisper-return-cursor-to-start nil)
-  (setq whisper--ffmpeg-input-device "qubes-source")
-  (setq whisper-language "en")
-  (setq whisper-recording-timeout 3000)
-  (setq whisper-before-transcription-hook nil)
+  (setq whisper-install-whispercpp "manual")
+  (setq whisper-model "small.en")
+  (setq whisper-quantize "q4_0")
   (setq whisper-use-threads (/ (num-processors) 2))
-  ;;(setq whisper-use-threads (1- (num-processors)))
-  (setq whisper-transcription-buffer-name-function 'whisper--simple-transcription-buffer-name)
+  (setq whisper-language "en")
+  (setq whisper--mode-line-recording-indicator "⏺")
+  (setq whisper-return-cursor "end")
+  ;; Use a new buffer
+  (setq whisper-insert-text-at-point nil)
+  (setq whisper-display-transcription-buffer t)
+  (setq whisper-transcription-buffer-name-function #'whisper--timestamped-transcription-buffer-name)
+  ;;(setq whisper--ffmpeg-input-device "qubes-source")
+  ;;(setq whisper-recording-timeout 300)
   :bind
   (("<f9>" . whisper-run)
    ("M-<f9>" . whisper-run)
