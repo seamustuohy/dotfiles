@@ -4,6 +4,13 @@
 ;; Set debug at point
 ;;(debug)
 
+;; === Information ===
+;; Personal Information
+
+(setq user-full-name "seamus tuohy"
+      user-mail-address "code@seamustuohy.com")
+(setq user-code-mail-address "code@seamustuohy.com")
+
 ;; ====== BUG FIXING START ==========
 ;; === WINDOWS <- The worst ===
 ;; Make windows not slow down when it encounters multiple character sets
@@ -77,40 +84,30 @@
 
 (require 'use-package)
 
-;; Move your custom-set-variables and custom-set-faces to a separate file so I can have my .emacs read-only. The custom-file variable  tells Emacs to write all future customizations to a different file while keeping my main config untouched.
-(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
-(load custom-file 'noerror 'nomessage)
 
 ;; Add my custom elisp directory to the load-path so I can split my config a bit more cleanly
 (add-to-list 'load-path "~/.emacs.d/elisp/")
 
-;; Speech-to-Text
+;; Move your custom-set-variables and custom-set-faces to a separate file so I can have my .emacs read-only. The custom-file variable  tells Emacs to write all future customizations to a different file while keeping my main config untouched.
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+(load custom-file 'noerror 'nomessage)
+
+;; Custom controls loading of several optional elisp packages used by different emacs setups
+;; It does this through variables starting with 'my-config-package-enabled--'
+;; The first is directly below this
+
+;; Whisper Speech to Text
 ;; https://github.com/natrys/whisper.el
-;; Required to build (ONE TIME ONLY!)
-;; > sudo apt update && sudo apt install cmake build-essential -y
-;; Required to run every time.
-;; > sudo apt update && sudo apt install ffmpeg -y
-;; TODO: Note: I could not get ;; whisper-quantize to work. worth looking into later.
-(use-package whisper
-  :vc (:url "https://github.com/natrys/whisper.el" :branch "master")
-  :bind ("<f9>" . whisper-run)
-  :config
-  (setopt whisper-install-directory "~/.emacs.d/.cache"
-          whisper-model "small.en"
-          whisper-language "en"
-          whisper-translate nil
-          whisper-cursor-return 'end
-          whisper-use-threads (/ (num-processors) 2))
-  )
+;; https://sachachua.com/blog/2026/01/using-whisper-el-to-capture-text-to-speech-in-emacs/
+;; https://github.com/sachac/whisper.el
+(when (bound-and-true-p my-config-package-enabled--my-whisper)
+  (require 'my-whisper))
+
+;; Whisper Text to Speech - my-whisper
+
 ;; org mode first
 (require 'org)
 
-;; === Information ===
-;; Personal Information
-
-(setq user-full-name "seamus tuohy"
-      user-mail-address "code@seamustuohy.com")
-(setq user-code-mail-address "code@seamustuohy.com")
 
 ;; GPG key to use for encryption
 ;; Either the Key ID or set to nil to use symmetric encryption.
@@ -1126,11 +1123,6 @@ If point was already at that position, move point to beginning of line."
 ;;  Set auto-save for org mode files every hour, on the hour.
 (run-at-time "00:59" 3600 'org-save-all-org-buffers)
 
-;; Capture
-;; Capture Mode
-(setq org-default-notes-file "~/.org/todo/to_file.org")
-(global-set-key (kbd "C-c c") 'org-capture)
-
 ;; Refile
 ;; Targets include this file and any file contributing to the agenda - up to 3 levels deep
 (setq org-refile-targets (quote ((nil :maxlevel . 4)
@@ -1156,285 +1148,6 @@ If point was already at that position, move point to beginning of line."
 ;; Also fold plain lists within major list items.
 (setq org-cycle-include-plain-lists t)
 
-;; Bullets Mode
-;; (require 'org-bullets)
-;; (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
-
-;; Tasks & Events
-;; TODO
-  (add-to-list 'org-todo-keywords
-               '(sequence "TODO(t!)" "ACTIVE(a!)" "WAIT(W/!)" "|" "DONE(d!)" "SOMEDAY(s!)" "CANCELED(C!)" "FAILED(f!)"))
-;; Event
-  (add-to-list 'org-todo-keywords
-               '(sequence "EVENT(e!)" "MEETING(m!)" "|" "DONE(d!)" "SOMEDAY(s!)" "CANCELED(C!)" "FAILED(f!)"))
-
-(defvar org-project-task-template-todo
-  "* TODO %?
-  :PROPERTIES:
-  :CATEGORY:
-  :ID: %(org-id-uuid)
-  :ASSIGNED:
-  :IMPORTANCE:
-  :URGENCY:
-  :WITH:
-  :AT:
-  :STATE: todo
-  :TYPE: task
-  :END:
-  :LOGBOOK:
-  - State \"CREATED\"       from \"NONE\"       %U
-  :END:"
-  "TODO Template for org-project")
-(defvar org-project-task-template-event
-  "* EVENT
-  :PROPERTIES:
-  :CATEGORY:
-  :ID: %(org-id-uuid)
-  :ASSIGNED:
-  :IMPORTANCE:
-  :URGENCY:
-  :WITH:
-  :STATUS: todo
-  :TYPE: event
-  :END:
-  :LOGBOOK:
-  - State \"CREATED\"       from \"NONE\"       %U
-  :END:
-  %^t"
-  "Task Template for org-project")
-
-(setq org-capture-templates
-        `(("t" "Create TODO" entry (file "~/.org/tasks.org")
-           ,org-project-task-template-todo :clock-in t :clock-resume t)))
-
-(setq org-capture-templates (append org-capture-templates
-        `(("e" "Create EVENT" entry (file "~/.org/tasks.org")
-            ,org-project-task-template-event :clock-in t :clock-resume t))))
-
-;; Keybindings for Agenda Mode
-(global-set-key "\C-ca" 'org-agenda)
-(global-set-key "\C-cb" 'org-iswitchb)
-
-;; Agenda Files
-;; TODO add back in "~/.org/work/library/"
-(setq org-agenda-files (quote ("~/.org/todo"
-                               "~/.org/personal/")))
-
-;; Basic Settings
-;;Start with the agenda log ON
-(setq org-agenda-show-log t)
-
-;; Set the agenda to skip scheduled items if they are done
-(setq org-agenda-skip-scheduled-if-done t)
-
-;; Set the agenda to skip deadlines if they are done
-(setq org-agenda-skip-deadline-if-done t)
-
-;; Agenda todo item configuration
-
-;; Keep tasks with dates on the global todo lists
-(setq org-agenda-todo-ignore-with-date nil)
-
-;; Keep tasks with deadlines on the global todo lists
-(setq org-agenda-todo-ignore-deadlines nil)
-
-;; Keep tasks with scheduled dates on the global todo lists
-(setq org-agenda-todo-ignore-scheduled nil)
-
-;; Keep tasks with timestamps on the global todo lists
-(setq org-agenda-todo-ignore-timestamp nil)
-
-;; Remove completed deadline tasks from the agenda view
-(setq org-agenda-skip-deadline-if-done t)
-
-;; Remove completed scheduled tasks from the agenda view
-(setq org-agenda-skip-scheduled-if-done t)
-
-;; Remove completed items from search results
-(setq org-agenda-skip-timestamp-if-done t)
-
-;; Always hilight the current agenda line
-
-(add-hook 'org-agenda-mode-hook
-          '(lambda () (hl-line-mode 1))
-          'append)
-
-;; Time Grid
-
-;; The prompt to resolve running clocks before emacs closes causes more problems than it solves.
-(setq org-clock-ask-before-exiting nil)
-
-;;Set time grid ON for day
-(setq org-agenda-use-time-grid t)
-
-;; Set time grid times (show always on day even if no tasks set.)
-(setq org-agenda-time-grid
-      '((daily today)
-       "----------------"
-       (600 800 1000 1200 1400 1600 1800 2000)))
-
-;; . [[http://orgmode.org/worg/agenda-optimization.html][Speed up agenda mode]]
-
-;; Inhibit agenda files startup options (Org > 8.0)
-;; http://orgmode.org/worg/agenda-optimization.html#sec-4
-(setq org-agenda-inhibit-startup t)
-(setq org-agenda-use-tag-inheritance nil)
-;; Do not dim blocked tasks
-(setq org-agenda-dim-blocked-tasks nil)
-
-;; Custom agenda commands
-(setq org-agenda-custom-commands
-      (quote (("ts"
-               "TODAY's SHORT"
-               ((tags "CORE_TASK=\"true\"+LEVEL=1"
-                      ((org-agenda-overriding-header "Core Clocking Tasks")))
-                (agenda ""
-                ((org-agenda-ndays 1)
-                 (org-agenda-log-mode-items '(clock closed))
-                 (org-agenda-entry-types '())))
-                nil))
-              ("tl"
-               "TODAY's LOG"
-               ((tags "CORE_TASK=\"true\"+LEVEL=1"
-                      ((org-agenda-overriding-header "Core Clocking Tasks")))
-                (agenda ""
-                ((org-agenda-ndays 1)
-                 (org-agenda-show-log t)
-                 (org-agenda-log-mode-items '(clock closed))
-                 (org-agenda-entry-types '())))
-                nil))
-              ("ta"
-               "TODAY's Agenda"
-               ((tags "CORE_TASK=\"true\"+LEVEL=1"
-                      ((org-agenda-overriding-header "Current Projects")))
-                (agenda ""
-                        ((org-agenda-ndays 1)
-                         (org-agenda-show-log t)
-                         (org-agenda-log-mode-items '(clock closed))
-                         (org-agenda-skip-function
-                          '(org-agenda-skip-entry-if 'todo '("CANCELED" "SOMEDAY")))))
-                nil))
-              ("wa"
-               "This Weeks's ALL TASKS"
-               ((tags "CORE_TASK=\"true\"+LEVEL=1"
-                      ((org-agenda-overriding-header "Core Clocking Tasks")))
-                (tags "+SCHEDULED>=\"<+1w>\"TODO=\"TODO\"|+DEADLINE>=\"<+1w>\"+TODO=\"TODO\""
-                      ((org-agenda-overriding-header "Upcoming tasks")))
-                (agenda ""
-                ((org-agenda-ndays 7)
-                 (org-agenda-log-mode-items '(clock closed))))
-                nil))
-              ("wl"
-               "This Weeks's LOGS"
-               ((tags "CORE_TASK=\"true\"+LEVEL=1"
-                      ((org-agenda-overriding-header "Core Clocking Tasks")))
-                (agenda ""
-                ((org-agenda-ndays 7)
-                 (org-agenda-show-log t)
-                 (org-agenda-log-mode-items '(clock closed))
-                 (org-agenda-entry-types '())))
-                nil)))))
-
-;; Agenda Functions
-
-(defvar org-state-prefix-regex "[ \t]*- State\\s-*"
-    "The regex for identifying the prefix for state changes")
-
-    (defvar org-state-done-heads-regex (concat "\"\\(" (regexp-opt org-done-keywords) "\\)\"")
-    "The regex for identifying completed items in state changes")
-
-    (defvar org-state-not-done-heads-regex (concat "\"\\(" (regexp-opt org-not-done-keywords) "\\)\"")
-    "The regex for identifying incomplete items in  state changes")
-
-    (defvar org-state-todo-heads-regex (concat "\"\\(" (regexp-opt org-todo-heads) "\\)\"")
-    "The regex for identifying TODO items in state changes")
-
-    (defvar org-state-clock-entry-regex (concat "\\[\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}"
-                                                "\\s-+\\sw+\\s-+"
-                                                "[012][0-9]:[0-5][0-9]\\)\\]")
-    "The regex for identifying clock items in state changes")
-
-
-  (defun org-state-get-state-change-regex (to-regex from-regex)
-"Creates a regular expression that can be used to get a specific kind of state change.
-
-This function relies on state changes using the style shown in the this example syntax.
-
-- State \"DONE\"       from \"ACTIVE\"     [2015-07-22 Wed 18:10]
-
-Usage example: To search for state changes that have moved from an non-done to done state one could use the following snippet.
-
-(search-forward-regexp (org-state-get-state-change-regex org-state-done-heads-regex org-state-not-done-heads-regex))
-"
-  (concat org-state-prefix-regex to-regex "\\s-+from\\s-+" from-regex "\\s-+" org-state-clock-entry-regex))
-
-(defvar org-my-archive-expiry-days 30
-          "The number of days after which a completed task should be auto-archived.
-        This can be 0 for immediate, or a floating point value.")
-
-
-;; ==== ORG PIPELINE =====
-;; Add my custom org-pipeline stuff here.
-(require 'my-org-pipeline)
-
-
-(defun org-archive-subtree-by-state (state-regex)
-  (interactive "P")
-  (save-excursion
-    ;; Go to the start of the buffer no matter where we are
-    (goto-char (point-min))
-    ;; TODO map entries (only first level headers)
-    ;; TODO if subtree make sure they are all done as well
-    ;; TODO if not completed then move on to the next one
-    ;; NOTE: All top level headers will have to be major project deliverables and meetings
-    ;; NOTE: This is going to require a massive refactor on project files
-    ;; NOTE: This will be diffficult for github issues
-  ))
-
-(defun org-archive-subtree-done (state-regex)
-  (interactive "P")
-  )
-
-(defun org-my-archive-done-tasks ()
-  (interactive)
-  (save-excursion
-    (goto-char (point-min))
-    (let ((done-regexp
-           (concat "\\* \\(" (regexp-opt org-done-keywords) "\\) "))
-          (state-regexp
-           (concat "- State \"\\(" (regexp-opt org-done-keywords)
-                   "\\)\"\\s-*from \"[A-Za-z]+\"\\s-*\\[\\([^]\n]+\\)\\]")))
-      (while (re-search-forward done-regexp nil t)
-        (let ((end (save-excursion
-                     (outline-next-heading)
-                     (point)))
-              begin)
-          (goto-char (line-beginning-position))
-          (setq begin (point))
-          (when (re-search-forward state-regexp end t)
-            (let* ((time-string (match-string 2))
-                   (when-closed (org-parse-time-string time-string)))
-              (if (>= (time-to-number-of-days
-                       (time-subtract (current-time)
-                                      (apply #'encode-time when-closed)))
-                      org-my-archive-expiry-days)
-                  (org-archive-subtree)
-                ))))))))
-
-(defalias 'archive-done-tasks 'org-my-archive-done-tasks)
-
-(defun org-get-project-time ()
-    (interactive) ;; Add a variable here to pull use tag to refine
-    ;; tag_name
-    (org-agenda nil "a")
-    (org-agenda-filter-by-tag "\\")
-    ;;(org-agenda-filter-by-tag tag_name &optional CHAR EXCLUDE)
-    ;;(org-agenda-filter-by-tag-refine ARG &optional CHAR)
-    (org-agenda-month-view)
-    (org-agenda-log-mode t)
-    ;;(org-agenda-earlier)
-)
-
 ;; Don't allow me to edit invisible text
 (setq org-catch-invisible-edits 'error)
 
@@ -1459,114 +1172,13 @@ Usage example: To search for state changes that have moved from an non-done to d
 ;; Link to custom ID, not to file location
 (setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
 
-;; Bookmarks with firefox
-;; ;; http://orgmode.org/worg/org-contrib/org-protocol.html
-;; (require 'org-protocol)
+(when (bound-and-true-p my-config-package-enabled--my-org-agenda)
+  (require 'my-org-agenda))
 
-;; Replace a selected link with the archive version if available
-(defun internet-archive-replace-link ()
-  (interactive)
-  (shell-command-on-region
-   (point-min) (point-max)
-   "xargs -I % python ~/.emacs.d/bin/wb.py %" t))
-
-;; Clock settings
-;; Resume clocking task when emacs is restarted
-(org-clock-persistence-insinuate)
-;; Show lot of clocking history so it's easy to pick items off the C-F11 list
-(setq org-clock-history-length 23)
-;; Resume clocking task on clock-in if the clock is open
-(setq org-clock-in-resume t)
-;; Change tasks to ACTIVE when clocking in
-(setq org-clock-in-switch-to-state 'bh/clock-in-to-active)
-;; Separate drawers for clocking and logs
-(setq org-drawers (quote ("PROPERTIES" "LOGBOOK")))
-;; Sometimes I change tasks I'm clocking quickly - this removes clocked tasks with 0:00 duration
-(setq org-clock-out-remove-zero-time-clocks t)
-;; Clock out when moving task to a done state
-(setq org-clock-out-when-done t)
-;; Save the running clock and all clock history when exiting Emacs, load it on startup
-(setq org-clock-persist t)
-;; Do not prompt to resume an active clock
-(setq org-clock-persist-query-resume nil)
-;; Enable auto clock resolution for finding open clocks
-(setq org-clock-auto-clock-resolution (quote when-no-clock-is-running))
-;; Include current clocking task in clock reports
-(setq org-clock-report-include-clocking-task t)
-
-;; To file todo-state changes into LOGBOOK drawer
-(setq org-log-into-drawer t)
-;; Save clock data and state changes and notes in the LOGBOOK drawer
-(setq org-clock-into-drawer t)
-(setq org-log-done 'time)
-(setq org-log-redeadline 'time)
-(setq org-log-reschedule 'time)
-
-
-
-(defvar bh/organization-task-id "NONE")
-(defun bh/is-task-p ()
-  "Any task with a todo keyword and no subtask"
-  (save-restriction
-    (widen)
-    (let ((has-subtask)
-          (subtree-end (save-excursion (org-end-of-subtree t)))
-          (is-a-task (member (nth 2 (org-heading-components)) org-todo-keywords-1)))
-      (save-excursion
-        (forward-line 1)
-        (while (and (not has-subtask)
-                    (< (point) subtree-end)
-                    (re-search-forward "^\*+ " subtree-end t))
-          (when (member (org-get-todo-state) org-todo-keywords-1)
-            (setq has-subtask t))))
-      (and is-a-task (not has-subtask)))))
-
-(defun bh/is-project-p ()
-  "Any task with a todo keyword subtask"
-  (save-restriction
-    (widen)
-    (let ((has-subtask)
-          (subtree-end (save-excursion (org-end-of-subtree t)))
-          (is-a-task (member (nth 2 (org-heading-components)) org-todo-keywords-1)))
-      (save-excursion
-        (forward-line 1)
-        (while (and (not has-subtask)
-                    (< (point) subtree-end)
-                    (re-search-forward "^\*+ " subtree-end t))
-          (when (member (org-get-todo-state) org-todo-keywords-1)
-            (setq has-subtask t))))
-      (and is-a-task has-subtask))))
-
-
-(defun bh/find-project-task ()
-  "Move point to the parent (project) task if any"
-  (save-restriction
-    (widen)
-    (let ((parent-task (save-excursion (org-back-to-heading 'invisible-ok) (point))))
-      (while (org-up-heading-safe)
-        (when (member (nth 2 (org-heading-components)) org-todo-keywords-1)
-          (setq parent-task (point))))
-      (goto-char parent-task)
-      parent-task)))
-
-;; Set acceptable languages (whatever I want Babel, whatever I want.)
-(org-babel-do-load-languages
- 'org-babel-load-languages
-'((shell               . t)
-  (js                . t)
-  (emacs-lisp . t)
-  (ditaa           . t)
-  (gnuplot    . t)
-  (C          . t)
-  (latex     . t)
-  (makefile   . t)
-  (sql        . t)
-  (sqlite     . t)
-  ;;(scala      . t)
-  (org        . t)
-  (python     . t)
-  (dot        . t)
-  (css        . t)))
+;; ==== ORG PIPELINE =====
+;; my custom org-pipeline stuff
+(when (bound-and-true-p my-config-package-enabled--my-org-pipeline)
+  (require 'my-org-pipeline))
 
 ;; Make code-blocks pretty
 (setq org-src-tab-acts-natively t)
@@ -1605,7 +1217,6 @@ Usage example: To search for state changes that have moved from an non-done to d
    '(which-func ((t (:foreground "green"))))))
 
 (org-src-color-blocks-dark)
-
 
 
 ;; Fix Drawers
@@ -1732,7 +1343,6 @@ Usage example: To search for state changes that have moved from an non-done to d
   (switch-to-buffer nil))               ; return to the initial buffer
 (put 'upcase-region 'disabled nil)
 
-
 (defun string-trim-final-newline (string)
   (let ((len (length string)))
     (cond
@@ -1748,7 +1358,6 @@ Usage example: To search for state changes that have moved from an non-done to d
 (setq warning-suppress-types nil)
 (add-to-list 'warning-suppress-types '(yasnippet backquote-change))
 
-
 (defun recode-region (start end &optional coding-system)
   "Replace the region with a recoded text."
   (interactive "r\n\zCoding System (utf-8): ")
@@ -1757,9 +1366,6 @@ Usage example: To search for state changes that have moved from an non-done to d
         (text (buffer-substring start end)))
     (delete-region start end)
     (insert (decode-coding-string (string-make-unibyte text) coding-system))))
-
-
-
 
 ;; ===  File Encoding===
 
@@ -1777,7 +1383,6 @@ Usage example: To search for state changes that have moved from an non-done to d
   "Change the current buffer to Mac line-ends."
   (interactive)
   (set-buffer-file-coding-system 'mac t))
-
 
 (defun s2e-defang-text (&optional @begin @end)
   "Defang a url.
@@ -1807,7 +1412,6 @@ When called interactively, work on current line or text selection."
            (while (search-forward-regexp (elt $pair 0) (point-max) t)
              (replace-match (elt $pair 1))))
          $charMap)))))
-
 
 
 (defun html2org-clipboard ()
@@ -1855,7 +1459,6 @@ When called interactively, work on current line or text selection."
   (setq cmd "xclip -o -selection clipboard -t text/html")
   (kill-new (shell-command-to-string cmd))
   (yank))
-
 
 (defun slugify-region (beg end)
   "Slugify the text in the active region and replace it in the buffer.
